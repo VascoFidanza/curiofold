@@ -4,4 +4,5 @@ export interface TransactionScope {
 }
 
 export { createDatabase } from './client'
+export { findPublishedStory } from './published-stories'
 export * from './schema'

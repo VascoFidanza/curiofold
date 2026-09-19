@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "story-document/v1",
+  "storyKey": "clockwork-gardens",
+  "locale": "pt-PT",
+  "slug": "jardins-de-relogio",
+  "revision": 1,
+  "previousRevision": null,
+  "publication": {
+    "state": "draft",
+    "publishedAt": null,
+    "archivedAt": null,
+    "withdrawalReason": null
+  },
+  "metadata": {
+    "title": "Jardins de Relógio",
+    "deck": "Um rascunho sintético para validar a localização editorial.",
+    "hook": "E se um jardim marcasse o tempo?",
+    "preview": "Este conteúdo fictício nunca deve aparecer como publicado.",
+    "readingMinutes": 1,
+    "categoryKeys": ["design-history"],
+    "collectionKeys": ["synthetic-fixtures"],
+    "relatedStoryKeys": [],
+    "previewBlockIds": ["opening"]
+  },
+  "editorial": {
+    "sourceLocale": "en",
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "aiAssisted": false,
+    "methodologyNote": "Conteúdo fictício criado apenas para testes.",
+    "updateNote": null
+  },
+  "sources": [
+    {
+      "id": "fixture-source",
+      "title": "Referência sintética",
+      "authors": ["Curiofold Engineering"],
+      "publisher": "Curiofold",
+      "publishedAt": "2026-08-30",
+      "url": "https://research.example.test/clockwork-gardens",
+      "doi": null,
+      "isbn": null,
+      "accessedAt": "2026-08-31"
+    }
+  ],
+  "media": [],
+  "blocks": [
+    {
+      "id": "opening",
+      "kind": "paragraph",
+      "text": "Ao meio-dia, todos os caminhos do jardim fictício ficavam alinhados.",
+      "sourceIds": ["fixture-source"]
+    },
+    {
+      "id": "story-end",
+      "kind": "end_matter",
+      "title": "Continuar a explorar",
+      "text": "Este bloco marca o fim do rascunho sintético.",
+      "links": []
+    }
+  ]
+}

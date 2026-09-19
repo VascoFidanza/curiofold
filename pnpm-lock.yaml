@@ -67,10 +67,21 @@ importers:
         specifier: 4.6.5
         version: 4.6.5
 
-  packages/content: {}
+  packages/content:
+    dependencies:
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
+    devDependencies:
+      tsx:
+        specifier: 4.23.13
+        version: 4.23.13
 
   packages/db:
     dependencies:
+      '@curiofold/content':
+        specifier: workspace:*
+        version: link:../content
       drizzle-orm:
         specifier: 0.45.2
         version: 0.45.2(@types/pg@8.23.1)(pg@8.23.0)

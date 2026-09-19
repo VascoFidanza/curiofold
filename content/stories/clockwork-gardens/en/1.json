@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "story-document/v1",
+  "storyKey": "clockwork-gardens",
+  "locale": "en",
+  "slug": "clockwork-gardens",
+  "revision": 1,
+  "previousRevision": null,
+  "publication": {
+    "state": "published",
+    "publishedAt": "2026-09-01T09:00:00+00:00",
+    "archivedAt": null,
+    "withdrawalReason": null
+  },
+  "metadata": {
+    "title": "Clockwork Gardens",
+    "deck": "A synthetic Story fixture for validating Curiofold's editorial contract.",
+    "hook": "What if a garden kept time?",
+    "preview": "This deliberately fictional fixture exercises the public preview and Reader boundary.",
+    "readingMinutes": 2,
+    "categoryKeys": ["design-history"],
+    "collectionKeys": ["synthetic-fixtures"],
+    "relatedStoryKeys": [],
+    "previewBlockIds": ["opening"]
+  },
+  "editorial": {
+    "sourceLocale": "en",
+    "reviewedBy": "Synthetic Fixture Reviewer",
+    "reviewedAt": "2026-08-31T16:00:00+00:00",
+    "aiAssisted": false,
+    "methodologyNote": "This is fictional test content and makes no factual claim.",
+    "updateNote": null
+  },
+  "sources": [
+    {
+      "id": "fixture-source",
+      "title": "Synthetic fixture reference",
+      "authors": ["Curiofold Engineering"],
+      "publisher": "Curiofold",
+      "publishedAt": "2026-08-30",
+      "url": "https://research.example.test/clockwork-gardens",
+      "doi": null,
+      "isbn": null,
+      "accessedAt": "2026-08-31"
+    }
+  ],
+  "media": [
+    {
+      "id": "garden-diagram",
+      "kind": "diagram",
+      "objectKey": "fixtures/clockwork-gardens/garden-diagram-v1.svg",
+      "alt": "A fictional diagram of interlocking garden paths shaped like clock gears.",
+      "decorative": false,
+      "attribution": "Curiofold synthetic fixture",
+      "rightsBasis": "Original synthetic test asset",
+      "rightsReference": null
+    }
+  ],
+  "blocks": [
+    {
+      "id": "opening",
+      "kind": "paragraph",
+      "text": "At noon, every path in the fictional garden aligned for a single minute.",
+      "sourceIds": ["fixture-source"]
+    },
+    {
+      "id": "mechanism-heading",
+      "kind": "section_heading",
+      "level": 2,
+      "text": "An imagined mechanism"
+    },
+    {
+      "id": "mechanism-diagram",
+      "kind": "image",
+      "mediaId": "garden-diagram",
+      "caption": "Synthetic diagram used to exercise accessible media rendering.",
+      "sourceIds": []
+    },
+    {
+      "id": "central-fact",
+      "kind": "fact_box",
+      "title": "Fixture fact",
+      "body": "This statement is explicitly fictional and exists only to validate citations.",
+      "sourceIds": ["fixture-source"]
+    },
+    {
+      "id": "keeper-quote",
+      "kind": "pull_quote",
+      "text": "The garden never tells time; it asks us to notice it.",
+      "attribution": "Fictional keeper",
+      "sourceIds": ["fixture-source"]
+    },
+    {
+      "id": "source-context",
+      "kind": "source_note",
+      "text": "The reference URL uses the reserved .test domain and is not a real source.",
+      "sourceIds": ["fixture-source"]
+    },
+    {
+      "id": "story-end",
+      "kind": "end_matter",
+      "title": "Continue exploring",
+      "text": "This block marks the end of the synthetic Story.",
+      "links": []
+    }
+  ]
+}
