@@ -13,8 +13,9 @@
     "build": "pnpm --filter @curiofold/web build",
     "clean": "pnpm -r --if-present clean",
     "dev": "pnpm --filter @curiofold/web dev",
-    "format": "prettier --write .github apps packages scripts drizzle.config.ts package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.mjs dependency-cruiser.config.cjs README.md docs/engineering/STATUS.md docs/engineering/ENVIRONMENTS.md",
-    "format:check": "prettier --check .github apps packages scripts drizzle.config.ts package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.mjs dependency-cruiser.config.cjs README.md docs/engineering/STATUS.md docs/engineering/ENVIRONMENTS.md",
+    "content:validate": "pnpm --filter @curiofold/content content:validate",
+    "format": "prettier --write .github apps content packages scripts drizzle.config.ts package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.mjs dependency-cruiser.config.cjs README.md docs/engineering/STATUS.md docs/engineering/ENVIRONMENTS.md",
+    "format:check": "prettier --check .github apps content packages scripts drizzle.config.ts package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.mjs dependency-cruiser.config.cjs README.md docs/engineering/STATUS.md docs/engineering/ENVIRONMENTS.md",
     "lint": "eslint apps packages --max-warnings 0",
     "test": "pnpm -r --if-present test",
     "test:unit": "pnpm -r --if-present test:unit",
@@ -24,7 +25,7 @@
     "db:migrate:check": "pnpm --filter @curiofold/db db:migrate:check",
     "security:bundle": "node scripts/assert-no-client-secrets.mjs",
     "test:integration": "pnpm --filter @curiofold/db test:integration",
-    "validate": "pnpm format:check && pnpm lint && node --check scripts/assert-no-client-secrets.mjs && pnpm boundaries && pnpm typecheck && pnpm test:unit && pnpm build && pnpm security:bundle"
+    "validate": "pnpm format:check && pnpm lint && node --check scripts/assert-no-client-secrets.mjs && pnpm boundaries && pnpm typecheck && pnpm test:unit && pnpm content:validate && pnpm build && pnpm security:bundle"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

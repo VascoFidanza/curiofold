@@ -7,6 +7,7 @@
 ## In progress
 
 - S1-07 — Provision the nonproduction delivery substrate.
+- S1-09 — Prove the structured Story, locale, revision and source contract.
 
 ## Recently completed
 
@@ -15,8 +16,10 @@
 - S1-03 — Workspace and modular boundaries validated locally.
 - S1-04 — PR quality and security gates merged in PR #3.
 - S1-05 — Typed environment and client-bundle controls merged in PR #3.
+- S1-06 — Persistence, migrations and isolated database-test foundations merged in PR #4.
 - Neon nonproduction project provisioned in Frankfurt; resource inventory recorded in `ENVIRONMENTS.md`.
 - Vercel nonproduction project linked to GitHub and its protected preview build smoke-tested successfully.
+- Nonproduction environment inventory and CI hardening merged in PR #5.
 - Linear roadmap materialized with five Projects, 18 Milestones and the first-stage issues.
 
 ## Blocked
@@ -28,9 +31,9 @@
 
 ## Next
 
-1. Configure preview-only environment keys in the linked Vercel project.
-2. Connect development Clerk/Stripe projects without introducing production credentials.
-3. Verify the preview deployment and branch isolation before enabling authenticated or payment flows.
+1. Complete the `StoryDocument@v1` contract, publication projection and isolated PostgreSQL evidence.
+2. Configure preview-only environment keys in the linked Vercel project.
+3. Connect development Clerk/Stripe projects without introducing production credentials.
 4. Keep Neon and provider resources isolated from production until the environment contract is verified.
 
 ## Open decisions

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "story-document/v1",
+  "storyKey": "clockwork-gardens",
+  "locale": "en",
+  "slug": "clockwork-gardens",
+  "revision": 2,
+  "previousRevision": 1,
+  "publication": {
+    "state": "published",
+    "publishedAt": "2026-09-10T09:00:00+00:00",
+    "archivedAt": null,
+    "withdrawalReason": null
+  },
+  "metadata": {
+    "title": "Clockwork Gardens",
+    "deck": "A corrected synthetic Story fixture for Curiofold's editorial contract.",
+    "hook": "What if a garden kept time?",
+    "preview": "This fictional correction preserves the Story identity and stable opening anchor.",
+    "readingMinutes": 1,
+    "categoryKeys": ["design-history"],
+    "collectionKeys": ["synthetic-fixtures"],
+    "relatedStoryKeys": [],
+    "previewBlockIds": ["opening"]
+  },
+  "editorial": {
+    "sourceLocale": "en",
+    "reviewedBy": "Synthetic Fixture Reviewer",
+    "reviewedAt": "2026-09-09T16:00:00+00:00",
+    "aiAssisted": false,
+    "methodologyNote": "This is fictional test content and makes no factual claim.",
+    "updateNote": "Corrected the fictional alignment duration while retaining stable anchors."
+  },
+  "sources": [
+    {
+      "id": "fixture-source",
+      "title": "Synthetic fixture reference",
+      "authors": ["Curiofold Engineering"],
+      "publisher": "Curiofold",
+      "publishedAt": "2026-09-08",
+      "url": "https://research.example.test/clockwork-gardens-correction",
+      "doi": null,
+      "isbn": null,
+      "accessedAt": "2026-09-09"
+    }
+  ],
+  "media": [],
+  "blocks": [
+    {
+      "id": "opening",
+      "kind": "paragraph",
+      "text": "At noon, every path in the fictional garden aligned for precisely thirty seconds.",
+      "sourceIds": ["fixture-source"]
+    },
+    {
+      "id": "correction-context",
+      "kind": "source_note",
+      "text": "Revision two demonstrates a correction without replacing Story ownership identity.",
+      "sourceIds": ["fixture-source"]
+    },
+    {
+      "id": "story-end",
+      "kind": "end_matter",
+      "title": "Continue exploring",
+      "text": "This block marks the end of the corrected synthetic Story.",
+      "links": []
+    }
+  ]
+}

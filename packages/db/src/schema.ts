@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import {
+  type AnyPgColumn,
   check,
   index,
   integer,
@@ -64,6 +65,13 @@ export const storyLocalizations = pgTable(
       .defaultNow(),
     id: uuid('id').defaultRandom().primaryKey(),
     locale: varchar('locale', { length: 12 }).notNull(),
+    currentPublishedVersionId: uuid('current_published_version_id').references(
+      (): AnyPgColumn => storyVersions.id,
+    ),
+    deck: text('deck').notNull().default(''),
+    hook: text('hook').notNull().default(''),
+    preview: text('preview').notNull().default(''),
+    readingMinutes: integer('reading_minutes').notNull().default(1),
     slug: varchar('slug', { length: 180 }).notNull(),
     state: text('state').$type<StoryState>().notNull().default('draft'),
     storyId: uuid('story_id')
@@ -88,6 +96,14 @@ export const storyLocalizations = pgTable(
       'story_localizations_state_check',
       sql`state IN ('draft', 'published', 'archived', 'withdrawn')`,
     ),
+    check(
+      'story_localizations_reading_minutes_positive_check',
+      sql`${table.readingMinutes} > 0`,
+    ),
+    check(
+      'story_localizations_published_pointer_check',
+      sql`${table.state} <> 'published' OR ${table.currentPublishedVersionId} IS NOT NULL`,
+    ),
   ],
 )
 
@@ -104,7 +120,13 @@ export const storyVersions = pgTable(
     localizationId: uuid('localization_id')
       .notNull()
       .references(() => storyLocalizations.id),
+    previousVersionId: uuid('previous_version_id').references(
+      (): AnyPgColumn => storyVersions.id,
+    ),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
     revision: integer('revision').notNull(),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    reviewedBy: varchar('reviewed_by', { length: 240 }),
     schemaVersion: varchar('schema_version', { length: 32 }).notNull(),
   },
   (table) => [

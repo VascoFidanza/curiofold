@@ -8,8 +8,15 @@
   },
   "scripts": {
     "clean": "rm -rf .cache",
+    "content:validate": "tsx src/validate-files.ts",
     "test": "vitest run --passWithNoTests",
     "test:unit": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "tsx": "4.23.13"
   }
 }
