@@ -17,7 +17,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       })
       .withExposedPorts(5432)
       .withWaitStrategy(
-        Wait.forLogMessage(/database system is ready to accept connections/),
+        Wait.forLogMessage(/database system is ready to accept connections/, 2),
       )
       .start()
 
