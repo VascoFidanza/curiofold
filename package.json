@@ -1,0 +1,35 @@
+{
+  "name": "curiofold",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Curiofold browser platform workspace",
+  "engines": {
+    "node": ">=24 <25",
+    "pnpm": ">=11.27 <12"
+  },
+  "packageManager": "pnpm@11.27.0",
+  "scripts": {
+    "boundaries": "depcruise --config dependency-cruiser.config.cjs apps packages",
+    "build": "pnpm --filter @curiofold/web build",
+    "clean": "pnpm -r --if-present clean",
+    "dev": "pnpm --filter @curiofold/web dev",
+    "format": "prettier --write apps packages package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.mjs dependency-cruiser.config.cjs README.md docs/engineering/STATUS.md",
+    "format:check": "prettier --check apps packages package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.mjs dependency-cruiser.config.cjs README.md docs/engineering/STATUS.md",
+    "lint": "eslint . --max-warnings 0",
+    "test": "pnpm -r --if-present test",
+    "test:unit": "pnpm -r --if-present test:unit",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "validate": "pnpm format:check && pnpm lint && pnpm boundaries && pnpm typecheck && pnpm test:unit && pnpm build"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/node": "24.13.5",
+    "dependency-cruiser": "18.3.1",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.5",
+    "prettier": "3.9.8",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.70.0",
+    "vitest": "5.0.1"
+  }
+}

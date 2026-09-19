@@ -17,7 +17,35 @@ Codex and contributors should start with:
 5. [`docs/project/DELIVERY_GOVERNANCE.md`](./docs/project/DELIVERY_GOVERNANCE.md)
 6. [`docs/project/OPEN_DECISIONS.md`](./docs/project/OPEN_DECISIONS.md)
 
-The initial technical architecture is intentionally **not preselected** in this bootstrap documentation. Codex should investigate the repository, product requirements, design requirements and connected Linear workspace in Plan Mode before proposing the engineering plan.
+The technical architecture and delivery roadmap are recorded in
+[`docs/engineering/EXECUTION_PLAN.md`](./docs/engineering/EXECUTION_PLAN.md), with
+material decisions under [`docs/decisions/`](./docs/decisions/).
+
+## Local workspace
+
+Prerequisites:
+
+- Node.js 24 LTS (see `.nvmrc`)
+- Corepack with pnpm 11
+
+```sh
+corepack enable
+pnpm install --frozen-lockfile
+pnpm validate
+pnpm dev
+```
+
+The workspace is intentionally a small modular monolith:
+
+- `apps/web` — Next.js delivery application;
+- `packages/domain` — framework-independent domain policy;
+- `packages/db` — persistence contracts, schema and repositories;
+- `packages/content` — structured Story contracts and compiler;
+- `packages/ui` — shared accessible presentation primitives;
+- `packages/config` — typed configuration contracts.
+
+Infrastructure-linked commands will be documented when the nonproduction delivery
+substrate is provisioned. Local setup must never require production credentials.
 
 ## Documentation ownership
 

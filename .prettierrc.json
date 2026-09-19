@@ -1,0 +1,7 @@
+{
+  "plugins": [],
+  "proseWrap": "preserve",
+  "semi": false,
+  "singleQuote": true,
+  "trailingComma": "all"
+}
