@@ -129,11 +129,9 @@ Once resolved, record the result and link the durable destination such as the Pr
 
 ---
 
-# 4. Engineering documents created after Plan Mode
+# 4. Engineering documents
 
-These should **not** be authored prematurely by the product owner.
-
-Codex creates them after inspecting the repository and receiving approval for the implementation plan.
+These documents were created after repository inspection and product-owner approval of the Master Engineering & Delivery Plan on 2026-09-19.
 
 ## `engineering/EXECUTION_PLAN.md`
 
@@ -158,7 +156,7 @@ Expected to contain:
 - release criteria;
 - technical Definition of Done.
 
-It becomes the canonical approved engineering plan.
+It is the canonical approved engineering plan.
 
 ---
 

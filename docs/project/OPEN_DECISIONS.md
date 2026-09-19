@@ -169,6 +169,81 @@ Pending.
 
 ---
 
+## OD-008 — Initial launch catalogue and editorial accountability
+
+**Status:** OPEN
+**Owner:** Product Owner / Editorial
+**Blocking point:** Launch catalogue gate
+**Decision:** Define the initial Story list, accountable human reviewer and minimum acceptance threshold for launch.
+
+### Constraint
+Every launch Story must have reviewed factual claims, credible sources, complete metadata and no placeholder content.
+
+### Resolution
+Pending.
+
+---
+
+## OD-009 — Media licensing and attribution policy
+
+**Status:** OPEN
+**Owner:** Product Owner with appropriate legal/editorial advice
+**Blocking point:** Publication of launch media
+**Decision:** Define acceptable media sources, evidence, licence categories, attribution rules and takedown procedure.
+
+### Engineering requirement
+Publication validation will require rights, attribution, alt text and provenance metadata.
+
+### Resolution
+Pending.
+
+---
+
+## OD-010 — Spent-credit treatment after refund or chargeback
+
+**Status:** OPEN
+**Owner:** Product Owner with appropriate legal/accounting advice
+**Blocking point:** Reversal/support Milestone and live commerce
+**Decision:** Choose whether spent credits lead to negative balance, spending suspension, entitlement revocation or manual review.
+
+### Engineering default
+The ledger and credit-lot model will retain enough provenance to implement the approved policy without mutating history.
+
+### Resolution
+Pending.
+
+---
+
+## OD-011 — Merchant versus merchant-of-record model
+
+**Status:** OPEN
+**Owner:** Product Owner with appropriate legal/accounting advice
+**Blocking point:** Selection and live configuration of the payment provider
+**Decision:** Confirm whether Curiofold sells directly through Stripe or requires a merchant-of-record provider.
+
+### Engineering default
+Stripe Checkout is the provisional implementation behind a provider adapter.
+
+### Resolution
+Pending.
+
+---
+
+## OD-012 — Initial editorial workflow acceptance
+
+**Status:** PROVISIONAL
+**Owner:** Product Owner / Editorial
+**Blocking point:** Editorial operations Milestone
+**Decision:** Confirm that Git-reviewed structured Story documents are operationally acceptable for the initial content team.
+
+### Engineering default
+Proceed with Git-backed authoring. Reconsider a headless CMS when nontechnical editors require independent routine publishing.
+
+### Resolution
+Provisional default approved as part of the Master Engineering & Delivery Plan; validate with the actual editorial operator before Milestone 2.2 closes.
+
+---
+
 # Technical decisions intentionally NOT listed here
 
 The following should be decided by Codex during Plan Mode unless a product constraint emerges:

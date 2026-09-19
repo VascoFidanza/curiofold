@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# Dependencies and package-manager state
+node_modules/
+.pnpm-store/
+
+# Next.js and build output
+.next/
+out/
+coverage/
+playwright-report/
+test-results/
+
+# Local environment and provider links
+.env
+.env.local
+.env.*.local
+.vercel/
+.neon/
+
+# Logs and caches
+*.log
+.cache/
+.turbo/
+*.tsbuildinfo
+
+# Editors
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
