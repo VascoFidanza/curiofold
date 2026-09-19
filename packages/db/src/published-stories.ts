@@ -38,9 +38,20 @@ export async function findPublishedStory(
     .limit(1)
 
   if (localized) {
+    const story = compileStoryDocument(localized.document)
+    if (
+      story.document.storyKey !== storyKey ||
+      story.document.locale !== locale ||
+      story.document.publication.state !== 'published'
+    ) {
+      throw new Error(
+        'Published Story projection does not match its requested identity.',
+      )
+    }
+
     return {
       status: 'found',
-      story: compileStoryDocument(localized.document),
+      story,
     }
   }
 
