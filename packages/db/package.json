@@ -7,9 +7,21 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "db:generate": "drizzle-kit generate --config ../../drizzle.config.ts",
+    "db:migrate:check": "drizzle-kit check --config ../../drizzle.config.ts",
     "clean": "rm -rf .cache",
     "test": "vitest run --passWithNoTests",
+    "test:integration": "vitest run src/integration.test.ts --passWithNoTests",
     "test:unit": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.2",
+    "pg": "8.23.0"
+  },
+  "devDependencies": {
+    "@types/pg": "8.23.1",
+    "drizzle-kit": "0.31.10",
+    "testcontainers": "12.1.0"
   }
 }

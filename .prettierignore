@@ -5,3 +5,5 @@ out
 playwright-report
 pnpm-lock.yaml
 test-results
+**/next-env.d.ts
+packages/db/drizzle/meta

@@ -6,14 +6,15 @@
 
 ## In progress
 
-- S1-04 — Establish PR quality and security gates.
-- S1-05 — Define typed configuration and secrets contracts.
+- S1-06 — Establish persistence, migrations and isolated database testing.
 
 ## Recently completed
 
 - S1-01 — Approved plan and execution controls merged in PR #1.
 - S1-02 — Foundational ADR set merged in PR #1.
 - S1-03 — Workspace and modular boundaries validated locally.
+- S1-04 — PR quality and security gates merged in PR #3.
+- S1-05 — Typed environment and client-bundle controls merged in PR #3.
 - Linear roadmap materialized with five Projects, 18 Milestones and the first-stage issues.
 
 ## Blocked
@@ -24,9 +25,9 @@
 
 ## Next
 
-1. Add CI quality and security gates for every pull request.
-2. Add typed environment contracts and client-bundle safety checks.
-3. Keep nonproduction provisioning deferred until the environment contract is ready.
+1. Complete the S1-06 database foundation review with CI integration evidence.
+2. Provision only the nonproduction delivery substrate under S1-07.
+3. Keep Neon and provider resources isolated from production until the environment contract is verified.
 
 ## Open decisions
 
