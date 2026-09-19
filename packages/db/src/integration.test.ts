@@ -66,5 +66,5 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       await client.end()
       await container.stop()
     }
-  })
+  }, 60_000)
 })
