@@ -13,13 +13,15 @@
     "build": "pnpm --filter @curiofold/web build",
     "clean": "pnpm -r --if-present clean",
     "dev": "pnpm --filter @curiofold/web dev",
-    "format": "prettier --write apps packages package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.mjs dependency-cruiser.config.cjs README.md docs/engineering/STATUS.md",
-    "format:check": "prettier --check apps packages package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.mjs dependency-cruiser.config.cjs README.md docs/engineering/STATUS.md",
-    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .github apps packages scripts package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.mjs dependency-cruiser.config.cjs README.md docs/engineering/STATUS.md",
+    "format:check": "prettier --check .github apps packages scripts package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.mjs dependency-cruiser.config.cjs README.md docs/engineering/STATUS.md",
+    "lint": "eslint apps packages --max-warnings 0",
     "test": "pnpm -r --if-present test",
     "test:unit": "pnpm -r --if-present test:unit",
     "typecheck": "pnpm -r --if-present typecheck",
-    "validate": "pnpm format:check && pnpm lint && pnpm boundaries && pnpm typecheck && pnpm test:unit && pnpm build"
+    "audit": "pnpm audit --audit-level=high",
+    "security:bundle": "node scripts/assert-no-client-secrets.mjs",
+    "validate": "pnpm format:check && pnpm lint && node --check scripts/assert-no-client-secrets.mjs && pnpm boundaries && pnpm typecheck && pnpm test:unit && pnpm build && pnpm security:bundle"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
