@@ -2,3 +2,6 @@
 export interface TransactionScope {
   readonly id: string
 }
+
+export { createDatabase } from './client'
+export * from './schema'

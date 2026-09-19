@@ -47,6 +47,17 @@ The workspace is intentionally a small modular monolith:
 Infrastructure-linked commands will be documented when the nonproduction delivery
 substrate is provisioned. Local setup must never require production credentials.
 
+Database foundations are checked without connecting to a shared database:
+
+```sh
+DATABASE_URL=postgresql://localhost/curiofold pnpm db:migrate:check
+pnpm db:generate
+pnpm test:integration # requires Docker and starts an isolated PostgreSQL container
+```
+
+`db:generate` and `db:migrate:check` must use a local, CI, preview or staging
+database URL. They must never be pointed at production from a developer shell.
+
 ## Documentation ownership
 
 - Product/business behavior: `docs/product/PROJECT_SPEC.md`
