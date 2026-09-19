@@ -19,6 +19,7 @@
 - S1-06 — Persistence, migrations and isolated database-test foundations merged in PR #4.
 - Neon nonproduction project provisioned in Frankfurt; resource inventory recorded in `ENVIRONMENTS.md`.
 - Vercel nonproduction project linked to GitHub and its protected preview build smoke-tested successfully.
+- Nonproduction environment inventory and CI hardening merged in PR #5.
 - Linear roadmap materialized with five Projects, 18 Milestones and the first-stage issues.
 
 ## Blocked
@@ -30,11 +31,10 @@
 
 ## Next
 
-1. Merge the verified nonproduction environment inventory and CI hardening.
-2. Complete the `StoryDocument@v1` contract, publication projection and isolated PostgreSQL evidence.
-3. Configure preview-only environment keys in the linked Vercel project.
-4. Connect development Clerk/Stripe projects without introducing production credentials.
-5. Keep Neon and provider resources isolated from production until the environment contract is verified.
+1. Complete the `StoryDocument@v1` contract, publication projection and isolated PostgreSQL evidence.
+2. Configure preview-only environment keys in the linked Vercel project.
+3. Connect development Clerk/Stripe projects without introducing production credentials.
+4. Keep Neon and provider resources isolated from production until the environment contract is verified.
 
 ## Open decisions
 
