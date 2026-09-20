@@ -8,7 +8,7 @@
 
 - S1-09 — The structured Story, locale, revision and source contract is merged; final closure waits for the public/Reader vertical slice to consume it.
 - S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
-- S1-11 — PR #9 delivers the public Story Detail route, safe preview projection, missing-locale handling and SEO/share metadata. Local validation is complete; CI review is active, while preview deployment remains blocked by S1-07 authorization.
+- S1-11 — PR #9 delivers the public Story Detail route, safe preview projection, missing-locale handling and SEO/share metadata. Local validation is complete and Vercel deploys the protected preview successfully, but the Story route cannot render there until S1-07 authorizes and supplies the preview database connection.
 
 ## Recently completed
 
@@ -30,7 +30,7 @@
 - Linear cycle creation is subject to the workspace exposing cycle-management capability.
 - Visual acceptance remains dependent on renewed structured access to the Curiofold Figma file.
 - Development Clerk and Stripe credentials are not connected; no authenticated/payment flow is enabled.
-- S1-07 is explicitly blocked pending authorization for the persistent, preview-only Neon–Vercel integration; no integration approval has been submitted.
+- S1-07 is explicitly blocked pending authorization for the persistent, preview-only Neon–Vercel integration; no integration approval has been submitted. The PR #9 preview reports healthy liveness, while its database-backed Story route fails closed with the expected missing-configuration error.
 
 ## Known non-blocking risk
 
@@ -39,7 +39,7 @@
 ## Next
 
 1. Complete S1-10 visual acceptance when structured Figma access returns.
-2. Complete PR #9 review and retain S1-11 as blocked until its preview-deployment and final visual gates can run.
+2. Complete PR #9 review and retain S1-11 as blocked until its preview-data and final visual gates can run.
 3. Establish identity/session boundaries when development Clerk configuration is available.
 4. Resume preview database integration only after the product owner authorizes the persistent Vercel integration.
 
