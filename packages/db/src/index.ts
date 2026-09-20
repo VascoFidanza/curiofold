@@ -4,5 +4,10 @@ export interface TransactionScope {
 }
 
 export { createDatabase } from './client'
-export { findPublishedStory } from './published-stories'
+export {
+  findPublishedStory,
+  findPublishedStoryBySlug,
+  type PublishedStoryLocalization,
+  type PublishedStoryRouteResolution,
+} from './published-stories'
 export * from './schema'

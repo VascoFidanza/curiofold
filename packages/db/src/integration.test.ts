@@ -6,19 +6,22 @@ import { eq } from 'drizzle-orm'
 import { Client } from 'pg'
 import { describe, expect, it } from 'vitest'
 
-import { createDatabase } from './client.js'
-import { findPublishedStory } from './published-stories.js'
-import { stories, storyLocalizations, storyVersions } from './schema.js'
+import { createDatabase } from './client'
+import {
+  findPublishedStory,
+  findPublishedStoryBySlug,
+} from './published-stories'
+import { stories, storyLocalizations, storyVersions } from './schema'
 
 const integrationEnabled = process.env.RUN_DB_INTEGRATION === '1'
 
-async function loadStoryFixture(revision: number) {
+async function loadStoryFixture(path: string) {
   return compileStoryDocument(
     JSON.parse(
       await readFile(
         fileURLToPath(
           new URL(
-            `../../../content/stories/clockwork-gardens/en/${String(revision)}.json`,
+            `../../../content/stories/clockwork-gardens/${path}`,
             import.meta.url,
           ),
         ),
@@ -86,8 +89,9 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         ]),
       )
 
-      const original = await loadStoryFixture(1)
-      const correction = await loadStoryFixture(2)
+      const original = await loadStoryFixture('en/1.json')
+      const correction = await loadStoryFixture('en/2.json')
+      const portugueseDraft = await loadStoryFixture('pt-PT/1.json')
       const [story] = await database.client
         .insert(stories)
         .values({ stableKey: correction.document.storyKey })
@@ -117,6 +121,18 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           'Expected Story localization insertion to return an id.',
         )
       }
+
+      await database.client.insert(storyLocalizations).values({
+        deck: portugueseDraft.document.metadata.deck,
+        hook: portugueseDraft.document.metadata.hook,
+        locale: portugueseDraft.document.locale,
+        preview: portugueseDraft.document.metadata.preview,
+        readingMinutes: portugueseDraft.document.metadata.readingMinutes,
+        slug: portugueseDraft.document.slug,
+        state: 'draft',
+        storyId: story.id,
+        title: portugueseDraft.document.metadata.title,
+      })
 
       const originalPublishedAt = original.document.publication.publishedAt
       const originalReviewedAt = original.document.editorial.reviewedAt
@@ -203,6 +219,33 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       })
       await expect(
         findPublishedStory(database.client, 'unknown-story', 'en'),
+      ).resolves.toEqual({ status: 'not_found' })
+
+      const routed = await findPublishedStoryBySlug(
+        database.client,
+        'en',
+        'clockwork-gardens',
+      )
+      expect(routed.status).toBe('found')
+      if (routed.status === 'found') {
+        expect(routed.story.contentHash).toBe(correction.contentHash)
+        expect(routed.availableLocalizations).toEqual([
+          { locale: 'en', slug: 'clockwork-gardens' },
+        ])
+      }
+
+      await expect(
+        findPublishedStoryBySlug(database.client, 'pt-PT', 'clockwork-gardens'),
+      ).resolves.toEqual({
+        availableLocalizations: [{ locale: 'en', slug: 'clockwork-gardens' }],
+        status: 'missing_locale',
+      })
+      await expect(
+        findPublishedStoryBySlug(
+          database.client,
+          'pt-PT',
+          'jardins-de-relogio',
+        ),
       ).resolves.toEqual({ status: 'not_found' })
     } finally {
       await client.end()

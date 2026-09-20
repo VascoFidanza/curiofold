@@ -1,7 +1,7 @@
 import { readFile, readdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
-import { compileStoryDocument } from './story-contract.js'
+import { compileStoryDocument } from './story-contract'
 
 const repositoryRoot = resolve(import.meta.dirname, '../../..')
 const storyDirectory = resolve(repositoryRoot, 'content/stories')
