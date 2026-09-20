@@ -2,12 +2,11 @@
 
 **Current phase:** Production-shaped walking skeleton
 **Current milestone:** 1.2 — Production-shaped walking skeleton
-**Health:** At Risk — the nonproduction Vercel project is linked, but preview environment variables and development provider credentials are not configured.
+**Health:** At Risk — the nonproduction application foundation is progressing, but the preview database integration requires product-owner authorization and development identity/payment providers are not configured.
 
-## In progress
+## In review
 
-- S1-07 — Provision the nonproduction delivery substrate.
-- S1-09 — Prove the structured Story, locale, revision and source contract.
+- S1-09 — The structured Story, locale, revision and source contract is merged; final closure waits for the public/Reader vertical slice to consume it.
 
 ## Recently completed
 
@@ -20,6 +19,8 @@
 - Neon nonproduction project provisioned in Frankfurt; resource inventory recorded in `ENVIRONMENTS.md`.
 - Vercel nonproduction project linked to GitHub and its protected preview build smoke-tested successfully.
 - Nonproduction environment inventory and CI hardening merged in PR #5.
+- `StoryDocument@v1`, immutable revision projection and fail-closed publication lookup merged in PR #6.
+- S1-14 baseline observability, health/readiness, security headers and threat-model evidence completed in PR #7.
 - Linear roadmap materialized with five Projects, 18 Milestones and the first-stage issues.
 
 ## Blocked
@@ -27,17 +28,21 @@
 - Linear cycle creation is subject to the workspace exposing cycle-management capability.
 - Visual acceptance remains dependent on renewed structured access to the Curiofold Figma file.
 - Development Clerk and Stripe credentials are not connected; no authenticated/payment flow is enabled.
-- Preview environment variables are not configured in the Vercel project yet.
+- S1-07 is explicitly blocked pending authorization for the persistent, preview-only Neon–Vercel integration; no integration approval has been submitted.
+
+## Known non-blocking risk
+
+- The dependency audit reports GHSA-67mh-4wv8-2f99 at Moderate severity in a development-only `esbuild` copy nested under the latest available `drizzle-kit`. It is not shipped with the application or exposed as a development server. The High/Critical CI gate passes; update when Drizzle Kit removes the transitive loader rather than forcing an unverified override.
 
 ## Next
 
-1. Complete the `StoryDocument@v1` contract, publication projection and isolated PostgreSQL evidence.
-2. Configure preview-only environment keys in the linked Vercel project.
-3. Connect development Clerk/Stripe projects without introducing production credentials.
-4. Keep Neon and provider resources isolated from production until the environment contract is verified.
+1. Build the semantic application shell from the approved written design foundation.
+2. Deliver the public Story Detail slice and consume the published Story contract.
+3. Establish identity/session boundaries when development Clerk configuration is available.
+4. Resume preview database integration only after the product owner authorizes the persistent Vercel integration.
 
 ## Open decisions
 
 See `docs/project/OPEN_DECISIONS.md`. No open product decision blocks the foundation stage.
 
-**Last updated:** 2026-09-19
+**Last updated:** 2026-09-20
