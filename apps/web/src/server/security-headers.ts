@@ -23,3 +23,16 @@ export const securityHeaders: readonly {
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'X-Frame-Options', value: 'DENY' },
 ]
+
+/** Paid Reader responses must never enter shared or browser HTTP caches. */
+export const privateContentHeaders: readonly {
+  readonly key: string
+  readonly value: string
+}[] = [
+  {
+    key: 'Cache-Control',
+    value: 'private, no-store, max-age=0, must-revalidate',
+  },
+  { key: 'Pragma', value: 'no-cache' },
+  { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+]

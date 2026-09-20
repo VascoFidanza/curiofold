@@ -17,10 +17,20 @@ const localeSchema = z
 const nonEmptyTextSchema = z.string().trim().min(1)
 const sourceIdsSchema = z.array(identifierSchema).max(50).default([])
 const requiredSourceIdsSchema = z.array(identifierSchema).min(1).max(50)
+const httpsUrlSchema = z.url().refine(
+  (value) => {
+    try {
+      return new URL(value).protocol === 'https:'
+    } catch {
+      return false
+    }
+  },
+  { message: 'Only HTTPS URLs are allowed.' },
+)
 
 const linkSchema = z
   .object({
-    href: z.url(),
+    href: httpsUrlSchema,
     label: nonEmptyTextSchema.max(160),
   })
   .strict()
@@ -112,7 +122,7 @@ const sourceSchema = z
     publisher: nonEmptyTextSchema.max(240).nullable().default(null),
     publishedAt: z.iso.date().nullable().default(null),
     title: nonEmptyTextSchema.max(500),
-    url: z.url().nullable().default(null),
+    url: httpsUrlSchema.nullable().default(null),
   })
   .strict()
   .superRefine((source, context) => {
@@ -141,7 +151,7 @@ const mediaSchema = z
     kind: z.enum(['image', 'diagram']),
     objectKey: nonEmptyTextSchema.max(500),
     rightsBasis: nonEmptyTextSchema.max(500),
-    rightsReference: z.url().nullable().default(null),
+    rightsReference: httpsUrlSchema.nullable().default(null),
   })
   .strict()
   .superRefine((media, context) => {

@@ -69,6 +69,9 @@ describe('safe return paths', () => {
     expect(
       safeReturnPath('/en/stories/clockwork-gardens?from=unlock#ignored'),
     ).toBe('/en/stories/clockwork-gardens?from=unlock')
+    expect(safeReturnPath('/pt-PT/stories/jardins-de-relogio/read')).toBe(
+      '/pt-PT/stories/jardins-de-relogio/read',
+    )
     expect(safeReturnPath('/library')).toBe('/library')
   })
 

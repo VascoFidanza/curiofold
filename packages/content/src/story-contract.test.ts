@@ -149,4 +149,35 @@ describe('StoryDocument contract', () => {
 
     expect(() => compileStoryDocument(unsafeInput)).toThrow()
   })
+
+  it('rejects executable and non-HTTPS content links', async () => {
+    const published = compileStoryDocument(
+      await loadFixture('en/1.json'),
+    ).document
+    const unsafeSource = structuredClone(published)
+    const source = unsafeSource.sources[0]
+    if (!source) {
+      throw new Error('Fixture requires a source.')
+    }
+    source.url = 'javascript:alert(1)'
+
+    expect(() => compileStoryDocument(unsafeSource)).toThrow(
+      'Only HTTPS URLs are allowed.',
+    )
+
+    const insecureEndMatter = structuredClone(published)
+    const endMatter = insecureEndMatter.blocks.find(
+      (block) => block.kind === 'end_matter',
+    )
+    if (!endMatter) {
+      throw new Error('Fixture requires end matter.')
+    }
+    endMatter.links = [
+      { href: 'http://example.test/insecure', label: 'Insecure link' },
+    ]
+
+    expect(() => compileStoryDocument(insecureEndMatter)).toThrow(
+      'Only HTTPS URLs are allowed.',
+    )
+  })
 })

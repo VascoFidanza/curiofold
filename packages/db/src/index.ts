@@ -5,6 +5,16 @@ export interface TransactionScope {
 
 export { createDatabase } from './client'
 export {
+  findEntitledStoryBySlug,
+  grantStoryEntitlement,
+  revokeStoryEntitlement,
+  type EntitledStoryRouteResolution,
+  type GrantStoryEntitlementInput,
+  type GrantStoryEntitlementResult,
+  type RevokeStoryEntitlementInput,
+  type RevokeStoryEntitlementResult,
+} from './entitlements'
+export {
   applyIdentityLifecycleEvent,
   ensureIdentityAccount,
   findIdentityAccount,

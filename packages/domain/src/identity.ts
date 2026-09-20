@@ -118,7 +118,7 @@ const exactReturnPaths = new Set([
 ])
 
 const localizedStoryPath =
-  /^\/[a-z]{2}(?:-[A-Z]{2})?\/stories\/[a-z0-9]+(?:-[a-z0-9]+)*$/u
+  /^\/[a-z]{2}(?:-[A-Z]{2})?\/stories\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/read)?$/u
 
 export function safeReturnPath(
   candidate: string | null | undefined,

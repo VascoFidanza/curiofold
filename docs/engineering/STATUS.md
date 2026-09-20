@@ -9,7 +9,11 @@
 - S1-09 — The structured Story, locale, revision and source contract is merged; final closure waits for the public/Reader vertical slice to consume it.
 - S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
 - S1-11 — PR #9 merged the public Story Detail route, safe preview projection, missing-locale handling and SEO/share metadata. Local validation is complete and Vercel deploys the protected preview successfully, but the Story route cannot render there until S1-07 authorizes and supplies the preview database connection.
-- S1-08 — PR #10 establishes the provider-independent identity/session boundary, database-owned roles, allowlisted force redirects and signed/idempotent lifecycle projection. Local quality, security, browser and PostgreSQL 18 validation pass; live Clerk session/revocation validation remains externally blocked.
+- S1-08 — PR #10 merged the provider-independent identity/session boundary, database-owned roles, allowlisted force redirects and signed/idempotent lifecycle projection. Local, CI and protected-preview provider-free validation pass; live Clerk session/revocation validation remains externally blocked.
+
+## In review
+
+- S1-12 — PR #11 delivers the provider-independent entitlement and Reader boundary: unique/auditable Story ownership, owner-only retrieval, private response policy, structured semantic rendering, accessible sources and simple reading controls. Local quality, migration, PostgreSQL 18 integration, build and browser gates pass; live entitled preview evidence remains externally blocked.
 
 ## Recently completed
 
@@ -41,8 +45,9 @@
 
 1. Complete S1-10 visual acceptance when structured Figma access returns.
 2. Retain S1-11 as blocked until its preview-data and final visual gates can run.
-3. Complete PR #10 review, then retain S1-08's live Clerk smoke gate as blocked until development credentials are connected.
-4. Resume preview database integration only after the product owner authorizes the persistent Vercel integration.
+3. Complete PR #11 review, then retain S1-12's live entitlement/Reader preview gate as blocked until development identity and database connections are available.
+4. Retain S1-08's live Clerk smoke gate as blocked until development credentials are connected.
+5. Resume preview database integration only after the product owner authorizes the persistent Vercel integration.
 
 ## Open decisions
 
