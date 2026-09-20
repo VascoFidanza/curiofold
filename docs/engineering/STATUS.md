@@ -7,7 +7,6 @@
 ## In review
 
 - S1-09 — The structured Story, locale, revision and source contract is merged; final closure waits for the public/Reader vertical slice to consume it.
-- S1-14 — The baseline observability, health/readiness and threat-model implementation has passed local validation and is awaiting CI/review.
 
 ## Recently completed
 
@@ -21,6 +20,7 @@
 - Vercel nonproduction project linked to GitHub and its protected preview build smoke-tested successfully.
 - Nonproduction environment inventory and CI hardening merged in PR #5.
 - `StoryDocument@v1`, immutable revision projection and fail-closed publication lookup merged in PR #6.
+- S1-14 baseline observability, health/readiness, security headers and threat-model evidence completed in PR #7.
 - Linear roadmap materialized with five Projects, 18 Milestones and the first-stage issues.
 
 ## Blocked
@@ -36,9 +36,9 @@
 
 ## Next
 
-1. Complete the baseline request logging, health/readiness and threat-model evidence without external credentials.
-2. Establish identity/session boundaries when development Clerk configuration is available.
-3. Build the semantic application shell and public Story Detail slice from the approved written design foundation.
+1. Build the semantic application shell from the approved written design foundation.
+2. Deliver the public Story Detail slice and consume the published Story contract.
+3. Establish identity/session boundaries when development Clerk configuration is available.
 4. Resume preview database integration only after the product owner authorizes the persistent Vercel integration.
 
 ## Open decisions
