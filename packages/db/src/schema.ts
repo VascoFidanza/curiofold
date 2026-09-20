@@ -1,4 +1,5 @@
 import { sql } from 'drizzle-orm'
+import type { AccountState, StaffRole } from '@curiofold/domain'
 import {
   type AnyPgColumn,
   check,
@@ -13,14 +14,15 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core'
 
-type LifecycleState = 'active' | 'disabled' | 'pending_deletion'
 type StoryState = 'draft' | 'published' | 'archived' | 'withdrawn'
+type IdentityEventResult = 'applied' | 'duplicate' | 'ignored'
+type IdentityEventType = 'user.created' | 'user.deleted' | 'user.updated'
 
 export const users = pgTable(
   'users',
   {
     accountState: text('account_state')
-      .$type<LifecycleState>()
+      .$type<AccountState>()
       .notNull()
       .default('active'),
     clerkSubject: varchar('clerk_subject', { length: 255 }).notNull(),
@@ -28,7 +30,15 @@ export const users = pgTable(
       .notNull()
       .defaultNow(),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
     id: uuid('id').defaultRandom().primaryKey(),
+    lastAuthenticatedAt: timestamp('last_authenticated_at', {
+      withTimezone: true,
+    }),
+    lastIdentityEventAt: timestamp('last_identity_event_at', {
+      withTimezone: true,
+    }),
+    lastIdentityEventId: varchar('last_identity_event_id', { length: 255 }),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -38,6 +48,78 @@ export const users = pgTable(
     check(
       'users_account_state_check',
       sql`account_state IN ('active', 'disabled', 'pending_deletion')`,
+    ),
+  ],
+)
+
+export const identityEvents = pgTable(
+  'identity_events',
+  {
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    eventType: varchar('event_type', { length: 80 })
+      .$type<IdentityEventType>()
+      .notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
+    processedAt: timestamp('processed_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    providerEventId: varchar('provider_event_id', { length: 255 }).notNull(),
+    result: text('result')
+      .$type<IdentityEventResult>()
+      .notNull()
+      .default('applied'),
+    subject: varchar('subject', { length: 255 }).notNull(),
+  },
+  (table) => [
+    uniqueIndex('identity_events_provider_event_id_unique').on(
+      table.providerEventId,
+    ),
+    index('identity_events_subject_occurred_at_index').on(
+      table.subject,
+      table.occurredAt,
+    ),
+    check(
+      'identity_events_type_check',
+      sql`event_type IN ('user.created', 'user.deleted', 'user.updated')`,
+    ),
+    check(
+      'identity_events_result_check',
+      sql`result IN ('applied', 'duplicate', 'ignored')`,
+    ),
+  ],
+)
+
+export const staffRoleAssignments = pgTable(
+  'staff_role_assignments',
+  {
+    grantedAt: timestamp('granted_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    grantedByUserId: uuid('granted_by_user_id').references(() => users.id),
+    id: uuid('id').defaultRandom().primaryKey(),
+    reason: text('reason').notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    revokedByUserId: uuid('revoked_by_user_id').references(() => users.id),
+    role: text('role').$type<StaffRole>().notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+  },
+  (table) => [
+    uniqueIndex('staff_role_assignments_active_role_unique')
+      .on(table.userId, table.role)
+      .where(sql`${table.revokedAt} IS NULL`),
+    index('staff_role_assignments_user_index').on(table.userId),
+    check(
+      'staff_role_assignments_role_check',
+      sql`role IN ('editor', 'publisher', 'support', 'finance', 'admin')`,
+    ),
+    check(
+      'staff_role_assignments_revocation_check',
+      sql`${table.revokedAt} IS NULL OR (${table.revokedByUserId} IS NOT NULL AND ${table.revokedAt} >= ${table.grantedAt})`,
     ),
   ],
 )

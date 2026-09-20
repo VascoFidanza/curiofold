@@ -5,6 +5,14 @@ export interface TransactionScope {
 
 export { createDatabase } from './client'
 export {
+  applyIdentityLifecycleEvent,
+  ensureIdentityAccount,
+  findIdentityAccount,
+  type IdentityAccount,
+  type IdentityLifecycleEvent,
+  type IdentityLifecycleResult,
+} from './identity'
+export {
   findPublishedStory,
   findPublishedStoryBySlug,
   type PublishedStoryLocalization,
