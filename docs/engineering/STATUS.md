@@ -10,6 +10,10 @@
 - S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
 - S1-11 — PR #9 delivers the public Story Detail route, safe preview projection, missing-locale handling and SEO/share metadata. Local validation is complete and Vercel deploys the protected preview successfully, but the Story route cannot render there until S1-07 authorizes and supplies the preview database connection.
 
+## In progress
+
+- S1-08 — Implementing the provider-independent identity/session boundary, database-owned roles, safe return paths and signed lifecycle projection. Live Clerk session/revocation validation remains externally blocked.
+
 ## Recently completed
 
 - S1-01 — Approved plan and execution controls merged in PR #1.
@@ -40,7 +44,7 @@
 
 1. Complete S1-10 visual acceptance when structured Figma access returns.
 2. Complete PR #9 review and retain S1-11 as blocked until its preview-data and final visual gates can run.
-3. Establish identity/session boundaries when development Clerk configuration is available.
+3. Complete the local/CI portion of S1-08, then retain its live Clerk smoke gate as blocked until development credentials are connected.
 4. Resume preview database integration only after the product owner authorizes the persistent Vercel integration.
 
 ## Open decisions

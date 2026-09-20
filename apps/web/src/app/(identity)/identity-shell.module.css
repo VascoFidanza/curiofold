@@ -1,0 +1,54 @@
+.shell {
+  min-height: 100svh;
+  background:
+    radial-gradient(
+      circle at 15% 15%,
+      color-mix(in srgb, var(--cf-color-accent-curiosity) 28%, transparent),
+      transparent 28rem
+    ),
+    var(--cf-color-bg-base);
+}
+
+.header {
+  display: flex;
+  min-height: 4.75rem;
+  align-items: center;
+  padding-inline: clamp(var(--cf-space-5), 5vw, var(--cf-space-12));
+  border-bottom: 1px solid var(--cf-color-border-subtle);
+}
+
+.brandLink {
+  text-decoration: none;
+}
+
+.main {
+  display: grid;
+  min-height: calc(100svh - 4.75rem);
+  place-items: center;
+  padding: var(--cf-space-8) var(--cf-space-5);
+}
+
+.panel {
+  display: grid;
+  width: min(100%, 32rem);
+  gap: var(--cf-space-6);
+  justify-items: center;
+}
+
+.introduction {
+  display: grid;
+  gap: var(--cf-space-3);
+  text-align: center;
+}
+
+.introduction p {
+  margin: 0;
+  color: var(--cf-color-text-secondary);
+  line-height: var(--cf-line-height-body-default);
+}
+
+.introduction h1 {
+  margin: 0;
+  font-size: var(--cf-font-size-heading-h1);
+  line-height: var(--cf-line-height-heading-h1);
+}

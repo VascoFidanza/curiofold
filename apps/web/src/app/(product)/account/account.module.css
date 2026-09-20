@@ -1,0 +1,62 @@
+.account {
+  display: grid;
+  max-width: 42rem;
+  gap: var(--cf-space-6);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--cf-color-action-primary);
+  font-size: var(--cf-font-size-label-medium);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: var(--cf-line-height-label-medium);
+  text-transform: uppercase;
+}
+
+.account h1 {
+  margin: 0;
+  font-size: var(--cf-font-size-heading-h1);
+  line-height: var(--cf-line-height-heading-h1);
+}
+
+.account > p:not(.eyebrow) {
+  margin: 0;
+  color: var(--cf-color-text-secondary);
+  font-size: var(--cf-font-size-body-large);
+  line-height: var(--cf-line-height-body-large);
+}
+
+.sessionCard {
+  display: flex;
+  min-height: 4.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cf-space-5);
+  padding: var(--cf-space-5);
+  background: var(--cf-color-bg-surface);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: var(--cf-radius-lg);
+}
+
+.sessionCard p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.signInLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-self: start;
+  padding: var(--cf-space-3) var(--cf-space-4);
+  color: var(--cf-color-action-on-primary);
+  font-weight: 600;
+  text-decoration: none;
+  background: var(--cf-color-action-primary);
+  border-radius: var(--cf-radius-md);
+}
+
+.signInLink:hover {
+  background: var(--cf-color-action-primary-hover);
+}

@@ -13,13 +13,16 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@clerk/nextjs": "7.9.4",
     "@curiofold/config": "workspace:*",
     "@curiofold/content": "workspace:*",
     "@curiofold/db": "workspace:*",
+    "@curiofold/domain": "workspace:*",
     "@curiofold/ui": "workspace:*",
     "next": "16.3.5",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1"
   },
   "devDependencies": {
     "@testing-library/dom": "10.4.2",

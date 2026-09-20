@@ -8,10 +8,20 @@ import { describe, expect, it } from 'vitest'
 
 import { createDatabase } from './client'
 import {
+  applyIdentityLifecycleEvent,
+  ensureIdentityAccount,
+  findIdentityAccount,
+} from './identity'
+import {
   findPublishedStory,
   findPublishedStoryBySlug,
 } from './published-stories'
-import { stories, storyLocalizations, storyVersions } from './schema'
+import {
+  staffRoleAssignments,
+  stories,
+  storyLocalizations,
+  storyVersions,
+} from './schema'
 
 const integrationEnabled = process.env.RUN_DB_INTEGRATION === '1'
 
@@ -32,21 +42,30 @@ async function loadStoryFixture(path: string) {
 }
 
 describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
-  it('is reserved for an isolated Testcontainers database', async () => {
-    const { GenericContainer, Wait } = await import('testcontainers')
-    const container = await new GenericContainer('postgres:18-alpine')
-      .withEnvironment({
-        POSTGRES_DB: 'curiofold_test',
-        POSTGRES_PASSWORD: 'curiofold_test',
-        POSTGRES_USER: 'curiofold_test',
-      })
-      .withExposedPorts(5432)
-      .withWaitStrategy(
-        Wait.forLogMessage(/database system is ready to accept connections/, 2),
-      )
-      .start()
+  it('uses an isolated PostgreSQL 18 database', async () => {
+    let connectionString = process.env.TEST_DATABASE_URL
+    let stopDatabase = () => Promise.resolve()
 
-    const connectionString = `postgresql://curiofold_test:curiofold_test@${container.getHost()}:${String(container.getMappedPort(5432))}/curiofold_test`
+    if (!connectionString) {
+      const { GenericContainer, Wait } = await import('testcontainers')
+      const container = await new GenericContainer('postgres:18-alpine')
+        .withEnvironment({
+          POSTGRES_DB: 'curiofold_test',
+          POSTGRES_PASSWORD: 'curiofold_test',
+          POSTGRES_USER: 'curiofold_test',
+        })
+        .withExposedPorts(5432)
+        .withWaitStrategy(
+          Wait.forLogMessage(
+            /database system is ready to accept connections/,
+            2,
+          ),
+        )
+        .start()
+      connectionString = `postgresql://curiofold_test:curiofold_test@${container.getHost()}:${String(container.getMappedPort(5432))}/curiofold_test`
+      stopDatabase = () => container.stop().then(() => undefined)
+    }
+
     const client = new Client({ connectionString })
     const database = createDatabase(connectionString)
 
@@ -81,13 +100,79 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       expect(tables.rows.map((row) => row.table_name)).toEqual(
         expect.arrayContaining([
           'audit_events',
+          'identity_events',
           'reading_progress',
+          'staff_role_assignments',
           'stories',
           'story_localizations',
           'story_versions',
           'users',
         ]),
       )
+
+      const authenticatedAt = new Date('2026-09-20T10:00:00.000Z')
+      const linkedAccount = await ensureIdentityAccount(
+        database.client,
+        'user_identity_fixture',
+        authenticatedAt,
+      )
+      expect(linkedAccount).toMatchObject({
+        accountState: 'active',
+        emailVerified: false,
+        staffRoles: new Set(),
+      })
+
+      const createdEvent = {
+        emailVerified: true,
+        eventId: 'evt_identity_created',
+        occurredAt: new Date('2026-09-20T10:01:00.000Z'),
+        subject: 'user_identity_fixture',
+        type: 'user.created' as const,
+      }
+      await expect(
+        applyIdentityLifecycleEvent(database.client, createdEvent),
+      ).resolves.toBe('applied')
+      await expect(
+        applyIdentityLifecycleEvent(database.client, createdEvent),
+      ).resolves.toBe('duplicate')
+
+      await database.client.insert(staffRoleAssignments).values({
+        reason: 'Synthetic integration-test assignment.',
+        role: 'publisher',
+        userId: linkedAccount.userId,
+      })
+      await expect(
+        findIdentityAccount(database.client, 'user_identity_fixture'),
+      ).resolves.toMatchObject({
+        accountState: 'active',
+        emailVerified: true,
+        staffRoles: new Set(['publisher']),
+      })
+
+      await expect(
+        applyIdentityLifecycleEvent(database.client, {
+          emailVerified: false,
+          eventId: 'evt_identity_deleted',
+          occurredAt: new Date('2026-09-20T10:03:00.000Z'),
+          subject: 'user_identity_fixture',
+          type: 'user.deleted',
+        }),
+      ).resolves.toBe('applied')
+      await expect(
+        applyIdentityLifecycleEvent(database.client, {
+          emailVerified: true,
+          eventId: 'evt_identity_stale_update',
+          occurredAt: new Date('2026-09-20T10:02:00.000Z'),
+          subject: 'user_identity_fixture',
+          type: 'user.updated',
+        }),
+      ).resolves.toBe('ignored')
+      await expect(
+        findIdentityAccount(database.client, 'user_identity_fixture'),
+      ).resolves.toMatchObject({
+        accountState: 'disabled',
+        emailVerified: false,
+      })
 
       const original = await loadStoryFixture('en/1.json')
       const correction = await loadStoryFixture('en/2.json')
@@ -250,7 +335,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
     } finally {
       await client.end()
       await database.pool.end()
-      await container.stop()
+      await stopDatabase()
     }
   }, 60_000)
 })
