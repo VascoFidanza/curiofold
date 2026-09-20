@@ -13,10 +13,16 @@ import {
   findIdentityAccount,
 } from './identity'
 import {
+  findEntitledStoryBySlug,
+  grantStoryEntitlement,
+  revokeStoryEntitlement,
+} from './entitlements'
+import {
   findPublishedStory,
   findPublishedStoryBySlug,
 } from './published-stories'
 import {
+  entitlementEvents,
   staffRoleAssignments,
   stories,
   storyLocalizations,
@@ -100,10 +106,12 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       expect(tables.rows.map((row) => row.table_name)).toEqual(
         expect.arrayContaining([
           'audit_events',
+          'entitlement_events',
           'identity_events',
           'reading_progress',
           'staff_role_assignments',
           'stories',
+          'story_entitlements',
           'story_localizations',
           'story_versions',
           'users',
@@ -318,6 +326,120 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           { locale: 'en', slug: 'clockwork-gardens' },
         ])
       }
+
+      await expect(
+        findEntitledStoryBySlug(
+          database.client,
+          linkedAccount.userId,
+          'en',
+          'clockwork-gardens',
+        ),
+      ).resolves.toEqual({ status: 'not_entitled' })
+
+      const concurrentGrants = await Promise.all([
+        grantStoryEntitlement(database.client, {
+          actorUserId: linkedAccount.userId,
+          grantedAt: new Date('2026-09-20T11:00:00.000Z'),
+          reason: 'Synthetic Reader integration fixture.',
+          source: 'seed',
+          storyId: story.id,
+          userId: linkedAccount.userId,
+        }),
+        grantStoryEntitlement(database.client, {
+          actorUserId: linkedAccount.userId,
+          grantedAt: new Date('2026-09-20T11:00:00.000Z'),
+          reason: 'Duplicate synthetic Reader grant.',
+          source: 'seed',
+          storyId: story.id,
+          userId: linkedAccount.userId,
+        }),
+      ])
+      expect(concurrentGrants.filter(({ created }) => created)).toHaveLength(1)
+      expect(
+        new Set(concurrentGrants.map(({ entitlementId }) => entitlementId))
+          .size,
+      ).toBe(1)
+
+      const grantEvents = await database.client
+        .select({ reason: entitlementEvents.reason })
+        .from(entitlementEvents)
+        .where(
+          eq(
+            entitlementEvents.entitlementId,
+            concurrentGrants[0].entitlementId,
+          ),
+        )
+      expect(grantEvents).toHaveLength(1)
+
+      const entitled = await findEntitledStoryBySlug(
+        database.client,
+        linkedAccount.userId,
+        'en',
+        'clockwork-gardens',
+      )
+      expect(entitled.status).toBe('found')
+      if (entitled.status === 'found') {
+        expect(entitled.story.document.blocks).toHaveLength(3)
+        expect(entitled.story.document.blocks[1]).toMatchObject({
+          id: 'correction-context',
+          kind: 'source_note',
+        })
+      }
+
+      const otherReader = await ensureIdentityAccount(
+        database.client,
+        'user_other_reader_fixture',
+        new Date('2026-09-20T11:01:00.000Z'),
+      )
+      await expect(
+        findEntitledStoryBySlug(
+          database.client,
+          otherReader.userId,
+          'en',
+          'clockwork-gardens',
+        ),
+      ).resolves.toEqual({ status: 'not_entitled' })
+
+      const revoked = await revokeStoryEntitlement(database.client, {
+        actorUserId: linkedAccount.userId,
+        entitlementId: concurrentGrants[0].entitlementId,
+        reason: 'Synthetic revocation evidence.',
+        revokedAt: new Date('2026-09-20T11:02:00.000Z'),
+      })
+      expect(revoked).toMatchObject({ changed: true, status: 'revoked' })
+      await expect(
+        revokeStoryEntitlement(database.client, {
+          actorUserId: linkedAccount.userId,
+          entitlementId: revoked.entitlementId,
+          reason: 'Duplicate synthetic revocation.',
+          revokedAt: new Date('2026-09-20T11:02:00.000Z'),
+        }),
+      ).resolves.toEqual({
+        changed: false,
+        entitlementId: revoked.entitlementId,
+        status: 'revoked',
+      })
+      await expect(
+        findEntitledStoryBySlug(
+          database.client,
+          linkedAccount.userId,
+          'en',
+          'clockwork-gardens',
+        ),
+      ).resolves.toEqual({ status: 'not_entitled' })
+
+      const entitlementHistory = await database.client
+        .select({ eventType: entitlementEvents.eventType })
+        .from(entitlementEvents)
+        .where(
+          eq(
+            entitlementEvents.entitlementId,
+            concurrentGrants[0].entitlementId,
+          ),
+        )
+      expect(
+        entitlementHistory.map(({ eventType }) => eventType).sort(),
+      ).toEqual(['granted', 'revoked'])
 
       await expect(
         findPublishedStoryBySlug(database.client, 'pt-PT', 'clockwork-gardens'),

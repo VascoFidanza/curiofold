@@ -17,6 +17,9 @@ import {
 type StoryState = 'draft' | 'published' | 'archived' | 'withdrawn'
 type IdentityEventResult = 'applied' | 'duplicate' | 'ignored'
 type IdentityEventType = 'user.created' | 'user.deleted' | 'user.updated'
+type EntitlementEventType = 'granted' | 'restored' | 'revoked'
+type EntitlementGrantSource = 'seed' | 'support' | 'unlock'
+type EntitlementStatus = 'active' | 'revoked'
 
 export const users = pgTable(
   'users',
@@ -137,6 +140,80 @@ export const stories = pgTable(
       .defaultNow(),
   },
   (table) => [uniqueIndex('stories_stable_key_unique').on(table.stableKey)],
+)
+
+export const storyEntitlements = pgTable(
+  'story_entitlements',
+  {
+    grantedAt: timestamp('granted_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    grantSource: text('grant_source').$type<EntitlementGrantSource>().notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    status: text('status')
+      .$type<EntitlementStatus>()
+      .notNull()
+      .default('active'),
+    storyId: uuid('story_id')
+      .notNull()
+      .references(() => stories.id),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+  },
+  (table) => [
+    uniqueIndex('story_entitlements_user_story_unique').on(
+      table.userId,
+      table.storyId,
+    ),
+    index('story_entitlements_story_index').on(table.storyId),
+    check(
+      'story_entitlements_status_check',
+      sql`status IN ('active', 'revoked')`,
+    ),
+    check(
+      'story_entitlements_grant_source_check',
+      sql`grant_source IN ('seed', 'support', 'unlock')`,
+    ),
+    check(
+      'story_entitlements_revocation_check',
+      sql`(status = 'active' AND ${table.revokedAt} IS NULL) OR (status = 'revoked' AND ${table.revokedAt} IS NOT NULL)`,
+    ),
+  ],
+)
+
+export const entitlementEvents = pgTable(
+  'entitlement_events',
+  {
+    actorUserId: uuid('actor_user_id').references(() => users.id),
+    entitlementId: uuid('entitlement_id')
+      .notNull()
+      .references(() => storyEntitlements.id),
+    eventType: text('event_type').$type<EntitlementEventType>().notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    reason: text('reason').notNull(),
+  },
+  (table) => [
+    index('entitlement_events_entitlement_occurred_index').on(
+      table.entitlementId,
+      table.occurredAt,
+    ),
+    check(
+      'entitlement_events_type_check',
+      sql`event_type IN ('granted', 'restored', 'revoked')`,
+    ),
+    check(
+      'entitlement_events_reason_check',
+      sql`length(trim(${table.reason})) > 0`,
+    ),
+  ],
 )
 
 export const storyLocalizations = pgTable(

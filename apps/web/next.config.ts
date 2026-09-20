@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next'
 
-import { securityHeaders } from './src/server/security-headers'
+import {
+  privateContentHeaders,
+  securityHeaders,
+} from './src/server/security-headers'
 
 const nextConfig: NextConfig = {
   headers: () =>
@@ -8,6 +11,10 @@ const nextConfig: NextConfig = {
       {
         headers: securityHeaders.map((header) => ({ ...header })),
         source: '/(.*)',
+      },
+      {
+        headers: privateContentHeaders.map((header) => ({ ...header })),
+        source: '/:locale/stories/:slug/read',
       },
     ]),
   poweredByHeader: false,

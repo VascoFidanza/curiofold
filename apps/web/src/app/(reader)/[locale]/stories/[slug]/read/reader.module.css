@@ -1,0 +1,461 @@
+.readerShell {
+  --reader-column: 43rem;
+  --reader-font-size: 1.25rem;
+  --reader-line-height: 1.6;
+  min-height: 100svh;
+  color: var(--cf-color-text-primary);
+  background: var(--cf-color-bg-base);
+}
+
+.readerShell[data-reader-text-size='small'] {
+  --reader-font-size: 1.125rem;
+  --reader-line-height: 1.62;
+}
+
+.readerShell[data-reader-text-size='large'] {
+  --reader-font-size: 1.4rem;
+  --reader-line-height: 1.62;
+}
+
+.readerShell[data-reader-width='wide'] {
+  --reader-column: 49rem;
+}
+
+.skipLink {
+  position: fixed;
+  z-index: 20;
+  top: var(--cf-space-3);
+  left: var(--cf-space-3);
+  padding: var(--cf-space-3) var(--cf-space-4);
+  color: var(--cf-color-action-on-primary);
+  text-decoration: none;
+  background: var(--cf-color-action-primary);
+  border-radius: var(--cf-radius-md);
+  transform: translateY(-200%);
+}
+
+.skipLink:focus {
+  transform: translateY(0);
+}
+
+.toolbar {
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  display: grid;
+  min-height: 4rem;
+  grid-template-columns: minmax(5rem, 1fr) minmax(0, 2fr) minmax(5rem, 1fr);
+  align-items: center;
+  gap: var(--cf-space-4);
+  padding: var(--cf-space-2) clamp(var(--cf-space-4), 4vw, var(--cf-space-8));
+  background: color-mix(in srgb, var(--cf-color-bg-base) 92%, transparent);
+  border-bottom: 1px solid var(--cf-color-border-subtle);
+  backdrop-filter: blur(0.75rem);
+}
+
+.backLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: var(--cf-space-2);
+  justify-self: start;
+  color: var(--cf-color-text-primary);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.toolbarTitle {
+  overflow: hidden;
+  margin: 0;
+  font-size: var(--cf-font-size-label-medium);
+  font-weight: 650;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings {
+  position: relative;
+  justify-self: end;
+}
+
+.settings summary {
+  display: grid;
+  width: 2.75rem;
+  min-height: 2.75rem;
+  place-items: center;
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 650;
+  cursor: pointer;
+  background: var(--cf-color-bg-surface);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: 999px;
+  list-style: none;
+}
+
+.settings summary::-webkit-details-marker {
+  display: none;
+}
+
+.settingsPanel {
+  position: absolute;
+  top: calc(100% + var(--cf-space-2));
+  right: 0;
+  display: grid;
+  width: min(20rem, calc(100vw - 2 * var(--cf-space-4)));
+  gap: var(--cf-space-5);
+  padding: var(--cf-space-5);
+  background: var(--cf-color-bg-surface);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: var(--cf-radius-lg);
+  box-shadow: 0 1rem 3rem rgb(31 33 28 / 14%);
+}
+
+.controlGroup {
+  display: grid;
+  gap: var(--cf-space-2);
+}
+
+.controlGroup p {
+  margin: 0;
+  font-size: var(--cf-font-size-label-medium);
+  font-weight: 700;
+}
+
+.controlGroup > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-2);
+}
+
+.controlGroup button {
+  min-height: 2.75rem;
+  padding: var(--cf-space-2) var(--cf-space-3);
+  color: var(--cf-color-text-primary);
+  font: inherit;
+  cursor: pointer;
+  background: var(--cf-color-bg-base);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: var(--cf-radius-md);
+}
+
+.controlGroup button[aria-pressed='true'] {
+  color: var(--cf-color-action-on-primary);
+  background: var(--cf-color-action-primary);
+  border-color: var(--cf-color-action-primary);
+}
+
+.story {
+  width: min(
+    100% - 2 * clamp(var(--cf-space-5), 5vw, var(--cf-space-12)),
+    var(--reader-column)
+  );
+  margin-inline: auto;
+  padding-block: clamp(var(--cf-space-10), 8vw, 7rem) var(--cf-space-16);
+}
+
+.storyHeader {
+  display: grid;
+  gap: var(--cf-space-5);
+  padding-bottom: clamp(var(--cf-space-10), 7vw, var(--cf-space-16));
+  border-bottom: 1px solid var(--cf-color-border-subtle);
+}
+
+.category,
+.sectionEyebrow {
+  margin: 0;
+  color: var(--cf-color-action-primary);
+  font-family: var(--font-instrument-sans), Arial, sans-serif;
+  font-size: var(--cf-font-size-label-medium);
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  line-height: var(--cf-line-height-label-medium);
+  text-transform: uppercase;
+}
+
+.storyHeader h1 {
+  max-width: 13ch;
+  margin: 0;
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: clamp(3rem, 8vw, 4rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+}
+
+.deck {
+  max-width: 42rem;
+  margin: 0;
+  color: var(--cf-color-text-secondary);
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: clamp(1.3rem, 3vw, 1.55rem);
+  line-height: 1.45;
+}
+
+.metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-2) var(--cf-space-5);
+  margin: 0;
+  padding: 0;
+  color: var(--cf-color-text-secondary);
+  font-size: var(--cf-font-size-label-medium);
+  list-style: none;
+}
+
+.updateNote {
+  margin: 0;
+  padding: var(--cf-space-4);
+  color: var(--cf-color-text-secondary);
+  background: var(--cf-color-bg-surface);
+  border-left: 0.2rem solid var(--cf-color-action-primary);
+}
+
+.storyBody {
+  display: grid;
+  gap: var(--cf-space-8);
+  padding-block: clamp(var(--cf-space-12), 9vw, 6rem);
+}
+
+.paragraph,
+.sourceNote p,
+.factBox p,
+.endMatter p,
+.sources > p:not(.sectionEyebrow) {
+  margin: 0;
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: var(--reader-font-size);
+  line-height: var(--reader-line-height);
+}
+
+.sectionHeading {
+  margin: var(--cf-space-8) 0 0;
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: clamp(1.9rem, 5vw, 2.6rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  scroll-margin-top: 5rem;
+}
+
+h3.sectionHeading {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
+
+.citations {
+  margin-inline-start: 0.15em;
+  font-family: var(--font-instrument-sans), Arial, sans-serif;
+  font-size: 0.62em;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: super;
+}
+
+.citations a {
+  color: var(--cf-color-action-primary);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.12em;
+}
+
+.pullQuote {
+  display: grid;
+  gap: var(--cf-space-4);
+  margin: var(--cf-space-8) 0;
+  padding-inline-start: clamp(var(--cf-space-5), 6vw, var(--cf-space-10));
+  border-left: 0.2rem solid var(--cf-color-action-primary);
+}
+
+.pullQuote blockquote {
+  margin: 0;
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: clamp(1.5rem, 4vw, 1.9rem);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.pullQuote figcaption {
+  display: flex;
+  align-items: baseline;
+  gap: var(--cf-space-2);
+  color: var(--cf-color-text-secondary);
+  font-size: var(--cf-font-size-label-medium);
+}
+
+.factBox,
+.sourceNote,
+.endMatter {
+  display: grid;
+  gap: var(--cf-space-3);
+  padding: clamp(var(--cf-space-5), 5vw, var(--cf-space-8));
+  background: var(--cf-color-bg-surface);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: var(--cf-radius-lg);
+}
+
+.factBox h2,
+.endMatter h2 {
+  margin: 0;
+  font-size: var(--cf-font-size-heading-h2);
+  line-height: var(--cf-line-height-heading-h2);
+}
+
+.sourceNote {
+  border-inline-start: 0.2rem solid var(--cf-color-action-primary);
+  border-radius: 0 var(--cf-radius-lg) var(--cf-radius-lg) 0;
+}
+
+.mediaBlock {
+  display: grid;
+  gap: var(--cf-space-3);
+  margin: var(--cf-space-6) 0;
+}
+
+.mediaPlaceholder {
+  display: grid;
+  min-height: clamp(14rem, 42vw, 24rem);
+  place-items: center;
+  color: var(--cf-color-text-secondary);
+  background:
+    linear-gradient(
+      135deg,
+      transparent 48%,
+      rgb(49 93 74 / 10%) 49% 51%,
+      transparent 52%
+    ),
+    var(--cf-color-bg-surface);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: var(--cf-radius-lg);
+}
+
+.mediaBlock figcaption {
+  display: grid;
+  gap: var(--cf-space-1);
+  color: var(--cf-color-text-secondary);
+  font-size: var(--cf-font-size-label-medium);
+  line-height: 1.5;
+}
+
+.mediaBlock figcaption small {
+  font: inherit;
+  font-size: 0.875em;
+}
+
+.endMatter ul {
+  margin: 0;
+  padding-inline-start: var(--cf-space-6);
+}
+
+.sources {
+  display: grid;
+  gap: var(--cf-space-5);
+  padding-top: clamp(var(--cf-space-12), 10vw, 7rem);
+  border-top: 1px solid var(--cf-color-border-subtle);
+}
+
+.sources h2 {
+  margin: 0;
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  line-height: 1.15;
+}
+
+.sources ol {
+  display: grid;
+  gap: var(--cf-space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sources li {
+  display: grid;
+  gap: var(--cf-space-2);
+  padding-block: var(--cf-space-4);
+  border-bottom: 1px solid var(--cf-color-border-subtle);
+  scroll-margin-top: 5rem;
+}
+
+.sources li p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.sourceNumber {
+  color: var(--cf-color-action-primary);
+  font-weight: 750;
+}
+
+.sourceLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-2) var(--cf-space-5);
+  color: var(--cf-color-text-secondary);
+  font-size: var(--cf-font-size-label-medium);
+}
+
+.accessState {
+  display: grid;
+  width: min(100% - 2 * var(--cf-space-5), 42rem);
+  min-height: 100svh;
+  place-content: center;
+  gap: var(--cf-space-6);
+  margin-inline: auto;
+  padding-block: var(--cf-space-10);
+}
+
+.accessState > a,
+.accessState li a {
+  color: var(--cf-color-action-primary);
+  font-weight: 700;
+}
+
+.accessState ul {
+  display: grid;
+  gap: var(--cf-space-3);
+  margin: 0;
+  padding-inline-start: var(--cf-space-6);
+}
+
+@media (max-width: 47.99rem) {
+  .toolbar {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    padding-inline: var(--cf-space-4);
+  }
+
+  .toolbarTitle {
+    text-align: start;
+  }
+
+  .story {
+    width: min(100% - 2.5rem, var(--reader-column));
+    padding-top: var(--cf-space-10);
+  }
+
+  .storyHeader h1 {
+    font-size: clamp(2.5rem, 13vw, 3.5rem);
+  }
+
+  .readerShell {
+    --reader-font-size: 1.1875rem;
+    --reader-line-height: 1.58;
+  }
+
+  .readerShell[data-reader-text-size='small'] {
+    --reader-font-size: 1.0625rem;
+  }
+
+  .readerShell[data-reader-text-size='large'] {
+    --reader-font-size: 1.35rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skipLink,
+  .controlGroup button {
+    transition:
+      background-color 140ms ease,
+      color 140ms ease,
+      transform 140ms ease;
+  }
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { securityHeaders } from './security-headers'
+import { privateContentHeaders, securityHeaders } from './security-headers'
 
 describe('security headers', () => {
   it('prevents framing, MIME sniffing and broad browser capabilities', () => {
@@ -21,5 +21,17 @@ describe('security headers', () => {
     expect(
       securityHeaders.some(({ key }) => key === 'Strict-Transport-Security'),
     ).toBe(false)
+  })
+
+  it('keeps entitled Reader responses private and out of indexes', () => {
+    expect(
+      Object.fromEntries(
+        privateContentHeaders.map(({ key, value }) => [key, value]),
+      ),
+    ).toEqual({
+      'Cache-Control': 'private, no-store, max-age=0, must-revalidate',
+      Pragma: 'no-cache',
+      'X-Robots-Tag': 'noindex, nofollow, noarchive',
+    })
   })
 })
