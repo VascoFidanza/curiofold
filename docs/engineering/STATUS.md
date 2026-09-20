@@ -7,6 +7,7 @@
 ## In review
 
 - S1-09 — The structured Story, locale, revision and source contract is merged; final closure waits for the public/Reader vertical slice to consume it.
+- S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
 
 ## Recently completed
 
@@ -36,7 +37,7 @@
 
 ## Next
 
-1. Build the semantic application shell from the approved written design foundation.
+1. Complete S1-10 visual acceptance when structured Figma access returns.
 2. Deliver the public Story Detail slice and consume the published Story contract.
 3. Establish identity/session boundaries when development Clerk configuration is available.
 4. Resume preview database integration only after the product owner authorizes the persistent Vercel integration.

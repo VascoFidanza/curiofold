@@ -11,7 +11,7 @@
   "scripts": {
     "boundaries": "depcruise --config dependency-cruiser.config.cjs apps packages",
     "build": "pnpm --filter @curiofold/web build",
-    "clean": "pnpm -r --if-present clean",
+    "clean": "pnpm -r --if-present run clean",
     "dev": "pnpm --filter @curiofold/web dev",
     "content:validate": "pnpm --filter @curiofold/content content:validate",
     "format": "prettier --write .github apps content packages scripts drizzle.config.ts package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.mjs dependency-cruiser.config.cjs README.md docs/engineering",
