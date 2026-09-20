@@ -21,3 +21,9 @@ Run `pnpm content:validate` from the repository root before opening a content pu
 Use `content/stories/<story-key>/<locale>/<revision>.json`. A correction creates a new revision file; never edit or delete a version that has been published. Locales are reviewed and released independently. A draft locale must not appear on public surfaces as a fallback.
 
 The current `clockwork-gardens` files are explicitly synthetic engineering fixtures. They are not launch catalogue content and make no factual product claim.
+
+## Public preview boundary
+
+`metadata.previewBlockIds` is the explicit allowlist for the public Story Detail preview. The public projection contains only approved catalogue metadata, credibility counts/timestamps and those selected blocks. It does not expose the full block collection, source URLs or identifiers, reviewer identity, media object keys, or any unpublished locale.
+
+Changing a preview is therefore an editorial change to the Story document, not a route-level query or client-side filter. The server creates the public projection before data crosses the rendering boundary.

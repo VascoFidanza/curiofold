@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@curiofold/config": "workspace:*",
+    "@curiofold/content": "workspace:*",
     "@curiofold/db": "workspace:*",
     "@curiofold/ui": "workspace:*",
     "next": "16.3.5",

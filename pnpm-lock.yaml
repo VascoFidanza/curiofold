@@ -41,6 +41,9 @@ importers:
       '@curiofold/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@curiofold/content':
+        specifier: workspace:*
+        version: link:../../packages/content
       '@curiofold/db':
         specifier: workspace:*
         version: link:../../packages/db

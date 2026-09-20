@@ -9,6 +9,10 @@
 - S1-09 — The structured Story, locale, revision and source contract is merged; final closure waits for the public/Reader vertical slice to consume it.
 - S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
 
+## In progress
+
+- S1-11 — Implementing the public Story Detail route, safe preview projection, missing-locale handling and SEO/share metadata. Local/CI work is active; preview deployment remains blocked by S1-07 authorization.
+
 ## Recently completed
 
 - S1-01 — Approved plan and execution controls merged in PR #1.
@@ -38,7 +42,7 @@
 ## Next
 
 1. Complete S1-10 visual acceptance when structured Figma access returns.
-2. Deliver the public Story Detail slice and consume the published Story contract.
+2. Complete the public Story Detail local/CI slice without exposing paid blocks.
 3. Establish identity/session boundaries when development Clerk configuration is available.
 4. Resume preview database integration only after the product owner authorizes the persistent Vercel integration.
 

@@ -4,7 +4,7 @@ import {
   storyDocumentSchema,
   type StoryBlock,
   type StoryDocument,
-} from './story-schema.js'
+} from './story-schema'
 
 export class StoryContractError extends Error {
   constructor(message: string) {

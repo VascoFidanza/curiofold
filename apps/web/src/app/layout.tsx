@@ -2,10 +2,12 @@ import type { Metadata, Viewport } from 'next'
 import { Instrument_Sans, Newsreader } from 'next/font/google'
 import type { ReactNode } from 'react'
 
-import { curiofoldProductName } from '@curiofold/config'
+import { curiofoldProductName, parsePublicEnvironment } from '@curiofold/config'
 
 import '@curiofold/ui/tokens.css'
 import './styles.css'
+
+const publicEnvironment = parsePublicEnvironment(process.env)
 
 const instrumentSans = Instrument_Sans({
   display: 'swap',
@@ -22,6 +24,7 @@ const newsreader = Newsreader({
 
 export const metadata: Metadata = {
   description: 'Short, deeply researched factual Stories for curious readers.',
+  metadataBase: new URL(publicEnvironment.NEXT_PUBLIC_APP_URL),
   title: {
     default: curiofoldProductName,
     template: `%s | ${curiofoldProductName}`,

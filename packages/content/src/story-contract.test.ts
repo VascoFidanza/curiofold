@@ -6,7 +6,7 @@ import {
   compileStoryDocument,
   resolvePublishedStory,
   StoryContractError,
-} from './story-contract.js'
+} from './story-contract'
 
 const fixtureRoot = new URL(
   '../../../content/stories/clockwork-gardens/',
