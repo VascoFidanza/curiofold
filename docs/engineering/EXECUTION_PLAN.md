@@ -115,13 +115,13 @@ Logs and analytics exclude emails, tokens, payment details, provider payloads, r
 
 ## 9. Environments, delivery and recovery
 
-| Environment | Contract |
-|---|---|
-| Local | PostgreSQL 18 via Docker/Testcontainers, synthetic data and development provider accounts. |
-| CI | Fresh isolated PostgreSQL per job; no shared remote database. |
-| Preview | Vercel preview plus ephemeral nonproduction Neon branch built from synthetic data. |
-| Staging | Long-lived Vercel staging and nonproduction Neon staging branch. |
-| Production | Separate Vercel and Neon projects, production provider instances and protected credentials. |
+| Environment | Contract                                                                                    |
+| ----------- | ------------------------------------------------------------------------------------------- |
+| Local       | PostgreSQL 18 via Docker/Testcontainers, synthetic data and development provider accounts.  |
+| CI          | Fresh isolated PostgreSQL per job; no shared remote database.                               |
+| Preview     | Vercel preview plus ephemeral nonproduction Neon branch built from synthetic data.          |
+| Staging     | Long-lived Vercel staging and nonproduction Neon staging branch.                            |
+| Production  | Separate Vercel and Neon projects, production provider instances and protected credentials. |
 
 Production requires a paid Neon plan, organization MFA, protected root branch, a warm minimum compute policy, at least seven days of PITR/history and independent encrypted backups. Application traffic uses the pooled URL; migrations and backups use the direct URL.
 
