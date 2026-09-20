@@ -1,9 +1,24 @@
 import type { Metadata, Viewport } from 'next'
+import { Instrument_Sans, Newsreader } from 'next/font/google'
 import type { ReactNode } from 'react'
 
 import { curiofoldProductName } from '@curiofold/config'
 
+import '@curiofold/ui/tokens.css'
 import './styles.css'
+
+const instrumentSans = Instrument_Sans({
+  display: 'swap',
+  subsets: ['latin'],
+  variable: '--font-instrument-sans',
+})
+
+const newsreader = Newsreader({
+  display: 'swap',
+  style: ['normal', 'italic'],
+  subsets: ['latin'],
+  variable: '--font-newsreader',
+})
 
 export const metadata: Metadata = {
   description: 'Short, deeply researched factual Stories for curious readers.',
@@ -23,7 +38,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en">
+    <html
+      className={`${instrumentSans.variable} ${newsreader.variable}`}
+      lang="en"
+    >
       <body>{children}</body>
     </html>
   )

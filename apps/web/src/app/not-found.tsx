@@ -1,17 +1,22 @@
 import Link from 'next/link'
 
-import { PageFrame } from '@curiofold/ui'
+import { ErrorState, PageFrame } from '@curiofold/ui'
+
+import styles from './not-found.module.css'
 
 export default function NotFound() {
   return (
     <PageFrame>
-      <main>
-        <p className="eyebrow">Not found</p>
-        <h1>This rabbit hole ends here.</h1>
-        <p className="lede">
-          <Link href="/">Return to Curiofold</Link>
-        </p>
-      </main>
+      <ErrorState
+        action={
+          <Link className={styles.action} href="/">
+            Return to Discover
+          </Link>
+        }
+        description="The page may have moved, but there are more Stories to discover."
+        eyebrow="Not found"
+        title="This rabbit hole ends here."
+      />
     </PageFrame>
   )
 }

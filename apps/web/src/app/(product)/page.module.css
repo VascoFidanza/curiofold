@@ -1,0 +1,62 @@
+.hero {
+  display: grid;
+  max-width: 58rem;
+  gap: var(--cf-space-6);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--cf-color-action-primary);
+  font-size: var(--cf-font-size-label-medium);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: var(--cf-line-height-label-medium);
+  text-transform: uppercase;
+}
+
+.title {
+  max-width: 13ch;
+  margin: 0;
+  font-size: var(--cf-font-size-display-xl);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: var(--cf-line-height-display-xl);
+  text-wrap: balance;
+}
+
+.lede {
+  max-width: 40rem;
+  margin: 0;
+  color: var(--cf-color-text-secondary);
+  font-size: var(--cf-font-size-body-large);
+  line-height: var(--cf-line-height-body-large);
+}
+
+.foundationNote {
+  display: flex;
+  max-width: 42rem;
+  align-items: flex-start;
+  gap: var(--cf-space-3);
+  padding: var(--cf-space-5);
+  margin-top: var(--cf-space-4);
+  color: var(--cf-color-text-secondary);
+  background: var(--cf-color-bg-surface);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: var(--cf-radius-lg);
+}
+
+.foundationNote p {
+  margin: 0;
+  font-size: var(--cf-font-size-body-default);
+  line-height: var(--cf-line-height-body-default);
+}
+
+.noteMarker {
+  width: var(--cf-space-3);
+  height: var(--cf-space-3);
+  flex: 0 0 auto;
+  margin-top: 0.375rem;
+  background: var(--cf-color-accent-curiosity);
+  border: 2px solid var(--cf-color-text-primary);
+  border-radius: var(--cf-radius-full);
+}

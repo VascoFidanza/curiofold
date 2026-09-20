@@ -1,0 +1,20 @@
+.action {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  padding: var(--cf-space-3) var(--cf-space-5);
+  color: var(--cf-color-action-on-primary);
+  font-size: var(--cf-font-size-label-medium);
+  font-weight: 600;
+  line-height: var(--cf-line-height-label-medium);
+  text-decoration: none;
+  background: var(--cf-color-action-primary);
+  border-radius: var(--cf-radius-md);
+  transition: background-color var(--cf-duration-hover)
+    var(--cf-easing-standard);
+}
+
+.action:hover {
+  background: var(--cf-color-action-primary-hover);
+}
