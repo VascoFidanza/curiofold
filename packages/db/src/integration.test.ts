@@ -23,12 +23,20 @@ import {
 } from './published-stories'
 import { findReadingProgress, saveReadingProgress } from './reading-progress'
 import {
+  creditGrants,
   entitlementEvents,
   staffRoleAssignments,
   stories,
   storyLocalizations,
   storyVersions,
+  walletAccounts,
+  walletEntries,
 } from './schema'
+import {
+  CreditGrantConflictError,
+  findWalletBalance,
+  grantCredits,
+} from './wallets'
 
 const integrationEnabled = process.env.RUN_DB_INTEGRATION === '1'
 
@@ -107,6 +115,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       expect(tables.rows.map((row) => row.table_name)).toEqual(
         expect.arrayContaining([
           'audit_events',
+          'credit_grants',
           'entitlement_events',
           'identity_events',
           'reading_progress',
@@ -116,6 +125,8 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           'story_localizations',
           'story_versions',
           'users',
+          'wallet_accounts',
+          'wallet_entries',
         ]),
       )
 
@@ -182,6 +193,179 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         accountState: 'disabled',
         emailVerified: false,
       })
+
+      await expect(
+        findWalletBalance(database.client, linkedAccount.userId),
+      ).resolves.toEqual({ availableCredits: 0, version: 0 })
+      await expect(
+        grantCredits(database.client, {
+          operationKey: 'seed:invalid-zero',
+          reason: 'Invalid integration-test grant.',
+          source: 'seed',
+          units: 0,
+          userId: linkedAccount.userId,
+        }),
+      ).rejects.toThrow(TypeError)
+
+      const duplicateCreditGrants = await Promise.all([
+        grantCredits(database.client, {
+          actorUserId: linkedAccount.userId,
+          grantedAt: new Date('2026-09-20T10:04:00.000Z'),
+          operationKey: 'seed:reader-welcome:user_identity_fixture',
+          reason: 'Synthetic welcome-credit fixture.',
+          source: 'seed',
+          sourceReference: 'reader-welcome-v1',
+          units: 5,
+          userId: linkedAccount.userId,
+        }),
+        grantCredits(database.client, {
+          actorUserId: linkedAccount.userId,
+          grantedAt: new Date('2026-09-20T10:04:00.000Z'),
+          operationKey: 'seed:reader-welcome:user_identity_fixture',
+          reason: 'Synthetic welcome-credit fixture.',
+          source: 'seed',
+          sourceReference: 'reader-welcome-v1',
+          units: 5,
+          userId: linkedAccount.userId,
+        }),
+      ])
+      expect(
+        duplicateCreditGrants.filter(({ created }) => created),
+      ).toHaveLength(1)
+      expect(
+        new Set(duplicateCreditGrants.map(({ receipt }) => receipt.grantId))
+          .size,
+      ).toBe(1)
+      expect(duplicateCreditGrants[0].receipt).toMatchObject({
+        availableCredits: 5,
+        grantedCredits: 5,
+        source: 'seed',
+        walletVersion: 1,
+      })
+
+      await expect(
+        grantCredits(database.client, {
+          operationKey: 'seed:reader-welcome:user_identity_fixture',
+          reason: 'Mismatched duplicate must fail closed.',
+          source: 'seed',
+          sourceReference: 'reader-welcome-v1',
+          units: 6,
+          userId: linkedAccount.userId,
+        }),
+      ).rejects.toBeInstanceOf(CreditGrantConflictError)
+
+      await expect(
+        grantCredits(database.client, {
+          actorUserId: linkedAccount.userId,
+          grantedAt: new Date('2026-09-20T10:05:00.000Z'),
+          operationKey:
+            'promotional:integration-campaign:user_identity_fixture',
+          reason: 'Synthetic promotional-credit fixture.',
+          source: 'promotional',
+          sourceReference: 'integration-campaign',
+          units: 2,
+          userId: linkedAccount.userId,
+        }),
+      ).resolves.toMatchObject({
+        created: true,
+        receipt: {
+          availableCredits: 7,
+          grantedCredits: 2,
+          walletVersion: 2,
+        },
+      })
+      await expect(
+        findWalletBalance(database.client, linkedAccount.userId),
+      ).resolves.toEqual({ availableCredits: 7, version: 2 })
+
+      const [wallet] = await database.client
+        .select({
+          balanceCached: walletAccounts.balanceCached,
+          id: walletAccounts.id,
+        })
+        .from(walletAccounts)
+        .where(eq(walletAccounts.userId, linkedAccount.userId))
+        .limit(1)
+      if (!wallet) {
+        throw new Error('Expected wallet fixture to exist.')
+      }
+
+      const ledger = await database.client
+        .select({
+          balanceAfter: walletEntries.balanceAfter,
+          delta: walletEntries.delta,
+        })
+        .from(walletEntries)
+        .where(eq(walletEntries.walletAccountId, wallet.id))
+      expect(ledger.map(({ delta }) => delta)).toEqual([5, 2])
+      expect(ledger.reduce((total, { delta }) => total + delta, 0)).toBe(
+        wallet.balanceCached,
+      )
+      expect(ledger.at(-1)?.balanceAfter).toBe(wallet.balanceCached)
+
+      const grants = await database.client
+        .select({
+          operationKey: creditGrants.operationKey,
+          source: creditGrants.source,
+          sourceReference: creditGrants.sourceReference,
+          unitsGranted: creditGrants.unitsGranted,
+          unitsRemaining: creditGrants.unitsRemaining,
+        })
+        .from(creditGrants)
+        .where(eq(creditGrants.walletAccountId, wallet.id))
+      expect(grants).toHaveLength(2)
+      expect(grants).toEqual(
+        expect.arrayContaining([
+          {
+            operationKey: 'seed:reader-welcome:user_identity_fixture',
+            source: 'seed',
+            sourceReference: 'reader-welcome-v1',
+            unitsGranted: 5,
+            unitsRemaining: 5,
+          },
+          {
+            operationKey:
+              'promotional:integration-campaign:user_identity_fixture',
+            source: 'promotional',
+            sourceReference: 'integration-campaign',
+            unitsGranted: 2,
+            unitsRemaining: 2,
+          },
+        ]),
+      )
+
+      await expect(
+        client.query(
+          `INSERT INTO credit_grants (
+             operation_key, reason, source, units_granted, units_remaining, wallet_account_id
+           ) VALUES ($1, $2, $3, $4, $5, $6)`,
+          [
+            'seed:direct-negative-insert',
+            'Database constraint evidence.',
+            'seed',
+            -1,
+            -1,
+            wallet.id,
+          ],
+        ),
+      ).rejects.toThrow(/credit_grants_units_check/u)
+      await expect(
+        client.query(
+          `UPDATE wallet_entries SET delta = 100 WHERE wallet_account_id = $1`,
+          [wallet.id],
+        ),
+      ).rejects.toThrow(/append-only/u)
+      await expect(
+        client.query(
+          `UPDATE credit_grants SET source_reference = 'tampered' WHERE wallet_account_id = $1`,
+          [wallet.id],
+        ),
+      ).rejects.toThrow(/provenance is immutable/u)
+      await expect(
+        client.query(`DELETE FROM credit_grants WHERE wallet_account_id = $1`, [
+          wallet.id,
+        ]),
+      ).rejects.toThrow(/cannot be deleted/u)
 
       const original = await loadStoryFixture('en/1.json')
       const correction = await loadStoryFixture('en/2.json')

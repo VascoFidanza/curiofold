@@ -15,7 +15,10 @@ docs/
 │   ├── ORIGINAL_BRIEF.md
 │   └── PROJECT_SPEC.md
 ├── design/
-│   └── PRODUCT_DESIGN.md
+│   ├── PRODUCT_DESIGN.md
+│   ├── RESPONSIVE_CROSS_BROWSER_STANDARDS.md
+│   ├── STORY_PDF_CREATION_STANDARD.md
+│   └── STORY_PDF_DESIGN.md
 ├── project/
 │   ├── DELIVERY_GOVERNANCE.md
 │   └── OPEN_DECISIONS.md
@@ -61,7 +64,7 @@ This is the primary product source of truth for engineering.
 
 ---
 
-# 2. Design document
+# 2. Design documents
 
 ## `design/PRODUCT_DESIGN.md`
 
@@ -86,6 +89,22 @@ Contains:
 - design acceptance criteria.
 
 The referenced approved Figma file is the visual authority when a visual detail differs from prose.
+
+## `design/RESPONSIVE_CROSS_BROWSER_STANDARDS.md`
+
+Authoritative frontend quality standard for responsive/adaptive behavior, supported browsers, inputs, viewport ranges, performance and cross-device validation.
+
+Its PDF-viewer requirements are conditional: they apply if Curiofold later introduces an approved embedded PDF surface. They do not replace the current browser-native Reader decision in `PROJECT_SPEC.md` and `PRODUCT_DESIGN.md`.
+
+## `design/STORY_PDF_CREATION_STANDARD.md`
+
+Authoritative composition, flatplanning, preflight and quality-control standard for internal/export Curiofold Story PDFs.
+
+## `design/STORY_PDF_DESIGN.md`
+
+Authoritative visual/editorial design system for internal/export Curiofold Story PDFs, including typography, page geometry, visual truth, accessibility and paid-value gates.
+
+PDF production remains an internal/export capability. The customer-facing v1 unit is a Story rendered in the responsive browser-native Reader; these standards do not authorize a public PDF URL, download flow or conventional PDF embed.
 
 ---
 

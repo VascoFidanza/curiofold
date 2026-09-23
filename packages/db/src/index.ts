@@ -35,4 +35,11 @@ export {
   type SaveReadingProgressInput,
   type SaveReadingProgressResult,
 } from './reading-progress'
+export {
+  CreditGrantConflictError,
+  findWalletBalance,
+  grantCredits,
+  type GrantCreditsInput,
+  type GrantCreditsResult,
+} from './wallets'
 export * from './schema'

@@ -1,7 +1,9 @@
 # Curiofold Initial Threat Model
 
-**Status:** Active foundation baseline  
-**Last reviewed:** 2026-09-20  
+**Status:** Active foundation baseline
+
+**Last reviewed:** 2026-09-23
+
 **Next mandatory review:** Before Milestone 1.2 closes and whenever a trust
 boundary, payment provider or content-delivery model changes.
 
@@ -64,7 +66,7 @@ The primary objectives are:
 | TM-03 | CDN, search, preview or logs leak paid content                                   | Public metadata is separated from full blocks; Reader/progress responses are private/no-store; runtime logs and progress telemetry exclude Story bodies                       | Complete live cache checks and retain paid bodies outside search/telemetry / Engineering                                             | Baseline active         |
 | TM-04 | Executable or malformed Story content causes XSS or renderer compromise          | `StoryDocument@v1` rejects arbitrary HTML/JavaScript, unsafe URL schemes and invalid blocks; the Reader projects only allowlisted semantic components                         | Introduce a nonce-based full CSP and complete live renderer/security verification / Engineering                                      | Baseline active         |
 | TM-05 | Unauthorized or compromised staff action publishes, refunds or changes access    | Database-owned role history and deny-by-default MFA/recent-reauthentication policy are implemented                                                                            | Add domain-specific privileged commands, audit writers and live MFA evidence in identity/editorial/commerce milestones / Engineering | Baseline active         |
-| TM-06 | Concurrent unlocks, retries or direct mutation overspend credits                 | Append-only ledger, row locks, unique entitlement and reconciliation are accepted invariants                                                                                  | Project 3 implements real-Postgres concurrency/property tests / Engineering                                                          | Planned—launch critical |
+| TM-06 | Concurrent unlocks, retries or direct mutation overspend credits                 | Credit grants now use row locks, globally unique operation keys, append-only ledger triggers, immutable lot provenance and PostgreSQL 18 concurrency tests                    | CRFD-23 adds atomic debit/FIFO allocation/entitlement; CRFD-22 adds continuous reconciliation / Engineering                          | Partially active        |
 | TM-07 | Forged, replayed or reordered payment events duplicate credits                   | Raw-body signature, unique event inbox and asynchronous reconciliation are accepted                                                                                           | Milestone 3.2 implements Stripe test-mode replay/out-of-order evidence / Engineering                                                 | Planned—launch critical |
 | TM-08 | Secrets reach Git, client bundles, logs or preview output                        | Secret scan, bundle scan, typed env separation and allowlisted logger are active                                                                                              | Add provider-scoped credentials only through protected stores; rehearse rotation / Engineering                                       | Baseline active         |
 | TM-09 | Preview data or credentials are derived from production                          | Environment contract requires synthetic preview branches and separate production projects                                                                                     | CRFD-14 completes preview lifecycle after account authorization / Engineering + Product Owner authorization boundary                 | Partially blocked       |
