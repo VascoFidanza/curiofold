@@ -46,6 +46,12 @@ import {
   findWalletBalance,
   grantCredits,
 } from './wallets'
+import {
+  assertWalletsReconciled,
+  findWalletHistory,
+  reconcileWallets,
+  WalletReconciliationError,
+} from './wallet-reconciliation'
 
 const integrationEnabled = process.env.RUN_DB_INTEGRATION === '1'
 
@@ -621,7 +627,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         'user_unlock_operation_collision_fixture',
         new Date('2026-09-20T10:07:30.000Z'),
       )
-      await grantCredits(database.client, {
+      const operationCollisionGrant = await grantCredits(database.client, {
         operationKey: 'seed:unlock-operation-collision',
         reason: 'Cross-user operation-key fixture.',
         source: 'seed',
@@ -981,6 +987,212 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           'jardins-de-relogio',
         ),
       ).resolves.toEqual({ status: 'not_found' })
+
+      const firstReconciliationBatch = await reconcileWallets(database.client, {
+        limit: 1,
+      })
+      expect(firstReconciliationBatch).toMatchObject({
+        checkedWallets: 1,
+        discrepancies: [],
+        healthy: true,
+      })
+      expect(firstReconciliationBatch.nextWalletId).toEqual(expect.any(String))
+      if (!firstReconciliationBatch.nextWalletId) {
+        throw new Error('Expected a second reconciliation batch.')
+      }
+      await expect(
+        reconcileWallets(database.client, {
+          afterWalletId: firstReconciliationBatch.nextWalletId,
+          limit: 1,
+        }),
+      ).resolves.toMatchObject({ checkedWallets: 1, healthy: true })
+
+      const healthyReconciliation = await reconcileWallets(database.client)
+      expect(healthyReconciliation).toMatchObject({
+        discrepancies: [],
+        healthy: true,
+        nextWalletId: null,
+      })
+      expect(healthyReconciliation.checkedWallets).toBeGreaterThanOrEqual(4)
+
+      const firstHistoryPage = await findWalletHistory(
+        database.client,
+        unlockReader.userId,
+        { limit: 2 },
+      )
+      expect(firstHistoryPage.balance).toEqual({
+        availableCredits: 2,
+        version: 3,
+      })
+      expect(
+        firstHistoryPage.transactions.map(({ credits, kind }) => ({
+          credits,
+          kind,
+        })),
+      ).toEqual([
+        { credits: -1, kind: 'story_unlocked' },
+        { credits: 2, kind: 'credit_added' },
+      ])
+      expect(firstHistoryPage.transactions[0]).toMatchObject({
+        storyId: story.id,
+      })
+      expect(firstHistoryPage.nextCursor).toEqual(expect.any(String))
+      expect(firstHistoryPage.transactions[0]).not.toHaveProperty(
+        'operationKey',
+      )
+      expect(firstHistoryPage.transactions[0]).not.toHaveProperty('reason')
+      expect(firstHistoryPage.transactions[0]).not.toHaveProperty('actorUserId')
+      if (!firstHistoryPage.nextCursor) {
+        throw new Error('Expected a second wallet-history page.')
+      }
+
+      const secondHistoryPage = await findWalletHistory(
+        database.client,
+        unlockReader.userId,
+        { cursor: firstHistoryPage.nextCursor, limit: 2 },
+      )
+      expect(secondHistoryPage.transactions).toHaveLength(1)
+      expect(secondHistoryPage.transactions[0]).toMatchObject({
+        credits: 1,
+        kind: 'credit_added',
+        source: 'seed',
+      })
+      expect(secondHistoryPage.nextCursor).toBeNull()
+      const isolatedHistory = await findWalletHistory(
+        database.client,
+        operationCollisionReader.userId,
+      )
+      expect(isolatedHistory).toMatchObject({
+        balance: { availableCredits: 1, version: 1 },
+        transactions: [{ credits: 1, kind: 'credit_added' }],
+      })
+      expect(isolatedHistory.transactions).toHaveLength(1)
+      expect(isolatedHistory.transactions[0]?.id).not.toBe(
+        firstHistoryPage.transactions[0]?.id,
+      )
+      await expect(
+        findWalletHistory(database.client, otherReader.userId),
+      ).resolves.toEqual({
+        balance: { availableCredits: 0, version: 0 },
+        nextCursor: null,
+        transactions: [],
+      })
+      await expect(
+        findWalletHistory(database.client, unlockReader.userId, {
+          cursor: 'not-an-opaque-wallet-cursor',
+        }),
+      ).rejects.toThrow(/cursor is invalid/u)
+
+      const corruptReader = await ensureIdentityAccount(
+        database.client,
+        'user_reconciliation_corrupt_fixture',
+        new Date('2026-09-20T12:00:00.000Z'),
+      )
+      const corruptGrant = await grantCredits(database.client, {
+        grantedAt: new Date('2026-09-20T12:00:10.000Z'),
+        operationKey: 'seed:reconciliation-corrupt',
+        reason: 'Reconciliation classification fixture.',
+        source: 'seed',
+        units: 3,
+        userId: corruptReader.userId,
+      })
+      const [corruptWallet] = await database.client
+        .select({ id: walletAccounts.id })
+        .from(walletAccounts)
+        .where(eq(walletAccounts.userId, corruptReader.userId))
+        .limit(1)
+      if (!corruptWallet) {
+        throw new Error('Expected corrupt reconciliation wallet fixture.')
+      }
+      await database.client
+        .update(walletAccounts)
+        .set({ balanceCached: 99, version: 99 })
+        .where(eq(walletAccounts.id, corruptWallet.id))
+      await database.client
+        .update(creditGrants)
+        .set({ unitsRemaining: 1 })
+        .where(eq(creditGrants.id, corruptGrant.receipt.grantId))
+      const [orphanGrant] = await database.client
+        .insert(creditGrants)
+        .values({
+          operationKey: 'seed:orphan-reconciliation-grant',
+          reason: 'Deliberate missing-ledger fixture.',
+          source: 'seed',
+          unitsGranted: 1,
+          unitsRemaining: 1,
+          walletAccountId: corruptWallet.id,
+        })
+        .returning({ id: creditGrants.id })
+      if (!orphanGrant) {
+        throw new Error('Expected orphan grant reconciliation fixture.')
+      }
+      const [unallocatedSpend] = await database.client
+        .insert(walletEntries)
+        .values({
+          balanceAfter: 97,
+          delta: -2,
+          entryType: 'spend',
+          occurredAt: new Date('2026-09-20T12:00:20.000Z'),
+          operationKey: 'unlock:reconciliation-corrupt',
+          reason: 'Deliberate allocation mismatch fixture.',
+          walletAccountId: corruptWallet.id,
+          walletVersion: 4,
+        })
+        .returning({ id: walletEntries.id })
+      if (!unallocatedSpend) {
+        throw new Error('Expected unallocated spend reconciliation fixture.')
+      }
+      await database.client.insert(creditSpendAllocations).values({
+        creditGrantId: operationCollisionGrant.receipt.grantId,
+        units: 1,
+        walletEntryId: unallocatedSpend.id,
+      })
+      const corruptEntitlement = await grantStoryEntitlement(database.client, {
+        reason: 'Deliberate missing-unlock-operation fixture.',
+        source: 'unlock',
+        storyId: story.id,
+        userId: corruptReader.userId,
+      })
+      await database.client.insert(unlockOperations).values({
+        balanceAfter: 99,
+        entitlementId: repeatedUnlocks[0].entitlementId,
+        operationKey: 'unlock:reconciliation-mismatched-operation',
+        outcome: 'already_owned',
+        storyId: story.id,
+        userId: corruptReader.userId,
+        walletVersion: 99,
+      })
+
+      const corruptReconciliation = await reconcileWallets(database.client, {
+        userId: corruptReader.userId,
+      })
+      expect(corruptReconciliation.healthy).toBe(false)
+      expect(
+        new Set(corruptReconciliation.discrepancies.map(({ code }) => code)),
+      ).toEqual(
+        new Set([
+          'allocation_wallet_mismatch',
+          'credit_grant_ledger_mismatch',
+          'credit_grant_remaining_mismatch',
+          'entitlement_unlock_mismatch',
+          'spend_allocation_mismatch',
+          'unlock_operation_mismatch',
+          'wallet_balance_mismatch',
+          'wallet_entry_running_balance_mismatch',
+          'wallet_entry_version_mismatch',
+          'wallet_version_mismatch',
+        ]),
+      )
+      expect(
+        corruptReconciliation.discrepancies.some(
+          ({ entityId }) => entityId === corruptEntitlement.entitlementId,
+        ),
+      ).toBe(true)
+      await expect(
+        assertWalletsReconciled(database.client, {
+          userId: corruptReader.userId,
+        }),
+      ).rejects.toBeInstanceOf(WalletReconciliationError)
     } finally {
       await client.end()
       await database.pool.end()

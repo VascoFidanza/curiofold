@@ -43,6 +43,20 @@ export {
   type GrantCreditsResult,
 } from './wallets'
 export {
+  assertWalletsReconciled,
+  findWalletHistory,
+  InvalidWalletHistoryCursorError,
+  reconcileWallets,
+  WalletReconciliationError,
+  type WalletDiscrepancy,
+  type WalletDiscrepancyCode,
+  type WalletHistoryPage,
+  type WalletReconciliationInput,
+  type WalletReconciliationResult,
+  type WalletTransaction,
+  type WalletTransactionKind,
+} from './wallet-reconciliation'
+export {
   FinancialIntegrityError,
   InsufficientCreditsError,
   StoryUnlockUnavailableError,

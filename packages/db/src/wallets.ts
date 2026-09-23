@@ -201,6 +201,7 @@ export async function grantCredits(
       operationKey,
       reason,
       walletAccountId: wallet.id,
+      walletVersion: nextVersion,
     })
 
     await transaction

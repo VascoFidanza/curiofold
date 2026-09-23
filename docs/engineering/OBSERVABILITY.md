@@ -124,8 +124,11 @@ value, then verify neither appears in logs or the response.
   behavior.
 - CRFD-19 applies the request boundary to paid Reader access and content-leak
   tests.
-- Publication and commerce milestones add their domain-specific audit writers,
-  reconciliation signals and failure alerts.
+- Commerce now exposes a read-only classified reconciliation result and a
+  stable failure signal. The operations milestone schedules it, routes alerts
+  and records run evidence; no automated repair is permitted.
+- Publication milestones add their domain-specific audit writers and failure
+  alerts.
 - Sentry EU, alert routing, synthetic checks and launch dashboards are not
   enabled until their data-processing configuration and production ownership
   are approved.

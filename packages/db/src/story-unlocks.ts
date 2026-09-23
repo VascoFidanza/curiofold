@@ -300,6 +300,7 @@ export async function unlockStoryWithCredit(
           operationKey,
           reason,
           walletAccountId: wallet.id,
+          walletVersion: nextVersion,
         })
         .returning({ id: schema.walletEntries.id })
       if (!entry) {

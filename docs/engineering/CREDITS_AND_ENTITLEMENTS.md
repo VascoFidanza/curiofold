@@ -44,7 +44,7 @@ Provider payloads, email addresses, card data and other personal data do not bel
 
 ### `wallet_entries`
 
-Each signed entry records its resulting wallet balance, operation key, type, reason, actor and optional source grant. Grant entries must be positive and reference one unique credit lot. Future spend entries must be negative and are associated with lots through explicit FIFO allocations.
+Each signed entry records its resulting wallet balance, monotonically increasing wallet version, operation key, type, reason, actor and optional source grant. Grant entries must be positive and reference one unique credit lot. Spend entries must be negative and are associated with lots through explicit FIFO allocations. The wallet/version pair is unique, giving reconciliation a deterministic accounting order even when event timestamps are equal or backdated.
 
 A database trigger rejects every update and delete. The application exposes no generic wallet CRUD interface.
 
@@ -102,7 +102,21 @@ There is currently no browser route for granting credits. Only the server-side c
 - a finance/admin action with recent MFA, a reason and audit evidence;
 - a synthetic seed in isolated nonproduction environments.
 
-The customer-safe balance projection contains only available integer credits and wallet version. Transaction history, reconciliation and reversals are delivered by CRFD-22 and later Project 3 milestones.
+The customer-safe balance/history projection is available only through authenticated `GET /api/v1/wallet`. It returns the canonical integer balance, wallet version and cursor-paginated transactions. Transaction rows contain only a public kind, signed credit quantity, timestamp, safe source category and optional Story identifier. Operation keys, provider references, reasons, actors, identity data and audit metadata never cross this boundary. Responses are private and `no-store`.
+
+## Reconciliation and operational failure boundary
+
+`reconcileWallets` is a read-only, wallet-ID-paginated audit over immutable accounting and ownership records. It independently classifies:
+
+- cached balance versus ledger-sum drift;
+- missing or noncontiguous wallet versions;
+- per-entry running-balance drift;
+- grant-to-ledger and grant-remaining/allocation drift;
+- spend-to-allocation and cross-wallet allocation drift;
+- unlock-operation-to-debit/entitlement drift;
+- unlock-sourced entitlements without their originating operation.
+
+The result contains opaque internal identifiers and integer expected/actual evidence, but no personal or provider data. `assertWalletsReconciled` converts any nonhealthy batch into a stable operational failure suitable for the later scheduler and alerting integration. Neither function repairs or otherwise mutates financial state. Investigation and compensating corrections require a separate guarded workflow.
 
 ## Validation evidence
 
@@ -123,16 +137,20 @@ The PostgreSQL 18 integration suite exercises:
 - cross-user operation-key conflict behavior;
 - insufficient-credit rollback without entitlement or operation creation;
 - append-only allocation and immutable unlock-operation enforcement;
+- deterministic cursor pagination and user-isolated wallet history;
+- absence of operation keys, reasons, actors and provider references from customer history;
+- a healthy multi-wallet reconciliation result;
+- deliberate classification of every current reconciliation discrepancy type;
+- an operational failure signal without automatic mutation;
 - invalid zero and fractional/negative units at the domain boundary.
 
 The migration graph must apply cleanly to an empty database and upgrade from every committed predecessor. No live payment provider or production database is required for this foundation.
 
 ## Remaining work and decisions
 
-- CRFD-22 adds reconciliation and customer-safe transaction history.
 - Milestone 3.2 maps fulfilled provider orders to this grant command.
 - Milestone 3.3 adds compensating reversals and guarded operations.
 - OD-010 determines spent-credit treatment after refund or chargeback.
 - OD-011 determines the final payment-provider model.
 
-Those decisions may add commands and entry types, but they must not weaken or rewrite the immutable history established here.
+Scheduled reconciliation and alert delivery remain an operations milestone. Provider orders and reversals may add commands and entry types, but they must extend the classifier and must not weaken or rewrite the immutable history established here.
