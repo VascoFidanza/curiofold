@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import type {
   AccountState,
   CreditGrantSource,
+  PaymentOrderStatus,
   StaffRole,
 } from '@curiofold/domain'
 import {
@@ -251,6 +252,83 @@ export const creditSpendAllocations = pgTable(
     ),
     index('credit_spend_allocations_grant_index').on(table.creditGrantId),
     check('credit_spend_allocations_units_check', sql`${table.units} > 0`),
+  ],
+)
+
+export const paymentOrders = pgTable(
+  'payment_orders',
+  {
+    amountMinor: integer('amount_minor').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    creditsPurchased: integer('credits_purchased').notNull(),
+    currency: varchar('currency', { length: 3 }).notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    operationKey: varchar('operation_key', { length: 200 }).notNull(),
+    packKey: varchar('pack_key', { length: 80 }).notNull(),
+    providerCheckoutSessionId: varchar('provider_checkout_session_id', {
+      length: 255,
+    }),
+    providerKey: varchar('provider_key', { length: 80 }),
+    providerPaymentId: varchar('provider_payment_id', { length: 255 }),
+    returnPath: varchar('return_path', { length: 500 }).notNull(),
+    status: text('status')
+      .$type<PaymentOrderStatus>()
+      .notNull()
+      .default('pending'),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+  },
+  (table) => [
+    uniqueIndex('payment_orders_user_operation_unique').on(
+      table.userId,
+      table.operationKey,
+    ),
+    uniqueIndex('payment_orders_provider_session_unique')
+      .on(table.providerKey, table.providerCheckoutSessionId)
+      .where(sql`${table.providerCheckoutSessionId} IS NOT NULL`),
+    uniqueIndex('payment_orders_provider_payment_unique')
+      .on(table.providerKey, table.providerPaymentId)
+      .where(sql`${table.providerPaymentId} IS NOT NULL`),
+    index('payment_orders_user_created_index').on(
+      table.userId,
+      table.createdAt,
+    ),
+    index('payment_orders_status_updated_index').on(
+      table.status,
+      table.updatedAt,
+    ),
+    check('payment_orders_amount_check', sql`${table.amountMinor} > 0`),
+    check('payment_orders_credits_check', sql`${table.creditsPurchased} > 0`),
+    check(
+      'payment_orders_currency_check',
+      sql`${table.currency} ~ '^[A-Z]{3}$'`,
+    ),
+    check(
+      'payment_orders_pack_key_check',
+      sql`${table.packKey} ~ '^[a-z0-9]+(-[a-z0-9]+)*$'`,
+    ),
+    check(
+      'payment_orders_operation_key_check',
+      sql`length(trim(${table.operationKey})) BETWEEN 1 AND 200`,
+    ),
+    check(
+      'payment_orders_return_path_check',
+      sql`${table.returnPath} LIKE '/%' AND ${table.returnPath} NOT LIKE '//%'`,
+    ),
+    check(
+      'payment_orders_status_check',
+      sql`${table.status} IN ('pending', 'checkout_created', 'payment_pending', 'fulfilled', 'canceled')`,
+    ),
+    check(
+      'payment_orders_provider_shape_check',
+      sql`(${table.providerKey} IS NULL AND ${table.providerCheckoutSessionId} IS NULL AND ${table.providerPaymentId} IS NULL) OR (${table.providerKey} IS NOT NULL AND ${table.providerCheckoutSessionId} IS NOT NULL)`,
+    ),
   ],
 )
 

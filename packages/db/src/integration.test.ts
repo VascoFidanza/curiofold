@@ -21,11 +21,17 @@ import {
   findPublishedStory,
   findPublishedStoryBySlug,
 } from './published-stories'
+import {
+  createPaymentOrder,
+  findPaymentOrderForUser,
+  PaymentOrderConflictError,
+} from './payment-orders'
 import { findReadingProgress, saveReadingProgress } from './reading-progress'
 import {
   creditGrants,
   creditSpendAllocations,
   entitlementEvents,
+  paymentOrders,
   staffRoleAssignments,
   stories,
   storyEntitlements,
@@ -134,6 +140,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           'credit_spend_allocations',
           'entitlement_events',
           'identity_events',
+          'payment_orders',
           'reading_progress',
           'staff_role_assignments',
           'stories',
@@ -210,6 +217,91 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         accountState: 'disabled',
         emailVerified: false,
       })
+
+      const paymentOrderInput = {
+        createdAt: new Date('2026-09-20T10:03:30.000Z'),
+        operationKey: 'checkout:user_identity_fixture:request-1',
+        returnPath: '/en/stories/clockwork-gardens?payment=return',
+        snapshot: {
+          amountMinor: 500,
+          credits: 5,
+          currency: 'EUR',
+          packKey: 'five-credits',
+        },
+        userId: linkedAccount.userId,
+      } as const
+      const duplicateOrders = await Promise.all([
+        createPaymentOrder(database.client, paymentOrderInput),
+        createPaymentOrder(database.client, paymentOrderInput),
+      ])
+      expect(duplicateOrders.filter(({ created }) => created)).toHaveLength(1)
+      expect(new Set(duplicateOrders.map(({ order }) => order.id)).size).toBe(1)
+      expect(duplicateOrders[0].order).toMatchObject({
+        amountMinor: 500,
+        credits: 5,
+        currency: 'EUR',
+        packKey: 'five-credits',
+        providerCheckoutSessionId: null,
+        providerKey: null,
+        providerPaymentId: null,
+        returnPath: '/en/stories/clockwork-gardens?payment=return',
+        status: 'pending',
+        userId: linkedAccount.userId,
+      })
+
+      await expect(
+        createPaymentOrder(database.client, {
+          ...paymentOrderInput,
+          snapshot: { ...paymentOrderInput.snapshot, amountMinor: 600 },
+        }),
+      ).rejects.toBeInstanceOf(PaymentOrderConflictError)
+
+      const secondAccount = await ensureIdentityAccount(
+        database.client,
+        'user_payment_order_second_fixture',
+        new Date('2026-09-20T10:03:40.000Z'),
+      )
+      await expect(
+        createPaymentOrder(database.client, {
+          ...paymentOrderInput,
+          returnPath: 'https://attacker.example/payment-return',
+          userId: secondAccount.userId,
+        }),
+      ).resolves.toMatchObject({
+        created: true,
+        order: { returnPath: '/', userId: secondAccount.userId },
+      })
+
+      const orderId = duplicateOrders[0].order.id
+      await expect(
+        findPaymentOrderForUser(database.client, orderId, linkedAccount.userId),
+      ).resolves.toMatchObject({ id: orderId })
+      await expect(
+        findPaymentOrderForUser(database.client, orderId, secondAccount.userId),
+      ).resolves.toBeNull()
+
+      await expect(
+        database.client.insert(paymentOrders).values({
+          amountMinor: 0,
+          creditsPurchased: 1,
+          currency: 'EUR',
+          operationKey: 'checkout:invalid-amount',
+          packKey: 'one-credit',
+          returnPath: '/',
+          userId: linkedAccount.userId,
+        }),
+      ).rejects.toThrow()
+      await expect(
+        database.client
+          .update(paymentOrders)
+          .set({ amountMinor: 700 })
+          .where(eq(paymentOrders.id, orderId)),
+      ).rejects.toThrow()
+      await expect(
+        database.client
+          .delete(paymentOrders)
+          .where(eq(paymentOrders.id, orderId)),
+      ).rejects.toThrow()
 
       await expect(
         findWalletBalance(database.client, linkedAccount.userId),

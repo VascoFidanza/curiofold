@@ -56,6 +56,23 @@ Each debit records which credit lot funded it. Allocations are append-only, posi
 
 Every successful or already-owned unlock request stores an immutable result under one globally unique operation key. The record binds the caller, Story, entitlement, optional debit entry and canonical post-operation wallet state. Reusing the key for another user or Story fails closed.
 
+### `payment_orders`
+
+Payment orders are internal, provider-independent commercial records. Each order stores the owning user, user-scoped idempotency key, safe relative return path, state, and an immutable snapshot of the server-selected pack key, credits, integer minor-unit amount and ISO currency. Optional provider identifiers are uniquely constrained within their provider.
+
+The database rejects deletion and changes to the order's user, idempotency key, commercial snapshot, return path or creation timestamp. Later provider processing may only add provider correlation and advance the explicit state machine. Browser redirects are not a transition source and can never fulfil an order.
+
+No live pack catalogue is committed while OD-003 remains open. A future authenticated checkout boundary will accept only a pack key and will resolve its commercial values from server-owned configuration before calling `createPaymentOrder`.
+
+Allowed provider-evidence transitions are:
+
+- `pending` → `checkout_created` or `canceled`;
+- `checkout_created` → `payment_pending`, `fulfilled` or `canceled`;
+- `payment_pending` → `fulfilled` or `canceled`;
+- `fulfilled` and `canceled` are terminal.
+
+The provider port exposes only normalized checkout commands and provider-order snapshots. Stripe-specific SDK objects and webhook payloads must not enter the domain or database contracts.
+
 ## Idempotent grant transaction
 
 `grantCredits` performs this sequence in one PostgreSQL transaction:
@@ -143,12 +160,16 @@ The PostgreSQL 18 integration suite exercises:
 - deliberate classification of every current reconciliation discrepancy type;
 - an operational failure signal without automatic mutation;
 - invalid zero and fractional/negative units at the domain boundary.
+- concurrent idempotent payment-order creation and conflicting replay rejection;
+- user-isolated payment-order retrieval and safe return-path fallback;
+- database rejection of invalid commercial snapshots and mutation/deletion of immutable order history;
+- explicit payment-state transition policy that rejects regressions and fulfilment without provider/reconciliation evidence.
 
 The migration graph must apply cleanly to an empty database and upgrade from every committed predecessor. No live payment provider or production database is required for this foundation.
 
 ## Remaining work and decisions
 
-- Milestone 3.2 maps fulfilled provider orders to this grant command.
+- Milestone 3.2 continues with hosted Checkout creation, verified event fulfilment and stale-order reconciliation. A fulfilled provider order maps to the existing grant command.
 - Milestone 3.3 adds compensating reversals and guarded operations.
 - OD-010 determines spent-credit treatment after refund or chargeback.
 - OD-011 determines the final payment-provider model.
