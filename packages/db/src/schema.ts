@@ -1,5 +1,9 @@
 import { sql } from 'drizzle-orm'
-import type { AccountState, StaffRole } from '@curiofold/domain'
+import type {
+  AccountState,
+  CreditGrantSource,
+  StaffRole,
+} from '@curiofold/domain'
 import {
   type AnyPgColumn,
   check,
@@ -20,6 +24,7 @@ type IdentityEventType = 'user.created' | 'user.deleted' | 'user.updated'
 type EntitlementEventType = 'granted' | 'restored' | 'revoked'
 type EntitlementGrantSource = 'seed' | 'support' | 'unlock'
 type EntitlementStatus = 'active' | 'revoked'
+type WalletEntryType = 'correction' | 'grant' | 'reversal' | 'spend'
 
 export const users = pgTable(
   'users',
@@ -91,6 +96,128 @@ export const identityEvents = pgTable(
     check(
       'identity_events_result_check',
       sql`result IN ('applied', 'duplicate', 'ignored')`,
+    ),
+  ],
+)
+
+export const walletAccounts = pgTable(
+  'wallet_accounts',
+  {
+    balanceCached: integer('balance_cached').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    version: integer('version').notNull().default(0),
+  },
+  (table) => [
+    uniqueIndex('wallet_accounts_user_unique').on(table.userId),
+    check('wallet_accounts_version_check', sql`${table.version} >= 0`),
+  ],
+)
+
+export const creditGrants = pgTable(
+  'credit_grants',
+  {
+    actorUserId: uuid('actor_user_id').references(() => users.id),
+    grantedAt: timestamp('granted_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    operationKey: varchar('operation_key', { length: 200 }).notNull(),
+    reason: text('reason').notNull(),
+    source: text('source').$type<CreditGrantSource>().notNull(),
+    sourceReference: varchar('source_reference', { length: 255 }),
+    unitsGranted: integer('units_granted').notNull(),
+    unitsRemaining: integer('units_remaining').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    walletAccountId: uuid('wallet_account_id')
+      .notNull()
+      .references(() => walletAccounts.id),
+  },
+  (table) => [
+    uniqueIndex('credit_grants_operation_key_unique').on(table.operationKey),
+    index('credit_grants_wallet_granted_index').on(
+      table.walletAccountId,
+      table.grantedAt,
+    ),
+    index('credit_grants_source_reference_index').on(
+      table.source,
+      table.sourceReference,
+    ),
+    check(
+      'credit_grants_source_check',
+      sql`source IN ('correction', 'payment', 'promotional', 'seed', 'support')`,
+    ),
+    check(
+      'credit_grants_units_check',
+      sql`${table.unitsGranted} > 0 AND ${table.unitsRemaining} BETWEEN 0 AND ${table.unitsGranted}`,
+    ),
+    check(
+      'credit_grants_operation_key_check',
+      sql`length(trim(${table.operationKey})) BETWEEN 1 AND 200`,
+    ),
+    check('credit_grants_reason_check', sql`length(trim(${table.reason})) > 0`),
+    check(
+      'credit_grants_source_reference_check',
+      sql`${table.sourceReference} IS NULL OR length(trim(${table.sourceReference})) > 0`,
+    ),
+  ],
+)
+
+export const walletEntries = pgTable(
+  'wallet_entries',
+  {
+    actorUserId: uuid('actor_user_id').references(() => users.id),
+    balanceAfter: integer('balance_after').notNull(),
+    creditGrantId: uuid('credit_grant_id').references(() => creditGrants.id),
+    delta: integer('delta').notNull(),
+    entryType: text('entry_type').$type<WalletEntryType>().notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    operationKey: varchar('operation_key', { length: 200 }).notNull(),
+    reason: text('reason').notNull(),
+    walletAccountId: uuid('wallet_account_id')
+      .notNull()
+      .references(() => walletAccounts.id),
+  },
+  (table) => [
+    uniqueIndex('wallet_entries_operation_key_unique').on(table.operationKey),
+    uniqueIndex('wallet_entries_credit_grant_unique')
+      .on(table.creditGrantId)
+      .where(
+        sql`${table.creditGrantId} IS NOT NULL AND ${table.entryType} = 'grant'`,
+      ),
+    index('wallet_entries_wallet_occurred_index').on(
+      table.walletAccountId,
+      table.occurredAt,
+    ),
+    check(
+      'wallet_entries_type_check',
+      sql`entry_type IN ('correction', 'grant', 'reversal', 'spend')`,
+    ),
+    check('wallet_entries_delta_check', sql`${table.delta} <> 0`),
+    check(
+      'wallet_entries_shape_check',
+      sql`(${table.entryType} = 'grant' AND ${table.creditGrantId} IS NOT NULL AND ${table.delta} > 0) OR (${table.entryType} = 'spend' AND ${table.creditGrantId} IS NULL AND ${table.delta} < 0) OR (${table.entryType} IN ('correction', 'reversal') AND ${table.delta} <> 0)`,
+    ),
+    check(
+      'wallet_entries_operation_key_check',
+      sql`length(trim(${table.operationKey})) BETWEEN 1 AND 200`,
+    ),
+    check(
+      'wallet_entries_reason_check',
+      sql`length(trim(${table.reason})) > 0`,
     ),
   ],
 )

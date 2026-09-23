@@ -10,6 +10,14 @@ export function fail<Failure>(error: Failure): Result<never, Failure> {
 }
 
 export {
+  assertPositiveCreditUnits,
+  creditGrantSources,
+  normalizeCreditOperationKey,
+  type CreditGrantReceipt,
+  type CreditGrantSource,
+  type WalletBalance,
+} from './credits'
+export {
   can,
   safeReturnPath,
   staffRoles,
