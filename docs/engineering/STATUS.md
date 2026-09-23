@@ -4,12 +4,9 @@
 **Current milestone:** 1.2 — Production-shaped walking skeleton; 3.1 — Auditable credits and atomic entitlements
 **Health:** At Risk — provider-independent application and financial foundations are progressing, but the preview database integration requires product-owner authorization and development identity/payment providers are not configured.
 
-## In progress
-
-- CRFD-21 / Milestone 3.1A — The provider-independent append-only wallet ledger and idempotent credit-grant transaction are being implemented with PostgreSQL constraints, row locks, immutable provenance and real PostgreSQL 18 concurrency evidence.
-
 ## In review
 
+- CRFD-21 / Milestone 3.1A — PR #13 implements the provider-independent append-only wallet ledger and idempotent credit-grant transaction with PostgreSQL constraints, row locks, immutable provenance and real PostgreSQL 18 concurrency evidence. GitHub review gates are running.
 - S1-09 — The structured Story, locale, revision and source contract is merged; final closure waits for the public/Reader vertical slice to consume it.
 - S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
 - S1-11 — PR #9 merged the public Story Detail route, safe preview projection, missing-locale handling and SEO/share metadata. Local validation is complete and Vercel deploys the protected preview successfully, but the Story route cannot render there until S1-07 authorizes and supplies the preview database connection.
