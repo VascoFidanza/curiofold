@@ -1,12 +1,11 @@
 # Curiofold Engineering Status
 
 **Current phase:** Production-shaped walking skeleton with parallel financial-integrity work
-**Current milestone:** 1.2 — Production-shaped walking skeleton; 3.1 — Auditable credits and atomic entitlements
+**Current milestone:** 1.2 — Production-shaped walking skeleton
 **Health:** At Risk — provider-independent application and financial foundations are progressing, but the preview database integration requires product-owner authorization and development identity/payment providers are not configured.
 
 ## In review
 
-- CRFD-22 / Milestone 3.1C — Read-only wallet reconciliation and the customer-safe authenticated balance/history projection pass full local validation. PostgreSQL 18 fixtures classify balance, version, running-balance, grant-ledger, grant-remaining, spend-allocation, cross-wallet allocation, entitlement and unlock-operation drift; GitHub review gates remain before merge.
 - S1-09 — The structured Story, locale, revision and source contract is merged; final closure waits for the public/Reader vertical slice to consume it.
 - S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
 - S1-11 — PR #9 merged the public Story Detail route, safe preview projection, missing-locale handling and SEO/share metadata. Local validation is complete and Vercel deploys the protected preview successfully, but the Story route cannot render there until S1-07 authorizes and supplies the preview database connection.
@@ -16,6 +15,8 @@
 
 ## Recently completed
 
+- CRFD-24 / S1-10A — PR #16 operationalized responsive/cross-browser checks against real Story Detail, Reader and shell components in Chromium, Firefox and WebKit. The executable gate covers the full width matrix, an arbitrary width, overflow, expanded Portuguese labels, keyboard order, reduced motion, touch/coarse-pointer and landscape behavior; manual physical-device and assistive-technology evidence remains an explicit release gate.
+- CRFD-22 / Milestone 3.1C — PR #15 merged read-only paginated wallet reconciliation and customer-safe authenticated balance/history after all six GitHub gates passed, completing the provider-independent Milestone 3.1 accounting scope.
 - CRFD-23 / Milestone 3.1B — PR #14 merged atomic one-credit Story unlock, FIFO allocation, immutable idempotency evidence and the authenticated unlock API after all six GitHub gates passed.
 - CRFD-21 / Milestone 3.1A — PR #13 merged the provider-independent append-only wallet ledger and idempotent credit-grant transaction with PostgreSQL constraints, row locks, immutable provenance and real PostgreSQL 18 concurrency evidence.
 - S1-01 — Approved plan and execution controls merged in PR #1.
@@ -46,7 +47,7 @@
 
 1. Complete S1-10 visual acceptance when structured Figma access returns.
 2. Retain S1-11 as blocked until its preview-data and final visual gates can run.
-3. Complete CRFD-22 reconciliation and customer-safe transaction history, closing Milestone 3.1's provider-independent accounting foundation.
+3. Materialize the next commerce milestones so Project 3 reports the complete planned scope rather than only completed Milestone 3.1 work.
 4. Retain S1-13's live refresh/session/reconnect gate until development identity and database connections are available.
 5. Retain S1-12's live entitlement/Reader preview gate as blocked until those development connections are available.
 6. Retain S1-08's live Clerk smoke gate as blocked until development credentials are connected.

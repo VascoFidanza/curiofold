@@ -93,3 +93,32 @@ jobs:
         env:
           RUN_DB_INTEGRATION: '1'
         run: pnpm test:integration
+
+  browser-quality:
+    name: Responsive browser quality
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.27.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install browser runtimes
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+
+      - name: Run responsive browser suite
+        run: pnpm test:e2e

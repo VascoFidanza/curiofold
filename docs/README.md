@@ -24,6 +24,7 @@ docs/
 │   └── OPEN_DECISIONS.md
 ├── engineering/           # created/maintained by Codex after approved planning
 │   ├── EXECUTION_PLAN.md
+│   ├── RESPONSIVE_BROWSER_VALIDATION.md
 │   └── STATUS.md
 └── decisions/             # created/maintained by Codex
     └── ADR-xxxx-*.md
