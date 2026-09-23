@@ -3,8 +3,10 @@ import type {
   ReaderStoryBlock,
   ReaderStorySource,
 } from '@curiofold/content'
+import type { ReadingProgressSnapshot } from '@curiofold/db'
 
 import { ReaderFrame } from './reader-frame'
+import { ReaderProgressProvider } from './reader-progress'
 import styles from './reader.module.css'
 
 function humanizeKey(value: string): string {
@@ -207,7 +209,17 @@ function SourceEntry({
   )
 }
 
-export function StoryReader({ story }: Readonly<{ story: ReaderStory }>) {
+export function StoryReader({
+  progress,
+  story,
+  storyId,
+  versionId,
+}: Readonly<{
+  progress: ReadingProgressSnapshot
+  story: ReaderStory
+  storyId: string
+  versionId: string
+}>) {
   const sourceNumbers = new Map(
     story.sources.map((source, index) => [source.id, index + 1] as const),
   )
@@ -215,62 +227,79 @@ export function StoryReader({ story }: Readonly<{ story: ReaderStory }>) {
     story.sources.map((source) => [source.id, source] as const),
   )
 
+  const progressBlocks = story.blocks.map(({ id, readingUnits }) => ({
+    id,
+    readingUnits,
+  }))
+
   return (
-    <ReaderFrame
-      detailHref={`/${story.locale}/stories/${story.slug}`}
-      title={story.title}
+    <ReaderProgressProvider
+      blocks={progressBlocks}
+      initialProgress={progress}
+      locale={story.locale}
+      storyId={storyId}
+      versionId={versionId}
     >
-      <main id="story-content">
-        <article className={styles.story} lang={story.locale}>
-          <header className={styles.storyHeader}>
-            <p className={styles.category}>
-              {story.categoryKeys.map(humanizeKey).join(' · ')}
-            </p>
-            <h1>{story.title}</h1>
-            <p className={styles.deck}>{story.deck}</p>
-            <ul aria-label="Story information" className={styles.metadata}>
-              <li>{story.readingMinutes} min read</li>
-              <li>Revision {story.revision}</li>
-              <li>
-                Published{' '}
-                <time dateTime={story.publishedAt}>
-                  {formatDate(story.publishedAt, story.locale)}
-                </time>
-              </li>
-            </ul>
-            {story.updateNote ? (
-              <p className={styles.updateNote}>{story.updateNote}</p>
-            ) : null}
-          </header>
+      <ReaderFrame
+        detailHref={`/${story.locale}/stories/${story.slug}`}
+        title={story.title}
+      >
+        <main id="story-content">
+          <article className={styles.story} lang={story.locale}>
+            <header className={styles.storyHeader}>
+              <p className={styles.category}>
+                {story.categoryKeys.map(humanizeKey).join(' · ')}
+              </p>
+              <h1>{story.title}</h1>
+              <p className={styles.deck}>{story.deck}</p>
+              <ul aria-label="Story information" className={styles.metadata}>
+                <li>{story.readingMinutes} min read</li>
+                <li>Revision {story.revision}</li>
+                <li>
+                  Published{' '}
+                  <time dateTime={story.publishedAt}>
+                    {formatDate(story.publishedAt, story.locale)}
+                  </time>
+                </li>
+              </ul>
+              {story.updateNote ? (
+                <p className={styles.updateNote}>{story.updateNote}</p>
+              ) : null}
+            </header>
 
-          <div className={styles.storyBody}>
-            {story.blocks.map((block) => (
-              <StoryBlock
-                block={block}
-                key={block.id}
-                sourceNumbers={sourceNumbers}
-                sources={sources}
-              />
-            ))}
-          </div>
-
-          <section aria-labelledby="sources-heading" className={styles.sources}>
-            <p className={styles.sectionEyebrow}>Research trail</p>
-            <h2 id="sources-heading">Sources &amp; notes</h2>
-            <p>{story.methodologyNote}</p>
-            <ol>
-              {story.sources.map((source, index) => (
-                <SourceEntry
-                  key={source.id}
-                  locale={story.locale}
-                  number={index + 1}
-                  source={source}
+            <div className={styles.storyBody}>
+              {story.blocks.map((block) => (
+                <StoryBlock
+                  block={block}
+                  key={block.id}
+                  sourceNumbers={sourceNumbers}
+                  sources={sources}
                 />
               ))}
-            </ol>
-          </section>
-        </article>
-      </main>
-    </ReaderFrame>
+            </div>
+
+            <section
+              aria-labelledby="sources-heading"
+              className={styles.sources}
+            >
+              <p className={styles.sectionEyebrow}>Research trail</p>
+              <h2 id="sources-heading">Sources &amp; notes</h2>
+              <p>{story.methodologyNote}</p>
+              <ol>
+                {story.sources.map((source, index) => (
+                  <SourceEntry
+                    key={source.id}
+                    locale={story.locale}
+                    number={index + 1}
+                    source={source}
+                  />
+                ))}
+              </ol>
+            </section>
+            <div aria-hidden="true" id="story-end-marker" />
+          </article>
+        </main>
+      </ReaderFrame>
+    </ReaderProgressProvider>
   )
 }

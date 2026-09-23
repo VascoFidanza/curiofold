@@ -17,6 +17,8 @@ export type EntitledStoryRouteResolution =
   | Readonly<{
       status: 'found'
       story: CompiledStoryDocument
+      storyId: string
+      versionId: string
     }>
   | Readonly<{
       status: 'not_entitled'
@@ -137,7 +139,11 @@ export async function findEntitledStoryBySlug(
   slug: string,
 ): Promise<EntitledStoryRouteResolution> {
   const [owned] = await database
-    .select({ document: schema.storyVersions.document })
+    .select({
+      document: schema.storyVersions.document,
+      storyId: schema.stories.id,
+      versionId: schema.storyVersions.id,
+    })
     .from(schema.storyEntitlements)
     .innerJoin(
       schema.stories,
@@ -178,7 +184,12 @@ export async function findEntitledStoryBySlug(
       )
     }
 
-    return { status: 'found', story }
+    return {
+      status: 'found',
+      story,
+      storyId: owned.storyId,
+      versionId: owned.versionId,
+    }
   }
 
   const publicResolution = await findPublishedStoryBySlug(

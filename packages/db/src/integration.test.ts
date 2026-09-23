@@ -21,6 +21,7 @@ import {
   findPublishedStory,
   findPublishedStoryBySlug,
 } from './published-stories'
+import { findReadingProgress, saveReadingProgress } from './reading-progress'
 import {
   entitlementEvents,
   staffRoleAssignments,
@@ -400,6 +401,117 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         ),
       ).resolves.toEqual({ status: 'not_entitled' })
 
+      const revisedProgress = await saveReadingProgress(database.client, {
+        clientSequence: 1,
+        endMarkerReached: false,
+        locale: 'en',
+        now: new Date('2026-09-20T11:01:30.000Z'),
+        resumeBlockId: 'mechanism-diagram',
+        resumeOffset: original.readingUnits['mechanism-diagram'] ?? 0,
+        storyId: story.id,
+        userId: linkedAccount.userId,
+        versionId: originalVersion.id,
+      })
+      expect(revisedProgress.status).toBe('found')
+      if (revisedProgress.status === 'found') {
+        expect(revisedProgress.accepted).toBe(true)
+        expect(revisedProgress.progress).toMatchObject({
+          lastClientSequence: 1,
+          resumeBlockId: 'opening',
+          versionId: correctedVersion.id,
+        })
+        expect(revisedProgress.progress.resumeOffset).toBe(
+          correction.readingUnits.opening,
+        )
+      }
+
+      const completedProgress = await saveReadingProgress(database.client, {
+        clientSequence: 2,
+        endMarkerReached: true,
+        locale: 'en',
+        now: new Date('2026-09-20T11:01:40.000Z'),
+        resumeBlockId: 'story-end',
+        resumeOffset: correction.readingUnits['story-end'] ?? 0,
+        storyId: story.id,
+        userId: linkedAccount.userId,
+        versionId: correctedVersion.id,
+      })
+      expect(completedProgress).toMatchObject({
+        accepted: true,
+        progress: {
+          completedAt: '2026-09-20T11:01:40.000Z',
+          highWaterPercent: 100,
+          lastClientSequence: 2,
+        },
+        status: 'found',
+      })
+
+      const staleProgress = await saveReadingProgress(database.client, {
+        clientSequence: 2,
+        endMarkerReached: false,
+        locale: 'en',
+        resumeBlockId: 'opening',
+        resumeOffset: 0,
+        storyId: story.id,
+        userId: linkedAccount.userId,
+        versionId: correctedVersion.id,
+      })
+      expect(staleProgress).toMatchObject({
+        accepted: false,
+        progress: { highWaterPercent: 100, lastClientSequence: 2 },
+        status: 'found',
+      })
+
+      await Promise.all([
+        saveReadingProgress(database.client, {
+          clientSequence: 4,
+          endMarkerReached: false,
+          locale: 'en',
+          resumeBlockId: 'correction-context',
+          resumeOffset: 1,
+          storyId: story.id,
+          userId: linkedAccount.userId,
+          versionId: correctedVersion.id,
+        }),
+        saveReadingProgress(database.client, {
+          clientSequence: 3,
+          endMarkerReached: false,
+          locale: 'en',
+          resumeBlockId: 'opening',
+          resumeOffset: 0,
+          storyId: story.id,
+          userId: linkedAccount.userId,
+          versionId: correctedVersion.id,
+        }),
+      ])
+      await expect(
+        findReadingProgress(database.client, {
+          currentStory: correction,
+          currentVersionId: correctedVersion.id,
+          locale: 'en',
+          storyId: story.id,
+          userId: linkedAccount.userId,
+        }),
+      ).resolves.toMatchObject({
+        completedAt: '2026-09-20T11:01:40.000Z',
+        highWaterPercent: 100,
+        lastClientSequence: 4,
+        resumeBlockId: 'correction-context',
+      })
+
+      await expect(
+        saveReadingProgress(database.client, {
+          clientSequence: 1,
+          endMarkerReached: false,
+          locale: 'en',
+          resumeBlockId: 'opening',
+          resumeOffset: 0,
+          storyId: story.id,
+          userId: otherReader.userId,
+          versionId: correctedVersion.id,
+        }),
+      ).resolves.toEqual({ status: 'not_entitled' })
+
       const revoked = await revokeStoryEntitlement(database.client, {
         actorUserId: linkedAccount.userId,
         entitlementId: concurrentGrants[0].entitlementId,
@@ -426,6 +538,18 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           'en',
           'clockwork-gardens',
         ),
+      ).resolves.toEqual({ status: 'not_entitled' })
+      await expect(
+        saveReadingProgress(database.client, {
+          clientSequence: 5,
+          endMarkerReached: false,
+          locale: 'en',
+          resumeBlockId: 'opening',
+          resumeOffset: 0,
+          storyId: story.id,
+          userId: linkedAccount.userId,
+          versionId: correctedVersion.id,
+        }),
       ).resolves.toEqual({ status: 'not_entitled' })
 
       const entitlementHistory = await database.client

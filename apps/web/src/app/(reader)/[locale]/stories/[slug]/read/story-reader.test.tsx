@@ -93,6 +93,17 @@ const story: ReaderStory = {
   totalReadingUnits: 53,
   updateNote: null,
 }
+const storyId = '11111111-1111-4111-8111-111111111111'
+const versionId = '22222222-2222-4222-8222-222222222222'
+const progress = {
+  completedAt: null,
+  highWaterPercent: 0,
+  lastClientSequence: 0,
+  resumeBlockId: null,
+  resumeOffset: 0,
+  storyId,
+  versionId,
+}
 
 afterEach(() => {
   document.body.innerHTML = ''
@@ -101,7 +112,14 @@ afterEach(() => {
 
 describe('Story Reader', () => {
   it('renders semantic Story blocks and accessible source navigation', () => {
-    render(<StoryReader story={story} />)
+    render(
+      <StoryReader
+        progress={progress}
+        story={story}
+        storyId={storyId}
+        versionId={versionId}
+      />,
+    )
 
     expect(
       screen.getByRole('heading', { level: 1, name: story.title }),
@@ -126,7 +144,14 @@ describe('Story Reader', () => {
   })
 
   it('applies and persists the simple Reader preferences', () => {
-    const { container } = render(<StoryReader story={story} />)
+    const { container } = render(
+      <StoryReader
+        progress={progress}
+        story={story}
+        storyId={storyId}
+        versionId={versionId}
+      />,
+    )
 
     fireEvent.click(screen.getByLabelText('Reading settings'))
     fireEvent.click(screen.getByRole('button', { name: 'Larger' }))
@@ -141,7 +166,14 @@ describe('Story Reader', () => {
   })
 
   it('has no detectable automated accessibility violations', async () => {
-    const { container } = render(<StoryReader story={story} />)
+    const { container } = render(
+      <StoryReader
+        progress={progress}
+        story={story}
+        storyId={storyId}
+        versionId={versionId}
+      />,
+    )
     const result = await axe.run(container, {
       rules: { 'color-contrast': { enabled: false } },
     })

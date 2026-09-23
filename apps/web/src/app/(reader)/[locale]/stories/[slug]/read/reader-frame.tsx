@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useSyncExternalStore, type ReactNode } from 'react'
 
 import styles from './reader.module.css'
+import { ReaderProgressIndicator } from './reader-progress'
 
 type ReaderTextSize = 'large' | 'small' | 'standard'
 type ReaderWidth = 'standard' | 'wide'
@@ -180,6 +181,7 @@ export function ReaderFrame({
           </div>
         </details>
       </header>
+      <ReaderProgressIndicator />
       {children}
     </div>
   )

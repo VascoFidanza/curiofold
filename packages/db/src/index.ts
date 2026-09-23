@@ -28,4 +28,11 @@ export {
   type PublishedStoryLocalization,
   type PublishedStoryRouteResolution,
 } from './published-stories'
+export {
+  findReadingProgress,
+  saveReadingProgress,
+  type ReadingProgressSnapshot,
+  type SaveReadingProgressInput,
+  type SaveReadingProgressResult,
+} from './reading-progress'
 export * from './schema'
