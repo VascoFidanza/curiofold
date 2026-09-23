@@ -42,4 +42,13 @@ export {
   type GrantCreditsInput,
   type GrantCreditsResult,
 } from './wallets'
+export {
+  FinancialIntegrityError,
+  InsufficientCreditsError,
+  StoryUnlockUnavailableError,
+  UnlockOperationConflictError,
+  unlockStoryWithCredit,
+  type UnlockStoryInput,
+  type UnlockStoryResult,
+} from './story-unlocks'
 export * from './schema'

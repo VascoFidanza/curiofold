@@ -13,8 +13,11 @@ The wallet is provider-independent. Stripe, another payment processor, promotion
 3. A credit-grant operation creates exactly one credit lot and one positive ledger entry.
 4. A globally namespaced operation key identifies one semantic command. Reusing it with different user, source, reference or units fails closed.
 5. Credits are bounded positive integers. Currency and payment amounts are not represented as credits.
-6. Original credit-lot provenance is immutable. Only its remaining-unit projection and update timestamp may change in later spend/reversal work.
-7. Financial history is corrected with compensating entries, never edits or deletion.
+6. A new Story unlock creates exactly one debit, one FIFO lot allocation and one active entitlement in the same transaction.
+7. An already-owned Story is an idempotent success and never debits again.
+8. Concurrent unlocks cannot spend the same credit twice.
+9. Original credit-lot provenance is immutable. Only its remaining-unit projection and update timestamp may change during spend/reversal work.
+10. Financial history is corrected with compensating entries, never edits or deletion.
 
 These invariants are protected through typed commands, PostgreSQL checks and unique indexes, row locks, foreign keys, restricted mutations and real-PostgreSQL concurrency tests.
 
@@ -45,6 +48,14 @@ Each signed entry records its resulting wallet balance, operation key, type, rea
 
 A database trigger rejects every update and delete. The application exposes no generic wallet CRUD interface.
 
+### `credit_spend_allocations`
+
+Each debit records which credit lot funded it. Allocations are append-only, positive and unique per ledger-entry/lot pair. Story unlock currently consumes one unit from the oldest spendable lot by grant time and stable identifier. This provenance allows later refund and reversal policy to distinguish unspent from spent credits without rewriting history.
+
+### `unlock_operations`
+
+Every successful or already-owned unlock request stores an immutable result under one globally unique operation key. The record binds the caller, Story, entitlement, optional debit entry and canonical post-operation wallet state. Reusing the key for another user or Story fails closed.
+
 ## Idempotent grant transaction
 
 `grantCredits` performs this sequence in one PostgreSQL transaction:
@@ -64,6 +75,24 @@ Concurrent duplicate calls serialize and return the same grant without double cr
 
 Operation keys must be deterministic and namespaced at their origin, for example `payment:<internal-order-id>`, `promotion:<campaign-id>:<user-id>` or `support:<approved-adjustment-id>`. Secrets and raw provider payloads are prohibited.
 
+## Atomic Story unlock transaction
+
+`unlockStoryWithCredit` performs this sequence in one PostgreSQL transaction:
+
+1. Normalize the operation key and return its stored result when it already belongs to the same user and Story.
+2. Return an immutable `already_owned` result when an active entitlement already exists.
+3. Require at least one published localization; draft-only or unknown Stories fail closed.
+4. Lock the user's wallet row with `FOR UPDATE`.
+5. Recheck the operation and entitlement after obtaining the lock, so a concurrent winner is observed before balance is assessed.
+6. Require one available credit and lock the oldest spendable credit lot.
+7. Create the entitlement and entitlement event.
+8. Append one `-1` spend ledger entry and its FIFO allocation.
+9. Decrement the lot's remaining units and update the wallet projection/version.
+10. Append minimized audit evidence and the immutable operation result.
+11. Commit once.
+
+The `POST /api/v1/story-unlocks` boundary requires an authenticated, verified-email session, a valid `Idempotency-Key`, same-origin mutation, and an exact `{ "storyId": "<uuid>" }` body. It returns only the entitlement identifier, outcome and canonical wallet projection. Insufficient credits and operation-key conflicts are explicit `409` responses; unavailable Stories return `404` without revealing draft state.
+
 ## Public and privileged boundaries
 
 There is currently no browser route for granting credits. Only the server-side commerce module exports the grant command. Later callers must enforce their own authority before entering it:
@@ -73,7 +102,7 @@ There is currently no browser route for granting credits. Only the server-side c
 - a finance/admin action with recent MFA, a reason and audit evidence;
 - a synthetic seed in isolated nonproduction environments.
 
-The customer-safe balance projection contains only available integer credits and wallet version. Transaction history, unlock debit, FIFO allocations, reconciliation and reversals are delivered by CRFD-23/CRFD-22 and later Project 3 milestones.
+The customer-safe balance projection contains only available integer credits and wallet version. Transaction history, reconciliation and reversals are delivered by CRFD-22 and later Project 3 milestones.
 
 ## Validation evidence
 
@@ -87,13 +116,19 @@ The PostgreSQL 18 integration suite exercises:
 - lot provenance and remaining units;
 - append-only ledger enforcement;
 - credit-lot deletion protection;
+- FIFO allocation of an unlock debit;
+- concurrent duplicate-key idempotency;
+- concurrent different-key unlocks of the same Story with one available credit;
+- already-owned unlock behavior without a second debit;
+- cross-user operation-key conflict behavior;
+- insufficient-credit rollback without entitlement or operation creation;
+- append-only allocation and immutable unlock-operation enforcement;
 - invalid zero and fractional/negative units at the domain boundary.
 
 The migration graph must apply cleanly to an empty database and upgrade from every committed predecessor. No live payment provider or production database is required for this foundation.
 
 ## Remaining work and decisions
 
-- CRFD-23 adds FIFO allocation, atomic one-credit Story unlock and entitlement creation.
 - CRFD-22 adds reconciliation and customer-safe transaction history.
 - Milestone 3.2 maps fulfilled provider orders to this grant command.
 - Milestone 3.3 adds compensating reversals and guarded operations.

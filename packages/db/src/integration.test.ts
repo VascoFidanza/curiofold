@@ -24,14 +24,23 @@ import {
 import { findReadingProgress, saveReadingProgress } from './reading-progress'
 import {
   creditGrants,
+  creditSpendAllocations,
   entitlementEvents,
   staffRoleAssignments,
   stories,
+  storyEntitlements,
   storyLocalizations,
   storyVersions,
+  unlockOperations,
   walletAccounts,
   walletEntries,
 } from './schema'
+import {
+  InsufficientCreditsError,
+  StoryUnlockUnavailableError,
+  UnlockOperationConflictError,
+  unlockStoryWithCredit,
+} from './story-unlocks'
 import {
   CreditGrantConflictError,
   findWalletBalance,
@@ -116,6 +125,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         expect.arrayContaining([
           'audit_events',
           'credit_grants',
+          'credit_spend_allocations',
           'entitlement_events',
           'identity_events',
           'reading_progress',
@@ -125,6 +135,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           'story_localizations',
           'story_versions',
           'users',
+          'unlock_operations',
           'wallet_accounts',
           'wallet_entries',
         ]),
@@ -477,6 +488,214 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           state: 'published',
         })
         .where(eq(storyLocalizations.id, localization.id))
+
+      const unlockReader = await ensureIdentityAccount(
+        database.client,
+        'user_unlock_fixture',
+        new Date('2026-09-20T10:06:00.000Z'),
+      )
+      const firstUnlockGrant = await grantCredits(database.client, {
+        grantedAt: new Date('2026-09-20T10:06:10.000Z'),
+        operationKey: 'seed:unlock-fifo-first',
+        reason: 'First FIFO unlock fixture.',
+        source: 'seed',
+        sourceReference: 'unlock-fifo-first',
+        units: 1,
+        userId: unlockReader.userId,
+      })
+      const secondUnlockGrant = await grantCredits(database.client, {
+        grantedAt: new Date('2026-09-20T10:06:20.000Z'),
+        operationKey: 'seed:unlock-fifo-second',
+        reason: 'Second FIFO unlock fixture.',
+        source: 'seed',
+        sourceReference: 'unlock-fifo-second',
+        units: 2,
+        userId: unlockReader.userId,
+      })
+
+      const repeatedUnlocks = await Promise.all([
+        unlockStoryWithCredit(database.client, {
+          now: new Date('2026-09-20T10:07:00.000Z'),
+          operationKey: 'unlock:clockwork:user_unlock_fixture',
+          storyId: story.id,
+          userId: unlockReader.userId,
+        }),
+        unlockStoryWithCredit(database.client, {
+          now: new Date('2026-09-20T10:07:00.000Z'),
+          operationKey: 'unlock:clockwork:user_unlock_fixture',
+          storyId: story.id,
+          userId: unlockReader.userId,
+        }),
+      ])
+      expect(repeatedUnlocks).toHaveLength(2)
+      expect(
+        new Set(repeatedUnlocks.map(({ operationId }) => operationId)).size,
+      ).toBe(1)
+      expect(
+        new Set(repeatedUnlocks.map(({ entitlementId }) => entitlementId)).size,
+      ).toBe(1)
+      expect(repeatedUnlocks[0]).toMatchObject({
+        availableCredits: 2,
+        outcome: 'unlocked',
+        walletVersion: 3,
+      })
+
+      await expect(
+        unlockStoryWithCredit(database.client, {
+          operationKey: 'unlock:clockwork:user_unlock_fixture:owned-retry',
+          storyId: story.id,
+          userId: unlockReader.userId,
+        }),
+      ).resolves.toMatchObject({
+        availableCredits: 2,
+        outcome: 'already_owned',
+        walletEntryId: null,
+        walletVersion: 3,
+      })
+      await expect(
+        unlockStoryWithCredit(database.client, {
+          operationKey: 'unlock:clockwork:user_unlock_fixture',
+          storyId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          userId: unlockReader.userId,
+        }),
+      ).rejects.toBeInstanceOf(UnlockOperationConflictError)
+      await expect(
+        unlockStoryWithCredit(database.client, {
+          operationKey: 'unlock:unpublished:user_unlock_fixture',
+          storyId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          userId: unlockReader.userId,
+        }),
+      ).rejects.toBeInstanceOf(StoryUnlockUnavailableError)
+
+      const [firstGrantAfterSpend] = await database.client
+        .select({ unitsRemaining: creditGrants.unitsRemaining })
+        .from(creditGrants)
+        .where(eq(creditGrants.id, firstUnlockGrant.receipt.grantId))
+        .limit(1)
+      const [secondGrantAfterSpend] = await database.client
+        .select({ unitsRemaining: creditGrants.unitsRemaining })
+        .from(creditGrants)
+        .where(eq(creditGrants.id, secondUnlockGrant.receipt.grantId))
+        .limit(1)
+      expect(firstGrantAfterSpend?.unitsRemaining).toBe(0)
+      expect(secondGrantAfterSpend?.unitsRemaining).toBe(2)
+
+      const unlockLedgerEntries = await database.client
+        .select({
+          delta: walletEntries.delta,
+          id: walletEntries.id,
+        })
+        .from(walletEntries)
+        .where(eq(walletEntries.entryType, 'spend'))
+      expect(unlockLedgerEntries).toHaveLength(1)
+      expect(unlockLedgerEntries[0]?.delta).toBe(-1)
+      const allocations = await database.client
+        .select({
+          creditGrantId: creditSpendAllocations.creditGrantId,
+          units: creditSpendAllocations.units,
+        })
+        .from(creditSpendAllocations)
+        .where(
+          eq(
+            creditSpendAllocations.walletEntryId,
+            repeatedUnlocks[0].walletEntryId ?? '',
+          ),
+        )
+      expect(allocations).toEqual([
+        { creditGrantId: firstUnlockGrant.receipt.grantId, units: 1 },
+      ])
+      await expect(
+        client.query(
+          `UPDATE credit_spend_allocations SET units = 2 WHERE wallet_entry_id = $1`,
+          [repeatedUnlocks[0].walletEntryId],
+        ),
+      ).rejects.toThrow(/append-only/u)
+      await expect(
+        client.query(`DELETE FROM unlock_operations WHERE id = $1`, [
+          repeatedUnlocks[0].operationId,
+        ]),
+      ).rejects.toThrow(/immutable/u)
+
+      const operationCollisionReader = await ensureIdentityAccount(
+        database.client,
+        'user_unlock_operation_collision_fixture',
+        new Date('2026-09-20T10:07:30.000Z'),
+      )
+      await grantCredits(database.client, {
+        operationKey: 'seed:unlock-operation-collision',
+        reason: 'Cross-user operation-key fixture.',
+        source: 'seed',
+        units: 1,
+        userId: operationCollisionReader.userId,
+      })
+      await expect(
+        unlockStoryWithCredit(database.client, {
+          operationKey: 'unlock:clockwork:user_unlock_fixture',
+          storyId: story.id,
+          userId: operationCollisionReader.userId,
+        }),
+      ).rejects.toBeInstanceOf(UnlockOperationConflictError)
+      await expect(
+        findWalletBalance(database.client, operationCollisionReader.userId),
+      ).resolves.toEqual({ availableCredits: 1, version: 1 })
+
+      const singleCreditReader = await ensureIdentityAccount(
+        database.client,
+        'user_single_credit_fixture',
+        new Date('2026-09-20T10:08:00.000Z'),
+      )
+      await grantCredits(database.client, {
+        operationKey: 'seed:single-credit-unlock',
+        reason: 'Single-credit concurrency fixture.',
+        source: 'seed',
+        units: 1,
+        userId: singleCreditReader.userId,
+      })
+      const competingUnlocks = await Promise.all([
+        unlockStoryWithCredit(database.client, {
+          operationKey: 'unlock:single-credit:first',
+          storyId: story.id,
+          userId: singleCreditReader.userId,
+        }),
+        unlockStoryWithCredit(database.client, {
+          operationKey: 'unlock:single-credit:second',
+          storyId: story.id,
+          userId: singleCreditReader.userId,
+        }),
+      ])
+      expect(competingUnlocks.map(({ outcome }) => outcome).sort()).toEqual([
+        'already_owned',
+        'unlocked',
+      ])
+      await expect(
+        findWalletBalance(database.client, singleCreditReader.userId),
+      ).resolves.toEqual({ availableCredits: 0, version: 2 })
+
+      const noCreditReader = await ensureIdentityAccount(
+        database.client,
+        'user_no_credit_fixture',
+        new Date('2026-09-20T10:09:00.000Z'),
+      )
+      await expect(
+        unlockStoryWithCredit(database.client, {
+          operationKey: 'unlock:no-credit',
+          storyId: story.id,
+          userId: noCreditReader.userId,
+        }),
+      ).rejects.toBeInstanceOf(InsufficientCreditsError)
+      await expect(
+        findWalletBalance(database.client, noCreditReader.userId),
+      ).resolves.toEqual({ availableCredits: 0, version: 0 })
+      const noCreditOperations = await database.client
+        .select({ id: unlockOperations.id })
+        .from(unlockOperations)
+        .where(eq(unlockOperations.userId, noCreditReader.userId))
+      expect(noCreditOperations).toHaveLength(0)
+      const noCreditEntitlements = await database.client
+        .select({ id: storyEntitlements.id })
+        .from(storyEntitlements)
+        .where(eq(storyEntitlements.userId, noCreditReader.userId))
+      expect(noCreditEntitlements).toHaveLength(0)
 
       const found = await findPublishedStory(
         database.client,
