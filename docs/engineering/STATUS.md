@@ -6,6 +6,7 @@
 
 ## In review
 
+- CRFD-30 / Milestone 3.2A — The provider-independent payment-order aggregate, immutable commercial snapshot, safe return-path policy, explicit state transitions and payment-provider port are in implementation. No live pack price, Stripe key or production payment configuration is introduced.
 - S1-09 — The structured Story, locale, revision and source contract is merged; final closure waits for the public/Reader vertical slice to consume it.
 - S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
 - S1-11 — PR #9 merged the public Story Detail route, safe preview projection, missing-locale handling and SEO/share metadata. Local validation is complete and Vercel deploys the protected preview successfully, but the Story route cannot render there until S1-07 authorizes and supplies the preview database connection.
