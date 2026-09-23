@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import axe from 'axe-core'
 import { afterEach, describe, expect, it } from 'vitest'
 
@@ -106,7 +106,7 @@ const progress = {
 }
 
 afterEach(() => {
-  document.body.innerHTML = ''
+  cleanup()
   window.localStorage.clear()
 })
 
