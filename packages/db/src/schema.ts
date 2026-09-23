@@ -191,6 +191,7 @@ export const walletEntries = pgTable(
     walletAccountId: uuid('wallet_account_id')
       .notNull()
       .references(() => walletAccounts.id),
+    walletVersion: integer('wallet_version').notNull(),
   },
   (table) => [
     uniqueIndex('wallet_entries_operation_key_unique').on(table.operationKey),
@@ -203,11 +204,16 @@ export const walletEntries = pgTable(
       table.walletAccountId,
       table.occurredAt,
     ),
+    uniqueIndex('wallet_entries_wallet_version_unique').on(
+      table.walletAccountId,
+      table.walletVersion,
+    ),
     check(
       'wallet_entries_type_check',
       sql`entry_type IN ('correction', 'grant', 'reversal', 'spend')`,
     ),
     check('wallet_entries_delta_check', sql`${table.delta} <> 0`),
+    check('wallet_entries_version_check', sql`${table.walletVersion} > 0`),
     check(
       'wallet_entries_shape_check',
       sql`(${table.entryType} = 'grant' AND ${table.creditGrantId} IS NOT NULL AND ${table.delta} > 0) OR (${table.entryType} = 'spend' AND ${table.creditGrantId} IS NULL AND ${table.delta} < 0) OR (${table.entryType} IN ('correction', 'reversal') AND ${table.delta} <> 0)`,
