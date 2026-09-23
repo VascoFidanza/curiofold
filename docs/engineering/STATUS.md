@@ -12,9 +12,9 @@
 - S1-08 — PR #10 merged the provider-independent identity/session boundary, database-owned roles, allowlisted force redirects and signed/idempotent lifecycle projection. Local, CI and protected-preview provider-free validation pass; live Clerk session/revocation validation remains externally blocked.
 - S1-12 — PR #11 merged the provider-independent entitlement and Reader boundary: unique/auditable Story ownership, owner-only retrieval, private response policy, structured semantic rendering, accessible sources and simple reading controls. Local, CI, PostgreSQL 18 and protected-preview provider-free gates pass; live entitled preview evidence remains externally blocked.
 
-## In progress
+## In review
 
-- S1-13 — Implementing weighted progress, stable resume anchors, monotonic sequence handling, durable completion, correction fallback and offline retry on the merged Reader foundation.
+- S1-13 — PR #12 implements weighted progress, stable resume anchors, monotonic sequence handling, durable completion, correction fallback and offline retry on the merged Reader foundation. Full local quality, production-build and PostgreSQL 18 integrity gates pass; CI and protected-preview review are in progress.
 
 ## Recently completed
 
@@ -46,7 +46,7 @@
 
 1. Complete S1-10 visual acceptance when structured Figma access returns.
 2. Retain S1-11 as blocked until its preview-data and final visual gates can run.
-3. Complete and review S1-13's provider-independent progress implementation, then retain its live refresh/session/reconnect gate until development identity and database connections are available.
+3. Complete PR #12 review, then retain S1-13's live refresh/session/reconnect gate until development identity and database connections are available.
 4. Retain S1-12's live entitlement/Reader preview gate as blocked until those development connections are available.
 5. Retain S1-08's live Clerk smoke gate as blocked until development credentials are connected.
 6. Resume preview database integration only after the product owner authorizes the persistent Vercel integration.
