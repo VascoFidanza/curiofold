@@ -18,3 +18,12 @@ export {
   type Capability,
   type StaffRole,
 } from './identity'
+export {
+  readingPercentAtAnchor,
+  remapReadingAnchor,
+  resolveReadingProgress,
+  type ReadingProgressAnchor,
+  type ReadingProgressBlock,
+  type ResolvedReadingProgress,
+  type ResolveReadingProgressInput,
+} from './reading-progress'

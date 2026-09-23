@@ -53,6 +53,48 @@
   backdrop-filter: blur(0.75rem);
 }
 
+.progressRegion {
+  position: sticky;
+  z-index: 9;
+  top: 4rem;
+  height: 0.2rem;
+  background: var(--cf-color-border-subtle);
+}
+
+.progressRegion progress {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  appearance: none;
+  color: var(--cf-color-action-primary);
+  background: transparent;
+  border: 0;
+}
+
+.progressRegion progress::-webkit-progress-bar {
+  background: transparent;
+}
+
+.progressRegion progress::-webkit-progress-value {
+  background: var(--cf-color-action-primary);
+}
+
+.progressRegion progress::-moz-progress-bar {
+  background: var(--cf-color-action-primary);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .backLink {
   display: inline-flex;
   min-height: 2.75rem;

@@ -1,15 +1,20 @@
 import { createReaderStory, type ReaderStory } from '@curiofold/content'
 import {
   findEntitledStoryBySlug,
+  findReadingProgress,
   type PublishedStoryLocalization,
+  type ReadingProgressSnapshot,
 } from '@curiofold/db'
 
 import { getDatabase } from './database'
 
 export type ReaderStoryRouteData =
   | Readonly<{
+      progress: ReadingProgressSnapshot
       status: 'found'
       story: ReaderStory
+      storyId: string
+      versionId: string
     }>
   | Readonly<{
       status: 'not_entitled'
@@ -27,8 +32,9 @@ export async function getReaderStoryRoute(
   locale: string,
   slug: string,
 ): Promise<ReaderStoryRouteData> {
+  const database = getDatabase().client
   const resolution = await findEntitledStoryBySlug(
-    getDatabase().client,
+    database,
     userId,
     locale,
     slug,
@@ -38,8 +44,19 @@ export async function getReaderStoryRoute(
     return resolution
   }
 
+  const progress = await findReadingProgress(database, {
+    currentStory: resolution.story,
+    currentVersionId: resolution.versionId,
+    locale,
+    storyId: resolution.storyId,
+    userId,
+  })
+
   return {
+    progress,
     status: 'found',
     story: createReaderStory(resolution.story),
+    storyId: resolution.storyId,
+    versionId: resolution.versionId,
   }
 }
