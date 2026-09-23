@@ -24,6 +24,7 @@ type IdentityEventType = 'user.created' | 'user.deleted' | 'user.updated'
 type EntitlementEventType = 'granted' | 'restored' | 'revoked'
 type EntitlementGrantSource = 'seed' | 'support' | 'unlock'
 type EntitlementStatus = 'active' | 'revoked'
+type UnlockOutcome = 'already_owned' | 'unlocked'
 type WalletEntryType = 'correction' | 'grant' | 'reversal' | 'spend'
 
 export const users = pgTable(
@@ -222,6 +223,31 @@ export const walletEntries = pgTable(
   ],
 )
 
+export const creditSpendAllocations = pgTable(
+  'credit_spend_allocations',
+  {
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    creditGrantId: uuid('credit_grant_id')
+      .notNull()
+      .references(() => creditGrants.id),
+    id: uuid('id').defaultRandom().primaryKey(),
+    units: integer('units').notNull(),
+    walletEntryId: uuid('wallet_entry_id')
+      .notNull()
+      .references(() => walletEntries.id),
+  },
+  (table) => [
+    uniqueIndex('credit_spend_allocations_entry_grant_unique').on(
+      table.walletEntryId,
+      table.creditGrantId,
+    ),
+    index('credit_spend_allocations_grant_index').on(table.creditGrantId),
+    check('credit_spend_allocations_units_check', sql`${table.units} > 0`),
+  ],
+)
+
 export const staffRoleAssignments = pgTable(
   'staff_role_assignments',
   {
@@ -339,6 +365,56 @@ export const entitlementEvents = pgTable(
     check(
       'entitlement_events_reason_check',
       sql`length(trim(${table.reason})) > 0`,
+    ),
+  ],
+)
+
+export const unlockOperations = pgTable(
+  'unlock_operations',
+  {
+    balanceAfter: integer('balance_after').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    entitlementId: uuid('entitlement_id')
+      .notNull()
+      .references(() => storyEntitlements.id),
+    id: uuid('id').defaultRandom().primaryKey(),
+    operationKey: varchar('operation_key', { length: 200 }).notNull(),
+    outcome: text('outcome').$type<UnlockOutcome>().notNull(),
+    storyId: uuid('story_id')
+      .notNull()
+      .references(() => stories.id),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    walletEntryId: uuid('wallet_entry_id').references(() => walletEntries.id),
+    walletVersion: integer('wallet_version').notNull(),
+  },
+  (table) => [
+    uniqueIndex('unlock_operations_operation_key_unique').on(
+      table.operationKey,
+    ),
+    index('unlock_operations_user_created_index').on(
+      table.userId,
+      table.createdAt,
+    ),
+    index('unlock_operations_story_index').on(table.storyId),
+    check(
+      'unlock_operations_outcome_check',
+      sql`outcome IN ('already_owned', 'unlocked')`,
+    ),
+    check(
+      'unlock_operations_result_shape_check',
+      sql`(${table.outcome} = 'unlocked' AND ${table.walletEntryId} IS NOT NULL) OR (${table.outcome} = 'already_owned' AND ${table.walletEntryId} IS NULL)`,
+    ),
+    check(
+      'unlock_operations_balance_check',
+      sql`${table.balanceAfter} >= 0 AND ${table.walletVersion} >= 0`,
+    ),
+    check(
+      'unlock_operations_operation_key_check',
+      sql`length(trim(${table.operationKey})) BETWEEN 1 AND 200`,
     ),
   ],
 )
