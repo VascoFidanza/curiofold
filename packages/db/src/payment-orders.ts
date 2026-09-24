@@ -1,4 +1,5 @@
 import {
+  assertPaymentOrderTransition,
   normalizePaymentOrderInput,
   type CreditPackSnapshot,
   type PaymentOrderStatus,
@@ -44,6 +45,40 @@ export class PaymentOrderConflictError extends Error {
       'The payment operation key already belongs to a different order command.',
     )
   }
+}
+
+export interface AttachPaymentCheckoutInput {
+  readonly attachedAt?: Date
+  readonly orderId: string
+  readonly providerKey: string
+  readonly providerSessionId: string
+}
+
+function normalizeProviderIdentifier(
+  value: string,
+  label: string,
+  maximumLength: number,
+): string {
+  const normalized = value.trim()
+  if (
+    !normalized ||
+    normalized.length > maximumLength ||
+    Array.from(normalized).some((character) => {
+      const codePoint = character.codePointAt(0) ?? 0
+      return codePoint <= 31 || codePoint === 127
+    })
+  ) {
+    throw new TypeError(
+      `${label} must contain 1–${String(maximumLength)} characters.`,
+    )
+  }
+  if (
+    label === 'Payment provider keys' &&
+    !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(normalized)
+  ) {
+    throw new TypeError('Payment provider keys must be lowercase kebab-case.')
+  }
+  return normalized
 }
 
 function serializeOrder(
@@ -166,4 +201,75 @@ export async function findPaymentOrderForUser(
     .limit(1)
 
   return order ? serializeOrder(order) : null
+}
+
+export async function attachPaymentCheckoutSession(
+  database: CuriofoldDatabase,
+  input: AttachPaymentCheckoutInput,
+): Promise<PaymentOrderRecord> {
+  const providerKey = normalizeProviderIdentifier(
+    input.providerKey,
+    'Payment provider keys',
+    80,
+  )
+  const providerSessionId = normalizeProviderIdentifier(
+    input.providerSessionId,
+    'Provider session identifiers',
+    255,
+  )
+  const attachedAt = input.attachedAt ?? new Date()
+
+  return database.transaction(async (transaction) => {
+    const [order] = await transaction
+      .select()
+      .from(schema.paymentOrders)
+      .where(eq(schema.paymentOrders.id, input.orderId))
+      .limit(1)
+      .for('update')
+
+    if (!order) {
+      throw new PaymentOrderConflictError()
+    }
+
+    if (order.status === 'checkout_created') {
+      if (
+        order.providerKey !== providerKey ||
+        order.providerCheckoutSessionId !== providerSessionId
+      ) {
+        throw new PaymentOrderConflictError()
+      }
+      return serializeOrder(order)
+    }
+
+    assertPaymentOrderTransition(
+      order.status,
+      'checkout_created',
+      'provider_event',
+    )
+
+    const [updated] = await transaction
+      .update(schema.paymentOrders)
+      .set({
+        providerCheckoutSessionId: providerSessionId,
+        providerKey,
+        status: 'checkout_created',
+        updatedAt: attachedAt,
+      })
+      .where(eq(schema.paymentOrders.id, order.id))
+      .returning()
+
+    if (!updated) {
+      throw new PaymentOrderConflictError()
+    }
+
+    await transaction.insert(schema.auditEvents).values({
+      action: 'payment.checkout_created',
+      actorUserId: order.userId,
+      metadata: { providerKey },
+      targetId: order.id,
+      targetType: 'payment_order',
+    })
+
+    return serializeOrder(updated)
+  })
 }

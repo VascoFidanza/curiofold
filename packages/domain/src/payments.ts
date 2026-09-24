@@ -38,6 +38,7 @@ export type PaymentProviderOrderState =
   'canceled' | 'paid' | 'payment_pending' | 'unpaid'
 
 export interface PaymentProviderOrderSnapshot {
+  readonly checkoutUrl: string | null
   readonly providerPaymentId: string | null
   readonly providerSessionId: string
   readonly state: PaymentProviderOrderState
