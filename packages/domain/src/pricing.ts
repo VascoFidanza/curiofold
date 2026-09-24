@@ -33,16 +33,12 @@ export function quoteCreditTopUp(amountMinor: number): CreditTopUpQuote {
     amountMinor % 100 !== 0 ||
     amountMinor > maximumSafeMinorAmount
   ) {
-    throw new TypeError(
-      'Top-ups must be whole EUR amounts of at least €5.',
-    )
+    throw new TypeError('Top-ups must be whole EUR amounts of at least €5.')
   }
 
   const amountEUR = amountMinor / 100
   const bonusRateBps = bonusRateForAmount(amountEUR)
-  const bonusCredits = Math.floor(
-    (amountEUR * bonusRateBps + 5_000) / 10_000,
-  )
+  const bonusCredits = Math.floor((amountEUR * bonusRateBps + 5_000) / 10_000)
   const baseCredits = amountEUR
 
   return {
