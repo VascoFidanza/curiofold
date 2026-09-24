@@ -93,6 +93,8 @@ Final processing locks the inbox event and payment order. In one PostgreSQL tran
 
 Provider-event envelopes and outbox envelopes are protected from update/deletion by database triggers. Only explicit processing/delivery projections may change. Browser success redirects remain informational and cannot call this fulfilment path.
 
+The owner-authorized `GET /api/v1/payment-orders/{id}` boundary returns only the internal order ID, snapshotted credits/amount/currency, update time and a customer-safe status. `pending`, `checkout_created` and `payment_pending` are all reported as `processing`; only the committed internal `fulfilled` state is reported as fulfilled. Owner-scoped lookup returns the same not-found response for unknown and other-user orders. Provider identifiers, idempotency keys and return paths are never exposed.
+
 ## Idempotent grant transaction
 
 `grantCredits` performs this sequence in one PostgreSQL transaction:
