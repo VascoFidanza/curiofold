@@ -1,12 +1,12 @@
 # Curiofold Engineering Status
 
 **Current phase:** Production-shaped walking skeleton with parallel financial-integrity work
-**Current milestone:** 1.2 — Production-shaped walking skeleton
-**Health:** At Risk — provider-independent application and financial foundations are progressing, but the preview database integration requires product-owner authorization and development identity/payment providers are not configured.
+**Current milestone:** 3.3 — Reversals and support operations are auditable
+**Health:** On Track — Milestone 3.2 is merged to `development`; CRFD-35 now has a validated reversal-evidence foundation. Live provider gates remain intentionally deferred and do not block provider-independent work.
 
 ## In progress
 
-- CRFD-33 / Milestone 3.2D — Owner-scoped payment status, canonical amount-based EUR pricing, durable reconciliation jobs, the Stripe worker, and a protected scheduler endpoint are implemented locally. The obsolete pack catalogue contract has been removed. Alerting, live nonproduction evidence and the full lifecycle gate remain.
+- CRFD-35 / Milestone 3.3A — The branch `codex/crfd-35-reversal-evidence` adds immutable refund/dispute/support-correction evidence, idempotent creation, fulfilled-order locking, cumulative amount/credit limits, transition policy, audit/outbox evidence and PostgreSQL 18 tests. The increment is locally validated and committed; pull-request review and merge remain.
 
 ## In review
 
@@ -19,6 +19,7 @@
 
 ## Recently completed
 
+- CRFD-33 / Milestone 3.2D — PR #20 merged owner-scoped payment status, canonical amount-based EUR pricing, durable reconciliation jobs, the Stripe worker and protected scheduler endpoint to `development` after all seven hosted checks passed. The obsolete public pack-catalogue contract was removed.
 - CRFD-32 / Milestone 3.2C — PR #19 merged signed Stripe event verification, immutable provider-event deduplication, authoritative provider re-read and atomic order/grant/ledger/audit/outbox fulfilment after all seven GitHub gates passed. Concurrent replay, delayed retry and out-of-order non-regression pass against PostgreSQL 18; no live webhook configuration was enabled.
 - CRFD-31 / Milestone 3.2B — PR #18 merged the server-owned credit-pack catalogue, authenticated idempotent Stripe Checkout creation, context-preserving processing/cancel returns, open-session retry, atomic provider-session attachment and redacted provider failures after all seven GitHub gates passed. No live pricing, credentials or redirect-based fulfilment was introduced.
 - CRFD-30 / Milestone 3.2A — PR #17 established the provider-independent payment-order aggregate, immutable server-owned commercial snapshot, safe return-path policy, explicit non-regressive state transitions and payment-provider port with PostgreSQL 18 concurrency and upgrade evidence. No live pack price, Stripe key or production payment configuration was introduced.
@@ -43,8 +44,14 @@
 
 - Linear cycle creation is subject to the workspace exposing cycle-management capability.
 - Visual acceptance remains dependent on renewed structured access to the Curiofold Figma file.
-- Development Clerk and Stripe credentials are not connected; no authenticated/payment flow is enabled.
-- S1-07 is explicitly blocked pending authorization for the persistent, preview-only Neon–Vercel integration; no integration approval has been submitted. The PR #9 preview reports healthy liveness, while its database-backed Story route fails closed with the expected missing-configuration error.
+- Final spent-credit behavior for refunds and chargebacks is gated by OD-010. CRFD-35 and the unspent-credit portion of CRFD-36 can proceed independently.
+- Production infrastructure, live payment configuration and the initial production release remain explicit product-owner approval boundaries.
+
+## Environment state
+
+- Vercel Preview has development Clerk, Stripe test-mode and Neon nonproduction variables configured.
+- The stable nonproduction integration branch is `development`; `main` remains the production/release branch.
+- No production Neon project, live Stripe configuration or production release has been created.
 
 ## Known non-blocking risk
 
@@ -52,13 +59,12 @@
 
 ## Next
 
-1. Complete S1-10 visual acceptance when structured Figma access returns.
-2. Retain S1-11 as blocked until its preview-data and final visual gates can run.
-3. Complete CRFD-32's signed, deduplicated provider-event inbox and exactly-once fulfilment; then implement CRFD-33 stale-order reconciliation and customer-safe order status.
-4. Retain S1-13's live refresh/session/reconnect gate until development identity and database connections are available.
-5. Retain S1-12's live entitlement/Reader preview gate as blocked until those development connections are available.
-6. Retain S1-08's live Clerk smoke gate as blocked until development credentials are connected.
-7. Resume preview database integration only after the product owner authorizes the persistent Vercel integration.
+1. Open CRFD-35's pull request against `development`, run hosted gates, review the migration diff and merge only when green.
+2. Begin CRFD-36: atomically reverse only unspent payment-origin credits with compensating ledger entries and reconciliation coverage.
+3. Keep CRFD-37's spent-credit behavior behind OD-010; do not invent negative-balance, suspension or entitlement-revocation policy.
+4. Complete S1-10 visual acceptance when structured Figma access returns.
+5. Retain live Clerk, Stripe and entitled-preview acceptance gates until their development integrations are available.
+6. Do not provision production infrastructure or enable live payments without explicit product-owner approval.
 
 ## Open decisions
 

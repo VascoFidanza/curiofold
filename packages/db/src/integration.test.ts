@@ -33,6 +33,10 @@ import {
   reschedulePaymentReconciliationJob,
 } from './payment-reconciliation'
 import {
+  createPaymentReversal,
+  PaymentReversalConflictError,
+} from './payment-reversals'
+import {
   processProviderEvent,
   ProviderEventRetryableError,
   recordProviderEvent,
@@ -44,6 +48,7 @@ import {
   entitlementEvents,
   paymentOrders,
   paymentReconciliationJobs,
+  paymentReversals,
   outboxEvents,
   providerEvents,
   staffRoleAssignments,
@@ -157,6 +162,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           'outbox_events',
           'payment_orders',
           'payment_reconciliation_jobs',
+          'payment_reversals',
           'provider_events',
           'reading_progress',
           'staff_role_assignments',
@@ -409,6 +415,69 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         .from(outboxEvents)
         .where(eq(outboxEvents.aggregateId, secondPaymentOrder.order.id))
       expect(fulfilledOutbox).toHaveLength(1)
+
+      const reversalInput = {
+        amountMinor: 300,
+        createdAt: new Date('2026-09-20T10:03:54.000Z'),
+        createdByUserId: linkedAccount.userId,
+        creditsRequested: 3,
+        kind: 'refund' as const,
+        operationKey: 'refund:order-fixture:request-1',
+        orderId: secondPaymentOrder.order.id,
+        reasonCode: 'customer_request',
+      }
+      const createdReversal = await createPaymentReversal(
+        database.client,
+        reversalInput,
+      )
+      expect(createdReversal).toMatchObject({
+        created: true,
+        reversal: {
+          amountMinor: 300,
+          creditsRequested: 3,
+          currency: 'EUR',
+          status: 'requested',
+        },
+      })
+      await expect(
+        createPaymentReversal(database.client, reversalInput),
+      ).resolves.toMatchObject({
+        created: false,
+        reversal: { id: createdReversal.reversal.id },
+      })
+      await expect(
+        createPaymentReversal(database.client, {
+          ...reversalInput,
+          amountMinor: 301,
+        }),
+      ).rejects.toBeInstanceOf(PaymentReversalConflictError)
+      await expect(
+        createPaymentReversal(database.client, {
+          ...reversalInput,
+          amountMinor: 201,
+          creditsRequested: 2,
+          operationKey: 'refund:order-fixture:request-2',
+        }),
+      ).rejects.toMatchObject({ code: 'amount_exceeded' })
+      await expect(
+        createPaymentReversal(database.client, {
+          ...reversalInput,
+          amountMinor: 100,
+          creditsRequested: 3,
+          operationKey: 'refund:order-fixture:request-3',
+        }),
+      ).rejects.toMatchObject({ code: 'amount_exceeded' })
+      await expect(
+        database.client
+          .update(paymentReversals)
+          .set({ amountMinor: 200 })
+          .where(eq(paymentReversals.id, createdReversal.reversal.id)),
+      ).rejects.toThrow()
+      await expect(
+        database.client
+          .delete(paymentReversals)
+          .where(eq(paymentReversals.id, createdReversal.reversal.id)),
+      ).rejects.toThrow()
 
       await recordProviderEvent(database.client, {
         ...providerEnvelope,

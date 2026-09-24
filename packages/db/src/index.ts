@@ -58,6 +58,14 @@ export {
   type PaymentReconciliationJob,
 } from './payment-reconciliation'
 export {
+  createPaymentReversal,
+  PaymentReversalConflictError,
+  PaymentReversalUnavailableError,
+  type CreatePaymentReversalInput,
+  type CreatePaymentReversalResult,
+  type PaymentReversalRecord,
+} from './payment-reversals'
+export {
   findReadingProgress,
   saveReadingProgress,
   type ReadingProgressSnapshot,
