@@ -42,8 +42,6 @@ describe('environment contracts', () => {
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_clerk',
       CLERK_SECRET_KEY: 'sk_test_clerk',
       CLERK_WEBHOOK_SIGNING_SECRET: 'whsec_test_clerk',
-      CREDIT_PACKS_JSON:
-        '[{"packKey":"test-pack","credits":1,"amountMinor":100,"currency":"EUR"}]',
       DATABASE_URL: 'postgresql://localhost/curiofold',
       NEXT_PUBLIC_APP_URL: 'https://preview.example.com',
       NEXT_PUBLIC_ENVIRONMENT: 'preview',
@@ -53,7 +51,6 @@ describe('environment contracts', () => {
     })
 
     expect(environment.STRIPE_SECRET_KEY).toBe('sk_test_stripe')
-    expect(environment.CREDIT_PACKS_JSON).toContain('test-pack')
     expect(environment.NEXT_PUBLIC_ENVIRONMENT).toBe('preview')
   })
 })

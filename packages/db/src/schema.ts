@@ -260,6 +260,9 @@ export const paymentOrders = pgTable(
   'payment_orders',
   {
     amountMinor: integer('amount_minor').notNull(),
+    baseCredits: integer('base_credits'),
+    bonusCredits: integer('bonus_credits'),
+    bonusRateBps: integer('bonus_rate_bps'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -268,6 +271,8 @@ export const paymentOrders = pgTable(
     id: uuid('id').defaultRandom().primaryKey(),
     operationKey: varchar('operation_key', { length: 200 }).notNull(),
     packKey: varchar('pack_key', { length: 80 }).notNull(),
+    pricingVersion: varchar('pricing_version', { length: 80 }),
+    purchaseType: text('purchase_type'),
     providerCheckoutSessionId: varchar('provider_checkout_session_id', {
       length: 255,
     }),
@@ -305,6 +310,10 @@ export const paymentOrders = pgTable(
       table.updatedAt,
     ),
     check('payment_orders_amount_check', sql`${table.amountMinor} > 0`),
+    check(
+      'payment_orders_pricing_shape_check',
+      sql`(${table.pricingVersion} IS NULL AND ${table.purchaseType} IS NULL AND ${table.baseCredits} IS NULL AND ${table.bonusRateBps} IS NULL AND ${table.bonusCredits} IS NULL) OR (${table.pricingVersion} IS NOT NULL AND ${table.purchaseType} IN ('credit_top_up', 'individual_story') AND ${table.baseCredits} IS NOT NULL AND ${table.bonusRateBps} IS NOT NULL AND ${table.bonusCredits} IS NOT NULL AND ${table.baseCredits} > 0 AND ${table.bonusRateBps} BETWEEN 0 AND 1800 AND ${table.bonusCredits} >= 0 AND ${table.creditsPurchased} = ${table.baseCredits} + ${table.bonusCredits} AND (${table.purchaseType} <> 'credit_top_up' OR (${table.currency} = 'EUR' AND ${table.amountMinor} = ${table.baseCredits} * 100)))`,
+    ),
     check('payment_orders_credits_check', sql`${table.creditsPurchased} > 0`),
     check(
       'payment_orders_currency_check',
@@ -376,6 +385,58 @@ export const providerEvents = pgTable(
     check(
       'provider_events_attempt_count_check',
       sql`${table.attemptCount} >= 0`,
+    ),
+  ],
+)
+
+export const paymentReconciliationJobStatuses = [
+  'pending',
+  'running',
+  'completed',
+  'exhausted',
+] as const
+export type PaymentReconciliationJobStatus =
+  (typeof paymentReconciliationJobStatuses)[number]
+
+export const paymentReconciliationJobs = pgTable(
+  'payment_reconciliation_jobs',
+  {
+    attemptCount: integer('attempt_count').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    exhaustedAt: timestamp('exhausted_at', { withTimezone: true }),
+    id: uuid('id').defaultRandom().primaryKey(),
+    leaseUntil: timestamp('lease_until', { withTimezone: true }),
+    lastAttemptAt: timestamp('last_attempt_at', { withTimezone: true }),
+    lastErrorCode: varchar('last_error_code', { length: 80 }),
+    nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    orderId: uuid('order_id')
+      .notNull()
+      .references(() => paymentOrders.id),
+    status: text('status')
+      .$type<PaymentReconciliationJobStatus>()
+      .notNull()
+      .default('pending'),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('payment_reconciliation_jobs_order_unique').on(table.orderId),
+    index('payment_reconciliation_jobs_due_index').on(
+      table.status,
+      table.nextAttemptAt,
+    ),
+    check(
+      'payment_reconciliation_jobs_attempt_check',
+      sql`${table.attemptCount} >= 0`,
+    ),
+    check(
+      'payment_reconciliation_jobs_status_check',
+      sql`${table.status} IN ('pending', 'running', 'completed', 'exhausted')`,
     ),
   ],
 )

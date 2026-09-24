@@ -58,11 +58,11 @@ Every successful or already-owned unlock request stores an immutable result unde
 
 ### `payment_orders`
 
-Payment orders are internal, provider-independent commercial records. Each order stores the owning user, user-scoped idempotency key, safe relative return path, state, and an immutable snapshot of the server-selected pack key, credits, integer minor-unit amount and ISO currency. Optional provider identifiers are uniquely constrained within their provider.
+Payment orders are internal, provider-independent commercial records. Each order stores the owning user, user-scoped idempotency key, safe relative return path, state, and an immutable commercial snapshot. New top-up orders persist the pricing version, purchase type, integer minor-unit amount, base credits, bonus rate in basis points, bonus credits, total credits and ISO currency. The legacy `pack_key` column remains only as a compatibility identifier during the schema transition and is not a public pricing catalogue. Optional provider identifiers are uniquely constrained within their provider.
 
 The database rejects deletion and changes to the order's user, idempotency key, commercial snapshot, return path or creation timestamp. Later provider processing may only add provider correlation and advance the explicit state machine. Browser redirects are not a transition source and can never fulfil an order.
 
-No live pack catalogue is committed while OD-003 remains open. The authenticated checkout boundary accepts only a pack key and resolves credits, currency and integer minor-unit amount from the server-owned `CREDIT_PACKS_JSON` catalogue before calling `createPaymentOrder`. Missing, invalid, empty or duplicate configuration fails closed. The example in `.env.example` is synthetic test documentation, not approved pricing.
+The canonical EUR top-up boundary accepts any whole-euro amount of at least €5. The domain pricing function derives base credits, progressive bonus rate, bonus credits and total credits using integer arithmetic and deterministic round-half-up. The client cannot supply authoritative bonus, credit, currency or payable-amount fields. The former `CREDIT_PACKS_JSON` and `packId` contracts have been removed.
 
 Allowed provider-evidence transitions are:
 
@@ -75,7 +75,7 @@ The provider port exposes only normalized checkout commands and provider-order s
 
 ## Hosted Checkout creation
 
-`POST /api/v1/credit-checkouts` requires an active authenticated account with a verified email, a same-origin request, an exact `{ "packId": "...", "returnPath"?: "/..." }` body and a valid `Idempotency-Key`. Browser-supplied prices, currencies and credit quantities are never accepted.
+`POST /api/v1/credit-checkouts` requires an active authenticated account with a verified email, a same-origin request, an exact `{ "amountEUR": integer, "returnPath"?: "/..." }` body and a valid `Idempotency-Key`. The amount must be at least €5. Browser-supplied prices, currencies, bonus rates and credit quantities are never accepted.
 
 The boundary creates or reuses the internal payment order before contacting Stripe. It then creates a hosted Stripe Checkout Session using the internal order ID as the provider idempotency key, `client_reference_id` and minimized metadata. Success and cancel URLs are built from the trusted application origin and the order's normalized relative return path. The success return says only `payment=processing`; it is not payment evidence and cannot grant credits.
 
@@ -92,6 +92,12 @@ The inbox insert commits before any provider call. Processing then re-reads the 
 Final processing locks the inbox event and payment order. In one PostgreSQL transaction it advances the order, grants the exact snapshotted credits through the existing ledger command, records the provider payment identifier, marks the event processed, appends minimized audit evidence and writes one durable `payment.order_fulfilled` outbox event. Concurrent and repeated delivery returns the stored outcome without a second grant. A delayed non-paid event cannot regress a fulfilled order. Conflicting event identifiers/digests or payment identifiers fail closed.
 
 Provider-event envelopes and outbox envelopes are protected from update/deletion by database triggers. Only explicit processing/delivery projections may change. Browser success redirects remain informational and cannot call this fulfilment path.
+
+The owner-authorized `GET /api/v1/payment-orders/{id}` boundary returns only the internal order ID, snapshotted credits/amount/currency, update time and a customer-safe status. `pending`, `checkout_created` and `payment_pending` are all reported as `processing`; only the committed internal `fulfilled` state is reported as fulfilled. Owner-scoped lookup returns the same not-found response for unknown and other-user orders. Provider identifiers, idempotency keys and return paths are never exposed.
+
+Every attached Checkout order also receives one durable `payment_reconciliation_jobs` row. Jobs are claimed with PostgreSQL row locks and `SKIP LOCKED`, use a lease so interrupted workers can be recovered, and record bounded exponential backoff, the last classified error and an exhausted terminal state. A scheduler/worker must treat this table as durable work; in-memory retries are never the only recovery path.
+
+`runPaymentReconciliationBatch` claims a bounded batch, re-reads each Stripe Checkout Session, records synthetic reconciliation evidence in the same provider-event inbox, and delegates the state transition to the existing exactly-once processor. Paid and canceled orders complete their job; pending/provider failures are rescheduled with classified backoff. The worker is not enabled by an application startup side effect.
 
 ## Idempotent grant transaction
 

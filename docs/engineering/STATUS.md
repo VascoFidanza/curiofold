@@ -4,9 +4,12 @@
 **Current milestone:** 1.2 — Production-shaped walking skeleton
 **Health:** At Risk — provider-independent application and financial foundations are progressing, but the preview database integration requires product-owner authorization and development identity/payment providers are not configured.
 
+## In progress
+
+- CRFD-33 / Milestone 3.2D — Owner-scoped payment status, canonical amount-based EUR pricing, durable reconciliation jobs, the Stripe worker, and a protected scheduler endpoint are implemented locally. The obsolete pack catalogue contract has been removed. Alerting, live nonproduction evidence and the full lifecycle gate remain.
+
 ## In review
 
-- CRFD-32 / Milestone 3.2C — PR #19 adds signed Stripe event verification, durable provider-event deduplication, authoritative provider re-read and atomic order/ledger/outbox fulfilment. Full local validation and PostgreSQL 18 concurrent/retry/out-of-order evidence pass; hosted gates remain.
 - S1-09 — The structured Story, locale, revision and source contract is merged; final closure waits for the public/Reader vertical slice to consume it.
 - S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
 - S1-11 — PR #9 merged the public Story Detail route, safe preview projection, missing-locale handling and SEO/share metadata. Local validation is complete and Vercel deploys the protected preview successfully, but the Story route cannot render there until S1-07 authorizes and supplies the preview database connection.
@@ -16,6 +19,7 @@
 
 ## Recently completed
 
+- CRFD-32 / Milestone 3.2C — PR #19 merged signed Stripe event verification, immutable provider-event deduplication, authoritative provider re-read and atomic order/grant/ledger/audit/outbox fulfilment after all seven GitHub gates passed. Concurrent replay, delayed retry and out-of-order non-regression pass against PostgreSQL 18; no live webhook configuration was enabled.
 - CRFD-31 / Milestone 3.2B — PR #18 merged the server-owned credit-pack catalogue, authenticated idempotent Stripe Checkout creation, context-preserving processing/cancel returns, open-session retry, atomic provider-session attachment and redacted provider failures after all seven GitHub gates passed. No live pricing, credentials or redirect-based fulfilment was introduced.
 - CRFD-30 / Milestone 3.2A — PR #17 established the provider-independent payment-order aggregate, immutable server-owned commercial snapshot, safe return-path policy, explicit non-regressive state transitions and payment-provider port with PostgreSQL 18 concurrency and upgrade evidence. No live pack price, Stripe key or production payment configuration was introduced.
 - CRFD-24 / S1-10A — PR #16 operationalized responsive/cross-browser checks against real Story Detail, Reader and shell components in Chromium, Firefox and WebKit. The executable gate covers the full width matrix, an arbitrary width, overflow, expanded Portuguese labels, keyboard order, reduced motion, touch/coarse-pointer and landscape behavior; manual physical-device and assistive-technology evidence remains an explicit release gate.

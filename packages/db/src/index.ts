@@ -41,6 +41,7 @@ export {
 export {
   attachPaymentCheckoutSession,
   createPaymentOrder,
+  findPaymentOrderById,
   findPaymentOrderForUser,
   PaymentOrderConflictError,
   type AttachPaymentCheckoutInput,
@@ -48,6 +49,14 @@ export {
   type CreatePaymentOrderResult,
   type PaymentOrderRecord,
 } from './payment-orders'
+export {
+  claimPaymentReconciliationJobs,
+  completePaymentReconciliationJob,
+  ensurePaymentReconciliationJob,
+  reschedulePaymentReconciliationJob,
+  type ClaimPaymentReconciliationJobsInput,
+  type PaymentReconciliationJob,
+} from './payment-reconciliation'
 export {
   findReadingProgress,
   saveReadingProgress,

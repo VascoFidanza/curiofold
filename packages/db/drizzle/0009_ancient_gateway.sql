@@ -1,0 +1,6 @@
+ALTER TABLE "payment_orders" ADD COLUMN "base_credits" integer;--> statement-breakpoint
+ALTER TABLE "payment_orders" ADD COLUMN "bonus_credits" integer;--> statement-breakpoint
+ALTER TABLE "payment_orders" ADD COLUMN "bonus_rate_bps" integer;--> statement-breakpoint
+ALTER TABLE "payment_orders" ADD COLUMN "pricing_version" varchar(80);--> statement-breakpoint
+ALTER TABLE "payment_orders" ADD COLUMN "purchase_type" text;--> statement-breakpoint
+ALTER TABLE "payment_orders" ADD CONSTRAINT "payment_orders_pricing_shape_check" CHECK (("payment_orders"."pricing_version" IS NULL AND "payment_orders"."purchase_type" IS NULL AND "payment_orders"."base_credits" IS NULL AND "payment_orders"."bonus_rate_bps" IS NULL AND "payment_orders"."bonus_credits" IS NULL) OR ("payment_orders"."pricing_version" IS NOT NULL AND "payment_orders"."purchase_type" IS NOT NULL AND "payment_orders"."base_credits" IS NOT NULL AND "payment_orders"."bonus_rate_bps" IS NOT NULL AND "payment_orders"."bonus_credits" IS NOT NULL AND "payment_orders"."base_credits" > 0 AND "payment_orders"."bonus_rate_bps" BETWEEN 0 AND 1800 AND "payment_orders"."bonus_credits" >= 0));

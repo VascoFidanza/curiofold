@@ -86,12 +86,28 @@ function serializeOrder(
 ): PaymentOrderRecord {
   return {
     amountMinor: order.amountMinor,
+    ...(order.baseCredits === null ? {} : { baseCredits: order.baseCredits }),
+    ...(order.bonusCredits === null
+      ? {}
+      : { bonusCredits: order.bonusCredits }),
+    ...(order.bonusRateBps === null
+      ? {}
+      : { bonusRateBps: order.bonusRateBps }),
     createdAt: order.createdAt.toISOString(),
     credits: order.creditsPurchased,
     currency: order.currency,
     id: order.id,
     operationKey: order.operationKey,
     packKey: order.packKey,
+    ...(order.pricingVersion === null
+      ? {}
+      : { pricingVersion: order.pricingVersion }),
+    ...(order.purchaseType === null
+      ? {}
+      : {
+          purchaseType: order.purchaseType as
+            'credit_top_up' | 'individual_story',
+        }),
     providerCheckoutSessionId: order.providerCheckoutSessionId,
     providerKey: order.providerKey,
     providerPaymentId: order.providerPaymentId,
@@ -111,6 +127,11 @@ function matchesCommand(
     order.creditsPurchased === input.snapshot.credits &&
     order.currency === input.snapshot.currency &&
     order.packKey === input.snapshot.packKey &&
+    order.baseCredits === (input.snapshot.baseCredits ?? null) &&
+    order.bonusCredits === (input.snapshot.bonusCredits ?? null) &&
+    order.bonusRateBps === (input.snapshot.bonusRateBps ?? null) &&
+    order.pricingVersion === (input.snapshot.pricingVersion ?? null) &&
+    order.purchaseType === (input.snapshot.purchaseType ?? null) &&
     order.returnPath === input.returnPath
   )
 }
@@ -131,11 +152,16 @@ export async function createPaymentOrder(
       .insert(schema.paymentOrders)
       .values({
         amountMinor: normalized.snapshot.amountMinor,
+        baseCredits: normalized.snapshot.baseCredits,
+        bonusCredits: normalized.snapshot.bonusCredits,
+        bonusRateBps: normalized.snapshot.bonusRateBps,
         createdAt,
         creditsPurchased: normalized.snapshot.credits,
         currency: normalized.snapshot.currency,
         operationKey: normalized.operationKey,
         packKey: normalized.snapshot.packKey,
+        pricingVersion: normalized.snapshot.pricingVersion,
+        purchaseType: normalized.snapshot.purchaseType,
         returnPath: normalized.returnPath,
         updatedAt: createdAt,
         userId: input.userId,
@@ -154,9 +180,14 @@ export async function createPaymentOrder(
         actorUserId: input.userId,
         metadata: {
           amountMinor: normalized.snapshot.amountMinor,
+          baseCredits: normalized.snapshot.baseCredits,
+          bonusCredits: normalized.snapshot.bonusCredits,
+          bonusRateBps: normalized.snapshot.bonusRateBps,
           credits: normalized.snapshot.credits,
           currency: normalized.snapshot.currency,
           packKey: normalized.snapshot.packKey,
+          pricingVersion: normalized.snapshot.pricingVersion,
+          purchaseType: normalized.snapshot.purchaseType,
         },
         targetId: created.id,
         targetType: 'payment_order',
@@ -198,6 +229,19 @@ export async function findPaymentOrderForUser(
         eq(schema.paymentOrders.userId, userId),
       ),
     )
+    .limit(1)
+
+  return order ? serializeOrder(order) : null
+}
+
+export async function findPaymentOrderById(
+  database: CuriofoldDatabase,
+  orderId: string,
+): Promise<PaymentOrderRecord | null> {
+  const [order] = await database
+    .select()
+    .from(schema.paymentOrders)
+    .where(eq(schema.paymentOrders.id, orderId))
     .limit(1)
 
   return order ? serializeOrder(order) : null
@@ -261,6 +305,17 @@ export async function attachPaymentCheckoutSession(
     if (!updated) {
       throw new PaymentOrderConflictError()
     }
+
+    await transaction
+      .insert(schema.paymentReconciliationJobs)
+      .values({
+        nextAttemptAt: attachedAt,
+        orderId: order.id,
+        updatedAt: attachedAt,
+      })
+      .onConflictDoNothing({
+        target: schema.paymentReconciliationJobs.orderId,
+      })
 
     await transaction.insert(schema.auditEvents).values({
       action: 'payment.checkout_created',

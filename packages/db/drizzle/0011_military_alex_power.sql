@@ -1,0 +1,1 @@
+ALTER TABLE "payment_reconciliation_jobs" ADD COLUMN "lease_until" timestamp with time zone;

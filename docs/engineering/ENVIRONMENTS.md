@@ -54,6 +54,12 @@ only in provider-scoped environment storage and local ignored files.
    MFA enabled, paid plan approved, separate project, protected branch, roles and
    backup policy verified.
 
+The protected `POST /api/internal/payment-reconciliation` endpoint is implemented
+but intentionally inactive until a scheduler is configured. When enabled, set a
+Preview-only `CRON_SECRET` (32+ random characters) in Vercel and invoke it with
+`Authorization: Bearer <CRON_SECRET>`. Never expose this value to the browser or
+commit it.
+
 ## Secret-handling rules
 
 - `.env.local`, Vercel environment values, and CI secrets are the only locations

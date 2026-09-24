@@ -17,9 +17,14 @@ export type PaymentTransitionSource = 'provider_event' | 'reconciliation'
 
 export interface CreditPackSnapshot {
   readonly amountMinor: number
+  readonly baseCredits?: number
+  readonly bonusCredits?: number
+  readonly bonusRateBps?: number
   readonly credits: number
   readonly currency: string
   readonly packKey: string
+  readonly pricingVersion?: string
+  readonly purchaseType?: 'credit_top_up' | 'individual_story'
 }
 
 export interface PaymentProviderCheckoutCommand extends CreditPackSnapshot {
@@ -80,12 +85,83 @@ export function normalizeCreditPackSnapshot(
     throw new TypeError('Payment amounts must be positive integer minor units.')
   }
   assertPositiveCreditUnits(snapshot.credits)
+  if (
+    snapshot.baseCredits !== undefined &&
+    (!Number.isSafeInteger(snapshot.baseCredits) || snapshot.baseCredits <= 0)
+  ) {
+    throw new TypeError('Base credits must be a positive integer.')
+  }
+  if (
+    snapshot.bonusCredits !== undefined &&
+    (!Number.isSafeInteger(snapshot.bonusCredits) || snapshot.bonusCredits < 0)
+  ) {
+    throw new TypeError('Bonus credits must be a non-negative integer.')
+  }
+  if (
+    snapshot.bonusRateBps !== undefined &&
+    (!Number.isSafeInteger(snapshot.bonusRateBps) ||
+      snapshot.bonusRateBps < 0 ||
+      snapshot.bonusRateBps > 1_800)
+  ) {
+    throw new TypeError('Bonus rates must be between 0 and 1800 basis points.')
+  }
+  if (
+    snapshot.pricingVersion !== undefined &&
+    (!snapshot.pricingVersion.trim() || snapshot.pricingVersion.length > 80)
+  ) {
+    throw new TypeError('Pricing versions must be non-empty and bounded.')
+  }
+  const pricingFields = [
+    snapshot.baseCredits,
+    snapshot.bonusCredits,
+    snapshot.bonusRateBps,
+    snapshot.pricingVersion,
+    snapshot.purchaseType,
+  ]
+  const presentPricingFields = pricingFields.filter(
+    (value) => value !== undefined,
+  ).length
+  if (
+    presentPricingFields !== 0 &&
+    presentPricingFields !== pricingFields.length
+  ) {
+    throw new TypeError('Payment pricing snapshots must be complete.')
+  }
+  const baseCredits = snapshot.baseCredits ?? 0
+  const bonusCredits = snapshot.bonusCredits ?? 0
+  if (
+    presentPricingFields === pricingFields.length &&
+    snapshot.credits !== baseCredits + bonusCredits
+  ) {
+    throw new TypeError('Purchased credits must equal base plus bonus credits.')
+  }
+  if (
+    snapshot.purchaseType === 'credit_top_up' &&
+    (currency !== 'EUR' || snapshot.amountMinor !== baseCredits * 100)
+  ) {
+    throw new TypeError('Credit top-ups require whole-EUR base pricing.')
+  }
 
   return {
     amountMinor: snapshot.amountMinor,
+    ...(snapshot.baseCredits === undefined
+      ? {}
+      : { baseCredits: snapshot.baseCredits }),
+    ...(snapshot.bonusCredits === undefined
+      ? {}
+      : { bonusCredits: snapshot.bonusCredits }),
+    ...(snapshot.bonusRateBps === undefined
+      ? {}
+      : { bonusRateBps: snapshot.bonusRateBps }),
     credits: snapshot.credits,
     currency,
     packKey,
+    ...(snapshot.pricingVersion === undefined
+      ? {}
+      : { pricingVersion: snapshot.pricingVersion }),
+    ...(snapshot.purchaseType === undefined
+      ? {}
+      : { purchaseType: snapshot.purchaseType }),
   }
 }
 
