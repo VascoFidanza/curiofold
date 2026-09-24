@@ -3,6 +3,7 @@ import {
   type AuthorizationContext,
   type CreditPackSnapshot,
   type PaymentProvider,
+  quoteCreditTopUp,
 } from '@curiofold/domain'
 import {
   attachPaymentCheckoutSession,
@@ -27,6 +28,7 @@ import {
 
 type AuthorizationSource = () => Promise<AuthorizationContext>
 type PackSource = (packKey: string) => CreditPackSnapshot | null
+type QuoteSource = (amountMinor: number) => CreditPackSnapshot
 type CreateOrderSource = (
   input: CreatePaymentOrderInput,
 ) => Promise<CreatePaymentOrderResult>
@@ -40,17 +42,18 @@ interface CreditCheckoutDependencies {
   readonly authorizationSource?: AuthorizationSource
   readonly createOrderSource?: CreateOrderSource
   readonly packSource?: PackSource
+  readonly quoteSource?: QuoteSource
   readonly provider?: PaymentProvider
 }
 
 interface CheckoutPayload {
-  readonly packId: string
+  readonly amountEUR?: number
+  readonly packId?: string
   readonly returnPath?: string
 }
 
 const maximumPayloadBytes = 2_048
 const maximumOperationKeyLength = 200
-const packKeyPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u
 
 function problem(
   status: number,
@@ -109,21 +112,33 @@ async function readPayload(request: Request): Promise<CheckoutPayload | null> {
     const value = JSON.parse(text) as unknown
     if (!value || typeof value !== 'object' || Array.isArray(value)) return null
     const candidate = value as Record<string, unknown>
+    const amountEUR = candidate.amountEUR
+    const packId = candidate.packId
+    const validPackId = typeof packId === 'string' ? packId : null
     if (
       Object.keys(candidate).some(
-        (key) => key !== 'packId' && key !== 'returnPath',
+        (key) => !['amountEUR', 'packId', 'returnPath'].includes(key),
       ) ||
-      typeof candidate.packId !== 'string' ||
-      !packKeyPattern.test(candidate.packId) ||
-      candidate.packId.length > 80 ||
+      (amountEUR !== undefined &&
+        (typeof amountEUR !== 'number' ||
+          !Number.isSafeInteger(amountEUR) ||
+          amountEUR < 5)) ||
+      (packId !== undefined && typeof packId !== 'string') ||
       (candidate.returnPath !== undefined &&
-        typeof candidate.returnPath !== 'string')
+        typeof candidate.returnPath !== 'string') ||
+      (amountEUR === undefined && packId === undefined) ||
+      (amountEUR !== undefined && packId !== undefined)
     ) {
       return null
     }
-    return candidate.returnPath === undefined
-      ? { packId: candidate.packId }
-      : { packId: candidate.packId, returnPath: candidate.returnPath }
+    return {
+      ...(typeof amountEUR === 'number'
+        ? { amountEUR }
+        : { packId: validPackId ?? '' }),
+      ...(candidate.returnPath !== undefined
+        ? { returnPath: candidate.returnPath }
+        : {}),
+    }
   } catch {
     return null
   }
@@ -226,9 +241,26 @@ export async function createCreditCheckoutResponse(
 
   let snapshot: CreditPackSnapshot | null
   try {
-    snapshot = (dependencies.packSource ?? findConfiguredCreditPack)(
-      payload.packId,
-    )
+    if (payload.amountEUR !== undefined) {
+      const quote = quoteCreditTopUp(payload.amountEUR * 100)
+      snapshot = {
+        amountMinor: quote.amountMinor,
+        baseCredits: quote.baseCredits,
+        bonusCredits: quote.bonusCredits,
+        bonusRateBps: quote.bonusRateBps,
+        credits: quote.totalCredits,
+        currency: quote.currency,
+        packKey: 'top-up-v1',
+        pricingVersion: quote.pricingVersion,
+        purchaseType: 'credit_top_up',
+      }
+    } else if (dependencies.packSource && payload.packId) {
+      snapshot = dependencies.packSource(payload.packId)
+    } else if (payload.packId) {
+      snapshot = findConfiguredCreditPack(payload.packId)
+    } else {
+      snapshot = null
+    }
   } catch (error) {
     if (!(error instanceof CreditPackConfigurationError)) throw error
     return problem(

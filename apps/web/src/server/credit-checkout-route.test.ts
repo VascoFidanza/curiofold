@@ -83,6 +83,36 @@ function dependencies(overrides: Record<string, unknown> = {}) {
 }
 
 describe('credit Checkout route', () => {
+  it('derives the canonical quote from a whole-euro amount', async () => {
+    const createOrderSource = vi.fn().mockResolvedValue({
+      created: true,
+      order,
+    })
+    const response = await createCreditCheckoutResponse(
+      request({ amountEUR: 30, returnPath: order.returnPath }),
+      'request-pricing',
+      dependencies({ createOrderSource }),
+    )
+
+    expect(response.status).toBe(201)
+    expect(createOrderSource).toHaveBeenCalledWith({
+      operationKey: 'checkout:browser-1',
+      returnPath: order.returnPath,
+      snapshot: {
+        amountMinor: 3_000,
+        baseCredits: 30,
+        bonusCredits: 5,
+        bonusRateBps: 1_500,
+        credits: 35,
+        currency: 'EUR',
+        packKey: 'top-up-v1',
+        pricingVersion: 'top-up-eur-v1',
+        purchaseType: 'credit_top_up',
+      },
+      userId: authorization.userId,
+    })
+  })
+
   it('rejects cross-origin and malformed requests before creating an order', async () => {
     const createOrderSource = vi.fn()
     const crossOrigin = request()
