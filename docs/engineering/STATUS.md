@@ -4,12 +4,9 @@
 **Current milestone:** 1.2 — Production-shaped walking skeleton
 **Health:** At Risk — provider-independent application and financial foundations are progressing, but the preview database integration requires product-owner authorization and development identity/payment providers are not configured.
 
-## In progress
-
-- CRFD-32 / Milestone 3.2C — Signed Stripe event verification, durable provider-event deduplication, authoritative provider re-read and atomic order/ledger/outbox fulfilment are implemented locally. PostgreSQL 18 concurrent replay passes; full review and hosted gates remain.
-
 ## In review
 
+- CRFD-32 / Milestone 3.2C — PR #19 adds signed Stripe event verification, durable provider-event deduplication, authoritative provider re-read and atomic order/ledger/outbox fulfilment. Full local validation and PostgreSQL 18 concurrent/retry/out-of-order evidence pass; hosted gates remain.
 - S1-09 — The structured Story, locale, revision and source contract is merged; final closure waits for the public/Reader vertical slice to consume it.
 - S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
 - S1-11 — PR #9 merged the public Story Detail route, safe preview projection, missing-locale handling and SEO/share metadata. Local validation is complete and Vercel deploys the protected preview successfully, but the Story route cannot render there until S1-07 authorizes and supplies the preview database connection.
