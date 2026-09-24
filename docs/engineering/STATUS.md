@@ -6,6 +6,7 @@
 
 ## In review
 
+- CRFD-31 / Milestone 3.2B — PR #18 adds the server-owned credit-pack catalogue, authenticated idempotent Stripe Checkout creation, context-preserving processing/cancel returns, open-session retry, atomic provider-session attachment and redacted provider failures. Full local validation and PostgreSQL 18 evidence pass; no live pricing, credentials or redirect-based fulfilment is included.
 - S1-09 — The structured Story, locale, revision and source contract is merged; final closure waits for the public/Reader vertical slice to consume it.
 - S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
 - S1-11 — PR #9 merged the public Story Detail route, safe preview projection, missing-locale handling and SEO/share metadata. Local validation is complete and Vercel deploys the protected preview successfully, but the Story route cannot render there until S1-07 authorizes and supplies the preview database connection.
@@ -48,7 +49,7 @@
 
 1. Complete S1-10 visual acceptance when structured Figma access returns.
 2. Retain S1-11 as blocked until its preview-data and final visual gates can run.
-3. Materialize the next commerce milestones so Project 3 reports the complete planned scope rather than only completed Milestone 3.1 work.
+3. Complete CRFD-31 review, then implement CRFD-32's signed, deduplicated provider-event inbox before any payment can fulfil credits.
 4. Retain S1-13's live refresh/session/reconnect gate until development identity and database connections are available.
 5. Retain S1-12's live entitlement/Reader preview gate as blocked until those development connections are available.
 6. Retain S1-08's live Clerk smoke gate as blocked until development credentials are connected.
@@ -58,4 +59,4 @@
 
 See `docs/project/OPEN_DECISIONS.md`. No open product decision blocks the foundation stage.
 
-**Last updated:** 2026-09-23
+**Last updated:** 2026-09-24
