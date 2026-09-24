@@ -241,9 +241,14 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         returnPath: '/en/stories/clockwork-gardens?payment=return',
         snapshot: {
           amountMinor: 500,
+          baseCredits: 5,
+          bonusCredits: 0,
+          bonusRateBps: 0,
           credits: 5,
           currency: 'EUR',
-          packKey: 'five-credits',
+          packKey: 'top-up-v1',
+          pricingVersion: 'top-up-eur-v1',
+          purchaseType: 'credit_top_up',
         },
         userId: linkedAccount.userId,
       } as const
@@ -257,7 +262,9 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         amountMinor: 500,
         credits: 5,
         currency: 'EUR',
-        packKey: 'five-credits',
+        packKey: 'top-up-v1',
+        pricingVersion: 'top-up-eur-v1',
+        purchaseType: 'credit_top_up',
         providerCheckoutSessionId: null,
         providerKey: null,
         providerPaymentId: null,
@@ -269,7 +276,12 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       await expect(
         createPaymentOrder(database.client, {
           ...paymentOrderInput,
-          snapshot: { ...paymentOrderInput.snapshot, amountMinor: 600 },
+          snapshot: {
+            ...paymentOrderInput.snapshot,
+            amountMinor: 600,
+            baseCredits: 6,
+            credits: 6,
+          },
         }),
       ).rejects.toBeInstanceOf(PaymentOrderConflictError)
 
@@ -553,6 +565,12 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         database.client
           .update(paymentOrders)
           .set({ amountMinor: 700 })
+          .where(eq(paymentOrders.id, orderId)),
+      ).rejects.toThrow()
+      await expect(
+        database.client
+          .update(paymentOrders)
+          .set({ bonusCredits: 1, creditsPurchased: 6 })
           .where(eq(paymentOrders.id, orderId)),
       ).rejects.toThrow()
       await expect(

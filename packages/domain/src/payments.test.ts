@@ -61,6 +61,31 @@ describe('payment order policy', () => {
     expect(() => normalizeCreditPackSnapshot(snapshot)).toThrow(TypeError)
   })
 
+  it('rejects incomplete or internally inconsistent pricing snapshots', () => {
+    expect(() =>
+      normalizeCreditPackSnapshot({
+        amountMinor: 500,
+        baseCredits: 5,
+        credits: 5,
+        currency: 'EUR',
+        packKey: 'top-up-v1',
+      }),
+    ).toThrow(/complete/u)
+    expect(() =>
+      normalizeCreditPackSnapshot({
+        amountMinor: 500,
+        baseCredits: 5,
+        bonusCredits: 1,
+        bonusRateBps: 0,
+        credits: 5,
+        currency: 'EUR',
+        packKey: 'top-up-v1',
+        pricingVersion: 'top-up-eur-v1',
+        purchaseType: 'credit_top_up',
+      }),
+    ).toThrow(/base plus bonus/u)
+  })
+
   it.each([
     ['pending', 'checkout_created'],
     ['checkout_created', 'payment_pending'],

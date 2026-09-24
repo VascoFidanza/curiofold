@@ -111,6 +111,36 @@ export function normalizeCreditPackSnapshot(
   ) {
     throw new TypeError('Pricing versions must be non-empty and bounded.')
   }
+  const pricingFields = [
+    snapshot.baseCredits,
+    snapshot.bonusCredits,
+    snapshot.bonusRateBps,
+    snapshot.pricingVersion,
+    snapshot.purchaseType,
+  ]
+  const presentPricingFields = pricingFields.filter(
+    (value) => value !== undefined,
+  ).length
+  if (
+    presentPricingFields !== 0 &&
+    presentPricingFields !== pricingFields.length
+  ) {
+    throw new TypeError('Payment pricing snapshots must be complete.')
+  }
+  const baseCredits = snapshot.baseCredits ?? 0
+  const bonusCredits = snapshot.bonusCredits ?? 0
+  if (
+    presentPricingFields === pricingFields.length &&
+    snapshot.credits !== baseCredits + bonusCredits
+  ) {
+    throw new TypeError('Purchased credits must equal base plus bonus credits.')
+  }
+  if (
+    snapshot.purchaseType === 'credit_top_up' &&
+    (currency !== 'EUR' || snapshot.amountMinor !== baseCredits * 100)
+  ) {
+    throw new TypeError('Credit top-ups require whole-EUR base pricing.')
+  }
 
   return {
     amountMinor: snapshot.amountMinor,

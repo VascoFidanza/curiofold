@@ -312,7 +312,7 @@ export const paymentOrders = pgTable(
     check('payment_orders_amount_check', sql`${table.amountMinor} > 0`),
     check(
       'payment_orders_pricing_shape_check',
-      sql`(${table.pricingVersion} IS NULL AND ${table.purchaseType} IS NULL AND ${table.baseCredits} IS NULL AND ${table.bonusRateBps} IS NULL AND ${table.bonusCredits} IS NULL) OR (${table.pricingVersion} IS NOT NULL AND ${table.purchaseType} IS NOT NULL AND ${table.baseCredits} IS NOT NULL AND ${table.bonusRateBps} IS NOT NULL AND ${table.bonusCredits} IS NOT NULL AND ${table.baseCredits} > 0 AND ${table.bonusRateBps} BETWEEN 0 AND 1800 AND ${table.bonusCredits} >= 0)`,
+      sql`(${table.pricingVersion} IS NULL AND ${table.purchaseType} IS NULL AND ${table.baseCredits} IS NULL AND ${table.bonusRateBps} IS NULL AND ${table.bonusCredits} IS NULL) OR (${table.pricingVersion} IS NOT NULL AND ${table.purchaseType} IN ('credit_top_up', 'individual_story') AND ${table.baseCredits} IS NOT NULL AND ${table.bonusRateBps} IS NOT NULL AND ${table.bonusCredits} IS NOT NULL AND ${table.baseCredits} > 0 AND ${table.bonusRateBps} BETWEEN 0 AND 1800 AND ${table.bonusCredits} >= 0 AND ${table.creditsPurchased} = ${table.baseCredits} + ${table.bonusCredits} AND (${table.purchaseType} <> 'credit_top_up' OR (${table.currency} = 'EUR' AND ${table.amountMinor} = ${table.baseCredits} * 100)))`,
     ),
     check('payment_orders_credits_check', sql`${table.creditsPurchased} > 0`),
     check(
