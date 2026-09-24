@@ -22,6 +22,7 @@ import {
   findPublishedStoryBySlug,
 } from './published-stories'
 import {
+  attachPaymentCheckoutSession,
   createPaymentOrder,
   findPaymentOrderForUser,
   PaymentOrderConflictError,
@@ -279,6 +280,37 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       await expect(
         findPaymentOrderForUser(database.client, orderId, secondAccount.userId),
       ).resolves.toBeNull()
+
+      const attachedCheckout = await attachPaymentCheckoutSession(
+        database.client,
+        {
+          attachedAt: new Date('2026-09-20T10:03:35.000Z'),
+          orderId,
+          providerKey: 'stripe',
+          providerSessionId: 'cs_test_payment_order_fixture',
+        },
+      )
+      expect(attachedCheckout).toMatchObject({
+        amountMinor: 500,
+        credits: 5,
+        providerCheckoutSessionId: 'cs_test_payment_order_fixture',
+        providerKey: 'stripe',
+        status: 'checkout_created',
+      })
+      await expect(
+        attachPaymentCheckoutSession(database.client, {
+          orderId,
+          providerKey: 'stripe',
+          providerSessionId: 'cs_test_payment_order_fixture',
+        }),
+      ).resolves.toMatchObject({ id: orderId, status: 'checkout_created' })
+      await expect(
+        attachPaymentCheckoutSession(database.client, {
+          orderId,
+          providerKey: 'stripe',
+          providerSessionId: 'cs_test_conflicting_session',
+        }),
+      ).rejects.toBeInstanceOf(PaymentOrderConflictError)
 
       await expect(
         database.client.insert(paymentOrders).values({

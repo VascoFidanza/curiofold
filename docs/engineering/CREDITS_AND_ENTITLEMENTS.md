@@ -62,7 +62,7 @@ Payment orders are internal, provider-independent commercial records. Each order
 
 The database rejects deletion and changes to the order's user, idempotency key, commercial snapshot, return path or creation timestamp. Later provider processing may only add provider correlation and advance the explicit state machine. Browser redirects are not a transition source and can never fulfil an order.
 
-No live pack catalogue is committed while OD-003 remains open. A future authenticated checkout boundary will accept only a pack key and will resolve its commercial values from server-owned configuration before calling `createPaymentOrder`.
+No live pack catalogue is committed while OD-003 remains open. The authenticated checkout boundary accepts only a pack key and resolves credits, currency and integer minor-unit amount from the server-owned `CREDIT_PACKS_JSON` catalogue before calling `createPaymentOrder`. Missing, invalid, empty or duplicate configuration fails closed. The example in `.env.example` is synthetic test documentation, not approved pricing.
 
 Allowed provider-evidence transitions are:
 
@@ -72,6 +72,16 @@ Allowed provider-evidence transitions are:
 - `fulfilled` and `canceled` are terminal.
 
 The provider port exposes only normalized checkout commands and provider-order snapshots. Stripe-specific SDK objects and webhook payloads must not enter the domain or database contracts.
+
+## Hosted Checkout creation
+
+`POST /api/v1/credit-checkouts` requires an active authenticated account with a verified email, a same-origin request, an exact `{ "packId": "...", "returnPath"?: "/..." }` body and a valid `Idempotency-Key`. Browser-supplied prices, currencies and credit quantities are never accepted.
+
+The boundary creates or reuses the internal payment order before contacting Stripe. It then creates a hosted Stripe Checkout Session using the internal order ID as the provider idempotency key, `client_reference_id` and minimized metadata. Success and cancel URLs are built from the trusted application origin and the order's normalized relative return path. The success return says only `payment=processing`; it is not payment evidence and cannot grant credits.
+
+Attaching a Checkout Session locks the order, permits only the `pending` → `checkout_created` transition, records minimized audit evidence and is idempotent only for the same provider/session pair. A conflicting attachment fails closed. A retried browser command reuses an existing open provider session rather than creating another. Provider failures produce stable redacted responses and never expose SDK messages or payloads.
+
+Only HTTPS provider checkout URLs are returned to the browser. Fulfilment remains exclusively the responsibility of the signed provider-event inbox and reconciliation work in CRFD-32/CRFD-33.
 
 ## Idempotent grant transaction
 
@@ -164,12 +174,17 @@ The PostgreSQL 18 integration suite exercises:
 - user-isolated payment-order retrieval and safe return-path fallback;
 - database rejection of invalid commercial snapshots and mutation/deletion of immutable order history;
 - explicit payment-state transition policy that rejects regressions and fulfilment without provider/reconciliation evidence.
+- authenticated Checkout creation using only server-owned commercial values;
+- Stripe request idempotency and internal-order correlation without provider-payload leakage;
+- idempotent database attachment and rejection of a conflicting provider session;
+- safe context-preserving success/cancel URLs that cannot fulfil an order;
+- resumption of an existing open Checkout Session and redacted provider failures.
 
 The migration graph must apply cleanly to an empty database and upgrade from every committed predecessor. No live payment provider or production database is required for this foundation.
 
 ## Remaining work and decisions
 
-- Milestone 3.2 continues with hosted Checkout creation, verified event fulfilment and stale-order reconciliation. A fulfilled provider order maps to the existing grant command.
+- Milestone 3.2 continues with the verified event inbox, fulfilment and stale-order reconciliation. A fulfilled provider order maps to the existing grant command.
 - Milestone 3.3 adds compensating reversals and guarded operations.
 - OD-010 determines spent-credit treatment after refund or chargeback.
 - OD-011 determines the final payment-provider model.

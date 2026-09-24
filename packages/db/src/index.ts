@@ -29,9 +29,11 @@ export {
   type PublishedStoryRouteResolution,
 } from './published-stories'
 export {
+  attachPaymentCheckoutSession,
   createPaymentOrder,
   findPaymentOrderForUser,
   PaymentOrderConflictError,
+  type AttachPaymentCheckoutInput,
   type CreatePaymentOrderInput,
   type CreatePaymentOrderResult,
   type PaymentOrderRecord,
