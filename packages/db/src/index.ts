@@ -41,6 +41,7 @@ export {
 export {
   attachPaymentCheckoutSession,
   createPaymentOrder,
+  findPaymentOrderById,
   findPaymentOrderForUser,
   PaymentOrderConflictError,
   type AttachPaymentCheckoutInput,

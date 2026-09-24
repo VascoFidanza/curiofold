@@ -97,6 +97,8 @@ The owner-authorized `GET /api/v1/payment-orders/{id}` boundary returns only the
 
 Every attached Checkout order also receives one durable `payment_reconciliation_jobs` row. Jobs are claimed with PostgreSQL row locks and `SKIP LOCKED`, use a lease so interrupted workers can be recovered, and record bounded exponential backoff, the last classified error and an exhausted terminal state. A scheduler/worker must treat this table as durable work; in-memory retries are never the only recovery path.
 
+`runPaymentReconciliationBatch` claims a bounded batch, re-reads each Stripe Checkout Session, records synthetic reconciliation evidence in the same provider-event inbox, and delegates the state transition to the existing exactly-once processor. Paid and canceled orders complete their job; pending/provider failures are rescheduled with classified backoff. The worker is not enabled by an application startup side effect.
+
 ## Idempotent grant transaction
 
 `grantCredits` performs this sequence in one PostgreSQL transaction:

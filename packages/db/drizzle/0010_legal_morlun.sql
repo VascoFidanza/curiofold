@@ -15,4 +15,10 @@ CREATE TABLE "payment_reconciliation_jobs" (
 --> statement-breakpoint
 ALTER TABLE "payment_reconciliation_jobs" ADD CONSTRAINT "payment_reconciliation_jobs_order_id_payment_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."payment_orders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "payment_reconciliation_jobs_order_unique" ON "payment_reconciliation_jobs" USING btree ("order_id");--> statement-breakpoint
-CREATE INDEX "payment_reconciliation_jobs_due_index" ON "payment_reconciliation_jobs" USING btree ("status","next_attempt_at");
+CREATE INDEX "payment_reconciliation_jobs_due_index" ON "payment_reconciliation_jobs" USING btree ("status","next_attempt_at");--> statement-breakpoint
+INSERT INTO "payment_reconciliation_jobs" ("order_id")
+SELECT "id"
+FROM "payment_orders"
+WHERE "provider_checkout_session_id" IS NOT NULL
+  AND "status" IN ('pending', 'checkout_created', 'payment_pending')
+ON CONFLICT ("order_id") DO NOTHING;

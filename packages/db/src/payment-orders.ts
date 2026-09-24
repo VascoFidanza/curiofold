@@ -234,6 +234,19 @@ export async function findPaymentOrderForUser(
   return order ? serializeOrder(order) : null
 }
 
+export async function findPaymentOrderById(
+  database: CuriofoldDatabase,
+  orderId: string,
+): Promise<PaymentOrderRecord | null> {
+  const [order] = await database
+    .select()
+    .from(schema.paymentOrders)
+    .where(eq(schema.paymentOrders.id, orderId))
+    .limit(1)
+
+  return order ? serializeOrder(order) : null
+}
+
 export async function attachPaymentCheckoutSession(
   database: CuriofoldDatabase,
   input: AttachPaymentCheckoutInput,
