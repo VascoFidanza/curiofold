@@ -293,6 +293,17 @@ export async function attachPaymentCheckoutSession(
       throw new PaymentOrderConflictError()
     }
 
+    await transaction
+      .insert(schema.paymentReconciliationJobs)
+      .values({
+        nextAttemptAt: attachedAt,
+        orderId: order.id,
+        updatedAt: attachedAt,
+      })
+      .onConflictDoNothing({
+        target: schema.paymentReconciliationJobs.orderId,
+      })
+
     await transaction.insert(schema.auditEvents).values({
       action: 'payment.checkout_created',
       actorUserId: order.userId,

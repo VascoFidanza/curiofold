@@ -49,6 +49,14 @@ export {
   type PaymentOrderRecord,
 } from './payment-orders'
 export {
+  claimPaymentReconciliationJobs,
+  completePaymentReconciliationJob,
+  ensurePaymentReconciliationJob,
+  reschedulePaymentReconciliationJob,
+  type ClaimPaymentReconciliationJobsInput,
+  type PaymentReconciliationJob,
+} from './payment-reconciliation'
+export {
   findReadingProgress,
   saveReadingProgress,
   type ReadingProgressSnapshot,

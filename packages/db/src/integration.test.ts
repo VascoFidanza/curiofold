@@ -28,6 +28,11 @@ import {
   PaymentOrderConflictError,
 } from './payment-orders'
 import {
+  claimPaymentReconciliationJobs,
+  completePaymentReconciliationJob,
+  reschedulePaymentReconciliationJob,
+} from './payment-reconciliation'
+import {
   processProviderEvent,
   ProviderEventRetryableError,
   recordProviderEvent,
@@ -38,6 +43,7 @@ import {
   creditSpendAllocations,
   entitlementEvents,
   paymentOrders,
+  paymentReconciliationJobs,
   outboxEvents,
   providerEvents,
   staffRoleAssignments,
@@ -150,6 +156,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           'identity_events',
           'outbox_events',
           'payment_orders',
+          'payment_reconciliation_jobs',
           'provider_events',
           'reading_progress',
           'staff_role_assignments',
@@ -466,6 +473,47 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         providerKey: 'stripe',
         providerSessionId: 'cs_test_delayed_order_fixture',
       })
+      const claimedJobs = await claimPaymentReconciliationJobs(
+        database.client,
+        { now: new Date('2026-09-20T10:03:00.000Z') },
+      )
+      const claimedJob = claimedJobs.find(
+        (job) => job.orderId === delayedOrder.order.id,
+      )
+      if (!claimedJob) throw new Error('Expected a reconciliation job.')
+      expect(claimedJob.orderId).toBe(delayedOrder.order.id)
+      const rescheduledJob = await reschedulePaymentReconciliationJob(
+        database.client,
+        claimedJob.id,
+        {
+          errorCode: 'provider_timeout',
+          now: new Date('2026-09-20T10:03:01.000Z'),
+        },
+      )
+      expect(rescheduledJob).toMatchObject({
+        attemptCount: 1,
+        lastErrorCode: 'provider_timeout',
+        status: 'pending',
+      })
+      const reclaimedJobs = await claimPaymentReconciliationJobs(
+        database.client,
+        { now: new Date('2026-09-20T10:04:02.000Z') },
+      )
+      const reclaimedJob = reclaimedJobs.find(
+        (job) => job.orderId === delayedOrder.order.id,
+      )
+      if (!reclaimedJob) throw new Error('Expected a reclaimed job.')
+      await completePaymentReconciliationJob(database.client, reclaimedJob.id, {
+        now: new Date('2026-09-20T10:04:01.000Z'),
+      })
+      await expect(
+        database.client
+          .select()
+          .from(paymentReconciliationJobs)
+          .where(eq(paymentReconciliationJobs.id, reclaimedJob.id)),
+      ).resolves.toMatchObject([
+        expect.objectContaining({ status: 'completed' }),
+      ])
       await expect(
         processProviderEvent(database.client, {
           providerEventId: 'evt_test_delayed_order_fixture',

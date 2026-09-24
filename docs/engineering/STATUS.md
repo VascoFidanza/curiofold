@@ -6,7 +6,7 @@
 
 ## In progress
 
-- CRFD-33 / Milestone 3.2D — Owner-scoped, customer-safe payment-order status and the canonical amount-based EUR top-up quote are implemented locally. Pricing snapshots now persist through migration 0009; durable stale-order/event reconciliation, retry/backoff observability and the full lifecycle gate remain.
+- CRFD-33 / Milestone 3.2D — Owner-scoped, customer-safe payment-order status, canonical amount-based EUR pricing, and durable reconciliation jobs are implemented locally. Pricing snapshots persist through migration 0009; job leases/backoff/exhaustion persist through migrations 0010–0011. The Stripe worker, alerting and full lifecycle gate remain.
 
 ## In review
 

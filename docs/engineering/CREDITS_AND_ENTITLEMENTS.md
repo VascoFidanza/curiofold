@@ -95,6 +95,8 @@ Provider-event envelopes and outbox envelopes are protected from update/deletion
 
 The owner-authorized `GET /api/v1/payment-orders/{id}` boundary returns only the internal order ID, snapshotted credits/amount/currency, update time and a customer-safe status. `pending`, `checkout_created` and `payment_pending` are all reported as `processing`; only the committed internal `fulfilled` state is reported as fulfilled. Owner-scoped lookup returns the same not-found response for unknown and other-user orders. Provider identifiers, idempotency keys and return paths are never exposed.
 
+Every attached Checkout order also receives one durable `payment_reconciliation_jobs` row. Jobs are claimed with PostgreSQL row locks and `SKIP LOCKED`, use a lease so interrupted workers can be recovered, and record bounded exponential backoff, the last classified error and an exhausted terminal state. A scheduler/worker must treat this table as durable work; in-memory retries are never the only recovery path.
+
 ## Idempotent grant transaction
 
 `grantCredits` performs this sequence in one PostgreSQL transaction:

@@ -389,6 +389,58 @@ export const providerEvents = pgTable(
   ],
 )
 
+export const paymentReconciliationJobStatuses = [
+  'pending',
+  'running',
+  'completed',
+  'exhausted',
+] as const
+export type PaymentReconciliationJobStatus =
+  (typeof paymentReconciliationJobStatuses)[number]
+
+export const paymentReconciliationJobs = pgTable(
+  'payment_reconciliation_jobs',
+  {
+    attemptCount: integer('attempt_count').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    exhaustedAt: timestamp('exhausted_at', { withTimezone: true }),
+    id: uuid('id').defaultRandom().primaryKey(),
+    leaseUntil: timestamp('lease_until', { withTimezone: true }),
+    lastAttemptAt: timestamp('last_attempt_at', { withTimezone: true }),
+    lastErrorCode: varchar('last_error_code', { length: 80 }),
+    nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    orderId: uuid('order_id')
+      .notNull()
+      .references(() => paymentOrders.id),
+    status: text('status')
+      .$type<PaymentReconciliationJobStatus>()
+      .notNull()
+      .default('pending'),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('payment_reconciliation_jobs_order_unique').on(table.orderId),
+    index('payment_reconciliation_jobs_due_index').on(
+      table.status,
+      table.nextAttemptAt,
+    ),
+    check(
+      'payment_reconciliation_jobs_attempt_check',
+      sql`${table.attemptCount} >= 0`,
+    ),
+    check(
+      'payment_reconciliation_jobs_status_check',
+      sql`${table.status} IN ('pending', 'running', 'completed', 'exhausted')`,
+    ),
+  ],
+)
+
 export const outboxEvents = pgTable(
   'outbox_events',
   {
