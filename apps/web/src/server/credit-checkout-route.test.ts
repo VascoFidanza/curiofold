@@ -20,9 +20,14 @@ const authorization: AuthorizationContext = {
 }
 const pack = {
   amountMinor: 500,
+  baseCredits: 5,
+  bonusCredits: 0,
+  bonusRateBps: 0,
   credits: 5,
   currency: 'EUR',
-  packKey: 'five-credits',
+  packKey: 'top-up-v1',
+  pricingVersion: 'top-up-eur-v1',
+  purchaseType: 'credit_top_up',
 } as const
 const order: PaymentOrderRecord = {
   ...pack,
@@ -39,7 +44,7 @@ const order: PaymentOrderRecord = {
 }
 
 function request(
-  body: unknown = { packId: 'five-credits', returnPath: order.returnPath },
+  body: unknown = { amountEUR: 5, returnPath: order.returnPath },
 ): Request {
   return new Request('https://curiofold.test/api/v1/credit-checkouts', {
     body: JSON.stringify(body),
@@ -76,7 +81,6 @@ function dependencies(overrides: Record<string, unknown> = {}) {
       .mockResolvedValue({ ...order, status: 'checkout_created' }),
     authorizationSource: () => Promise.resolve(authorization),
     createOrderSource: vi.fn().mockResolvedValue({ created: true, order }),
-    packSource: () => pack,
     provider: provider(),
     ...overrides,
   }
@@ -126,7 +130,7 @@ describe('credit Checkout route', () => {
     expect(createOrderSource).not.toHaveBeenCalled()
 
     const invalid = await createCreditCheckoutResponse(
-      request({ packId: 'five-credits', amountMinor: 1 }),
+      request({ amountEUR: 5, bonusCredits: 500 }),
       'request-invalid',
       dependencies({ createOrderSource }),
     )
@@ -156,7 +160,7 @@ describe('credit Checkout route', () => {
     expect(unverified.status).toBe(403)
   })
 
-  it('uses only the server-owned pack and preserves a safe return context', async () => {
+  it('uses only the server-owned quote and preserves a safe return context', async () => {
     const createOrderSource = vi
       .fn()
       .mockResolvedValue({ created: true, order })
@@ -226,17 +230,7 @@ describe('credit Checkout route', () => {
     expect(createCheckoutSession).not.toHaveBeenCalled()
   })
 
-  it('returns stable, redacted errors for pack, idempotency and provider failures', async () => {
-    const unknown = await createCreditCheckoutResponse(
-      request(),
-      'request-pack',
-      dependencies({ packSource: () => null }),
-    )
-    expect(unknown.status).toBe(400)
-    await expect(unknown.json()).resolves.toMatchObject({
-      code: 'unknown_credit_pack',
-    })
-
+  it('returns stable, redacted errors for idempotency and provider failures', async () => {
     const conflict = await createCreditCheckoutResponse(
       request(),
       'request-conflict',

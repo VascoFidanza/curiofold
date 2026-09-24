@@ -18,7 +18,6 @@ const serverEnvironmentSchema = publicEnvironmentSchema.extend({
   CLERK_SECRET_KEY: z.string().min(1),
   CLERK_WEBHOOK_SIGNING_SECRET: z.string().startsWith('whsec_'),
   CRON_SECRET: z.string().min(32).optional(),
-  CREDIT_PACKS_JSON: z.string().min(1).optional(),
   DATABASE_URL: z.url(),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   NODE_ENV: z

@@ -6,7 +6,7 @@
 
 ## In progress
 
-- CRFD-33 / Milestone 3.2D — Owner-scoped, customer-safe payment-order status, canonical amount-based EUR pricing, durable reconciliation jobs, and the Stripe reconciliation worker are implemented locally. Pricing snapshots persist through migration 0009; job leases/backoff/exhaustion persist through migrations 0010–0011. Protected scheduler wiring, alerting and the full lifecycle gate remain.
+- CRFD-33 / Milestone 3.2D — Owner-scoped payment status, canonical amount-based EUR pricing, durable reconciliation jobs, the Stripe worker, and a protected scheduler endpoint are implemented locally. The obsolete pack catalogue contract has been removed. Alerting, live nonproduction evidence and the full lifecycle gate remain.
 
 ## In review
 

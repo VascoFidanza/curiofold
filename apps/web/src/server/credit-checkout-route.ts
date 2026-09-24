@@ -15,10 +15,6 @@ import {
   type PaymentOrderRecord,
 } from '@curiofold/db'
 
-import {
-  CreditPackConfigurationError,
-  findConfiguredCreditPack,
-} from './credit-packs'
 import { getDatabase } from './database'
 import { IdentitySessionError, requireAuthorizationContext } from './identity'
 import {
@@ -27,8 +23,6 @@ import {
 } from './stripe-payment-provider'
 
 type AuthorizationSource = () => Promise<AuthorizationContext>
-type PackSource = (packKey: string) => CreditPackSnapshot | null
-type QuoteSource = (amountMinor: number) => CreditPackSnapshot
 type CreateOrderSource = (
   input: CreatePaymentOrderInput,
 ) => Promise<CreatePaymentOrderResult>
@@ -41,14 +35,11 @@ interface CreditCheckoutDependencies {
   readonly attachCheckoutSource?: AttachCheckoutSource
   readonly authorizationSource?: AuthorizationSource
   readonly createOrderSource?: CreateOrderSource
-  readonly packSource?: PackSource
-  readonly quoteSource?: QuoteSource
   readonly provider?: PaymentProvider
 }
 
 interface CheckoutPayload {
-  readonly amountEUR?: number
-  readonly packId?: string
+  readonly amountEUR: number
   readonly returnPath?: string
 }
 
@@ -113,28 +104,21 @@ async function readPayload(request: Request): Promise<CheckoutPayload | null> {
     if (!value || typeof value !== 'object' || Array.isArray(value)) return null
     const candidate = value as Record<string, unknown>
     const amountEUR = candidate.amountEUR
-    const packId = candidate.packId
-    const validPackId = typeof packId === 'string' ? packId : null
     if (
       Object.keys(candidate).some(
-        (key) => !['amountEUR', 'packId', 'returnPath'].includes(key),
+        (key) => !['amountEUR', 'returnPath'].includes(key),
       ) ||
-      (amountEUR !== undefined &&
-        (typeof amountEUR !== 'number' ||
-          !Number.isSafeInteger(amountEUR) ||
-          amountEUR < 5)) ||
-      (packId !== undefined && typeof packId !== 'string') ||
+      typeof amountEUR !== 'number' ||
+      !Number.isSafeInteger(amountEUR) ||
+      amountEUR < 5 ||
+      amountEUR > Math.floor(Number.MAX_SAFE_INTEGER / 100) ||
       (candidate.returnPath !== undefined &&
-        typeof candidate.returnPath !== 'string') ||
-      (amountEUR === undefined && packId === undefined) ||
-      (amountEUR !== undefined && packId !== undefined)
+        typeof candidate.returnPath !== 'string')
     ) {
       return null
     }
     return {
-      ...(typeof amountEUR === 'number'
-        ? { amountEUR }
-        : { packId: validPackId ?? '' }),
+      amountEUR,
       ...(candidate.returnPath !== undefined
         ? { returnPath: candidate.returnPath }
         : {}),
@@ -239,45 +223,17 @@ export async function createCreditCheckoutResponse(
     )
   }
 
-  let snapshot: CreditPackSnapshot | null
-  try {
-    if (payload.amountEUR !== undefined) {
-      const quote = quoteCreditTopUp(payload.amountEUR * 100)
-      snapshot = {
-        amountMinor: quote.amountMinor,
-        baseCredits: quote.baseCredits,
-        bonusCredits: quote.bonusCredits,
-        bonusRateBps: quote.bonusRateBps,
-        credits: quote.totalCredits,
-        currency: quote.currency,
-        packKey: 'top-up-v1',
-        pricingVersion: quote.pricingVersion,
-        purchaseType: 'credit_top_up',
-      }
-    } else if (dependencies.packSource && payload.packId) {
-      snapshot = dependencies.packSource(payload.packId)
-    } else if (payload.packId) {
-      snapshot = findConfiguredCreditPack(payload.packId)
-    } else {
-      snapshot = null
-    }
-  } catch (error) {
-    if (!(error instanceof CreditPackConfigurationError)) throw error
-    return problem(
-      503,
-      'checkout_unavailable',
-      'Checkout is temporarily unavailable',
-      requestId,
-      { 'Retry-After': '60' },
-    )
-  }
-  if (!snapshot) {
-    return problem(
-      400,
-      'unknown_credit_pack',
-      'Credit pack is unavailable',
-      requestId,
-    )
+  const quote = quoteCreditTopUp(payload.amountEUR * 100)
+  const snapshot: CreditPackSnapshot = {
+    amountMinor: quote.amountMinor,
+    baseCredits: quote.baseCredits,
+    bonusCredits: quote.bonusCredits,
+    bonusRateBps: quote.bonusRateBps,
+    credits: quote.totalCredits,
+    currency: quote.currency,
+    packKey: 'top-up-v1',
+    pricingVersion: quote.pricingVersion,
+    purchaseType: 'credit_top_up',
   }
 
   try {

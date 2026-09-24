@@ -469,6 +469,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         throw new Error('Expected persisted delayed provider event.')
       }
       await attachPaymentCheckoutSession(database.client, {
+        attachedAt: new Date('2026-09-20T10:02:59.000Z'),
         orderId: delayedOrder.order.id,
         providerKey: 'stripe',
         providerSessionId: 'cs_test_delayed_order_fixture',

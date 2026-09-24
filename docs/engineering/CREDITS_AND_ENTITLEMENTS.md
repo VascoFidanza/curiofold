@@ -62,7 +62,7 @@ Payment orders are internal, provider-independent commercial records. Each order
 
 The database rejects deletion and changes to the order's user, idempotency key, commercial snapshot, return path or creation timestamp. Later provider processing may only add provider correlation and advance the explicit state machine. Browser redirects are not a transition source and can never fulfil an order.
 
-The canonical EUR top-up boundary accepts any whole-euro amount of at least €5. The domain pricing function derives base credits, progressive bonus rate, bonus credits and total credits using integer arithmetic and deterministic round-half-up. The client cannot supply authoritative bonus, credit, currency or payable-amount fields. `CREDIT_PACKS_JSON` is no longer used by the canonical amount-based flow and must not be configured with arbitrary packs.
+The canonical EUR top-up boundary accepts any whole-euro amount of at least €5. The domain pricing function derives base credits, progressive bonus rate, bonus credits and total credits using integer arithmetic and deterministic round-half-up. The client cannot supply authoritative bonus, credit, currency or payable-amount fields. The former `CREDIT_PACKS_JSON` and `packId` contracts have been removed.
 
 Allowed provider-evidence transitions are:
 
@@ -75,7 +75,7 @@ The provider port exposes only normalized checkout commands and provider-order s
 
 ## Hosted Checkout creation
 
-`POST /api/v1/credit-checkouts` requires an active authenticated account with a verified email, a same-origin request, an exact `{ "amountEUR": integer, "returnPath"?: "/..." }` body and a valid `Idempotency-Key`. The amount must be at least €5. Browser-supplied prices, currencies, bonus rates and credit quantities are never accepted. A short-lived legacy pack-shaped test seam remains isolated from the production amount-based path while existing fixtures migrate.
+`POST /api/v1/credit-checkouts` requires an active authenticated account with a verified email, a same-origin request, an exact `{ "amountEUR": integer, "returnPath"?: "/..." }` body and a valid `Idempotency-Key`. The amount must be at least €5. Browser-supplied prices, currencies, bonus rates and credit quantities are never accepted.
 
 The boundary creates or reuses the internal payment order before contacting Stripe. It then creates a hosted Stripe Checkout Session using the internal order ID as the provider idempotency key, `client_reference_id` and minimized metadata. Success and cancel URLs are built from the trusted application origin and the order's normalized relative return path. The success return says only `payment=processing`; it is not payment evidence and cannot grant credits.
 
