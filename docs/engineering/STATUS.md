@@ -6,7 +6,7 @@
 
 ## In progress
 
-- CRFD-33 / Milestone 3.2D — Owner-scoped, customer-safe payment-order status is implemented locally with pending states truthfully projected as processing. Durable stale-order/event reconciliation, retry/backoff observability and the full lifecycle gate remain.
+- CRFD-33 / Milestone 3.2D — Owner-scoped, customer-safe payment-order status and the canonical amount-based EUR top-up quote are implemented locally. Pricing snapshots now persist through migration 0009; durable stale-order/event reconciliation, retry/backoff observability and the full lifecycle gate remain.
 
 ## In review
 

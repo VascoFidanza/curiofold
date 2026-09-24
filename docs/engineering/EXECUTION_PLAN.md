@@ -93,7 +93,7 @@ The Reader checks entitlement server-side. Public surfaces contain metadata and 
 
 ## 6. Commerce and payment flow
 
-Checkout accepts a configured pack identifier, never a client-provided amount. Curiofold creates a pending order before creating a Stripe Checkout Session. Stripe webhooks are raw-body verified, persisted uniquely and processed idempotently. The browser return page reads Curiofold's reconciled order state and never fulfils an order.
+Checkout accepts a server-validated whole-EUR top-up amount of at least €5; it never trusts client-supplied pricing or credit fields. Curiofold creates a pending order with an immutable pricing snapshot before creating a Stripe Checkout Session. Stripe webhooks are raw-body verified, persisted uniquely and processed idempotently. The browser return page reads Curiofold's reconciled order state and never fulfils an order.
 
 Scheduled reconciliation retries stored events and resolves stale orders. Refunds and chargebacks create explicit records and compensating wallet entries. Credit grants retain purchase provenance so unspent units can be reversed deterministically.
 
