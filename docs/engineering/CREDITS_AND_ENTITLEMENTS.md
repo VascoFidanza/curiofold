@@ -83,6 +83,16 @@ Attaching a Checkout Session locks the order, permits only the `pending` → `ch
 
 Only HTTPS provider checkout URLs are returned to the browser. Fulfilment remains exclusively the responsibility of the signed provider-event inbox and reconciliation work in CRFD-32/CRFD-33.
 
+## Verified provider events and fulfilment
+
+`POST /api/webhooks/stripe` verifies Stripe's signature against the exact raw body before interpreting an event. Supported Checkout events are reduced to an allowlisted envelope; unsupported signed events are acknowledged without side effects. Curiofold stores the provider/event identifiers, event type, provider timestamp and SHA-256 payload digest—not the raw provider payload—under a provider-scoped unique constraint.
+
+The inbox insert commits before any provider call. Processing then re-reads the Checkout Session from Stripe and resolves the internal order through the already attached provider/session pair, rather than trusting browser state or event metadata. A transient provider or order-visibility failure leaves the event pending and returns a retryable response.
+
+Final processing locks the inbox event and payment order. In one PostgreSQL transaction it advances the order, grants the exact snapshotted credits through the existing ledger command, records the provider payment identifier, marks the event processed, appends minimized audit evidence and writes one durable `payment.order_fulfilled` outbox event. Concurrent and repeated delivery returns the stored outcome without a second grant. A delayed non-paid event cannot regress a fulfilled order. Conflicting event identifiers/digests or payment identifiers fail closed.
+
+Provider-event envelopes and outbox envelopes are protected from update/deletion by database triggers. Only explicit processing/delivery projections may change. Browser success redirects remain informational and cannot call this fulfilment path.
+
 ## Idempotent grant transaction
 
 `grantCredits` performs this sequence in one PostgreSQL transaction:
@@ -179,12 +189,17 @@ The PostgreSQL 18 integration suite exercises:
 - idempotent database attachment and rejection of a conflicting provider session;
 - safe context-preserving success/cancel URLs that cannot fulfil an order;
 - resumption of an existing open Checkout Session and redacted provider failures.
+- real Stripe-signature verification and tamper rejection over the raw body;
+- durable provider-event deduplication without retaining provider payloads;
+- concurrent webhook replay resulting in one payment grant, ledger credit and outbox event;
+- atomic rollback boundaries for order, grant, ledger, audit, inbox and outbox state;
+- delayed failure delivery after fulfilment without order regression or duplicate credit.
 
 The migration graph must apply cleanly to an empty database and upgrade from every committed predecessor. No live payment provider or production database is required for this foundation.
 
 ## Remaining work and decisions
 
-- Milestone 3.2 continues with the verified event inbox, fulfilment and stale-order reconciliation. A fulfilled provider order maps to the existing grant command.
+- Milestone 3.2 continues with stale-order reconciliation and truthful customer order status.
 - Milestone 3.3 adds compensating reversals and guarded operations.
 - OD-010 determines spent-credit treatment after refund or chargeback.
 - OD-011 determines the final payment-provider model.

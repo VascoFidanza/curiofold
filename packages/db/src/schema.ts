@@ -27,6 +27,7 @@ type EntitlementGrantSource = 'seed' | 'support' | 'unlock'
 type EntitlementStatus = 'active' | 'revoked'
 type UnlockOutcome = 'already_owned' | 'unlocked'
 type WalletEntryType = 'correction' | 'grant' | 'reversal' | 'spend'
+type ProviderEventStatus = 'pending' | 'processed'
 
 export const users = pgTable(
   'users',
@@ -329,6 +330,80 @@ export const paymentOrders = pgTable(
       'payment_orders_provider_shape_check',
       sql`(${table.providerKey} IS NULL AND ${table.providerCheckoutSessionId} IS NULL AND ${table.providerPaymentId} IS NULL) OR (${table.providerKey} IS NOT NULL AND ${table.providerCheckoutSessionId} IS NOT NULL)`,
     ),
+  ],
+)
+
+export const providerEvents = pgTable(
+  'provider_events',
+  {
+    attemptCount: integer('attempt_count').notNull().default(0),
+    eventType: varchar('event_type', { length: 120 }).notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    lastAttemptAt: timestamp('last_attempt_at', { withTimezone: true }),
+    orderId: uuid('order_id').references(() => paymentOrders.id),
+    payloadDigest: varchar('payload_digest', { length: 64 }).notNull(),
+    processedAt: timestamp('processed_at', { withTimezone: true }),
+    providerCreatedAt: timestamp('provider_created_at', {
+      withTimezone: true,
+    }).notNull(),
+    providerEventId: varchar('provider_event_id', { length: 255 }).notNull(),
+    providerKey: varchar('provider_key', { length: 80 }).notNull(),
+    receivedAt: timestamp('received_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    status: text('status')
+      .$type<ProviderEventStatus>()
+      .notNull()
+      .default('pending'),
+  },
+  (table) => [
+    uniqueIndex('provider_events_provider_id_unique').on(
+      table.providerKey,
+      table.providerEventId,
+    ),
+    index('provider_events_status_received_index').on(
+      table.status,
+      table.receivedAt,
+    ),
+    check(
+      'provider_events_digest_check',
+      sql`${table.payloadDigest} ~ '^[a-f0-9]{64}$'`,
+    ),
+    check(
+      'provider_events_status_check',
+      sql`${table.status} IN ('pending', 'processed')`,
+    ),
+    check(
+      'provider_events_attempt_count_check',
+      sql`${table.attemptCount} >= 0`,
+    ),
+  ],
+)
+
+export const outboxEvents = pgTable(
+  'outbox_events',
+  {
+    aggregateId: uuid('aggregate_id').notNull(),
+    aggregateType: varchar('aggregate_type', { length: 80 }).notNull(),
+    attemptCount: integer('attempt_count').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    eventType: varchar('event_type', { length: 120 }).notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex('outbox_events_aggregate_event_unique').on(
+      table.aggregateType,
+      table.aggregateId,
+      table.eventType,
+    ),
+    index('outbox_events_unpublished_index')
+      .on(table.createdAt)
+      .where(sql`${table.publishedAt} IS NULL`),
+    check('outbox_events_attempt_count_check', sql`${table.attemptCount} >= 0`),
   ],
 )
 

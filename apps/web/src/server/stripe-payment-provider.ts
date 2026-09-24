@@ -148,7 +148,7 @@ export function createStripePaymentProvider(
           providerPaymentId:
             typeof session.payment_intent === 'string'
               ? session.payment_intent
-              : null,
+              : (session.payment_intent?.id ?? null),
           providerSessionId: session.id,
           state: snapshotState(session),
         }

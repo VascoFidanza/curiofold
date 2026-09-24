@@ -29,6 +29,16 @@ export {
   type PublishedStoryRouteResolution,
 } from './published-stories'
 export {
+  processProviderEvent,
+  ProviderEventConflictError,
+  ProviderEventRetryableError,
+  recordProviderEvent,
+  type ProcessProviderEventInput,
+  type ProcessProviderEventResult,
+  type RecordedProviderEvent,
+  type RecordProviderEventInput,
+} from './payment-events'
+export {
   attachPaymentCheckoutSession,
   createPaymentOrder,
   findPaymentOrderForUser,

@@ -27,12 +27,19 @@ import {
   findPaymentOrderForUser,
   PaymentOrderConflictError,
 } from './payment-orders'
+import {
+  processProviderEvent,
+  ProviderEventRetryableError,
+  recordProviderEvent,
+} from './payment-events'
 import { findReadingProgress, saveReadingProgress } from './reading-progress'
 import {
   creditGrants,
   creditSpendAllocations,
   entitlementEvents,
   paymentOrders,
+  outboxEvents,
+  providerEvents,
   staffRoleAssignments,
   stories,
   storyEntitlements,
@@ -141,7 +148,9 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           'credit_spend_allocations',
           'entitlement_events',
           'identity_events',
+          'outbox_events',
           'payment_orders',
+          'provider_events',
           'reading_progress',
           'staff_role_assignments',
           'stories',
@@ -262,13 +271,12 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         'user_payment_order_second_fixture',
         new Date('2026-09-20T10:03:40.000Z'),
       )
-      await expect(
-        createPaymentOrder(database.client, {
-          ...paymentOrderInput,
-          returnPath: 'https://attacker.example/payment-return',
-          userId: secondAccount.userId,
-        }),
-      ).resolves.toMatchObject({
+      const secondPaymentOrder = await createPaymentOrder(database.client, {
+        ...paymentOrderInput,
+        returnPath: 'https://attacker.example/payment-return',
+        userId: secondAccount.userId,
+      })
+      expect(secondPaymentOrder).toMatchObject({
         created: true,
         order: { returnPath: '/', userId: secondAccount.userId },
       })
@@ -311,6 +319,175 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           providerSessionId: 'cs_test_conflicting_session',
         }),
       ).rejects.toBeInstanceOf(PaymentOrderConflictError)
+
+      await attachPaymentCheckoutSession(database.client, {
+        orderId: secondPaymentOrder.order.id,
+        providerKey: 'stripe',
+        providerSessionId: 'cs_test_fulfilment_fixture',
+      })
+      const providerEnvelope = {
+        eventType: 'checkout.session.completed',
+        payloadDigest: 'a'.repeat(64),
+        providerCreatedAt: new Date('2026-09-20T10:03:50.000Z'),
+        providerEventId: 'evt_test_fulfilment_fixture',
+        providerKey: 'stripe',
+        receivedAt: new Date('2026-09-20T10:03:51.000Z'),
+      } as const
+      await expect(
+        recordProviderEvent(database.client, providerEnvelope),
+      ).resolves.toMatchObject({ created: true, status: 'pending' })
+      await expect(
+        recordProviderEvent(database.client, providerEnvelope),
+      ).resolves.toMatchObject({ created: false, status: 'pending' })
+
+      const fulfilmentSnapshot = {
+        checkoutUrl: null,
+        providerPaymentId: 'pi_test_fulfilment_fixture',
+        providerSessionId: 'cs_test_fulfilment_fixture',
+        state: 'paid',
+      } as const
+      const fulfilmentResults = await Promise.all([
+        processProviderEvent(database.client, {
+          processedAt: new Date('2026-09-20T10:03:52.000Z'),
+          providerEventId: providerEnvelope.providerEventId,
+          providerKey: 'stripe',
+          snapshot: fulfilmentSnapshot,
+        }),
+        processProviderEvent(database.client, {
+          processedAt: new Date('2026-09-20T10:03:53.000Z'),
+          providerEventId: providerEnvelope.providerEventId,
+          providerKey: 'stripe',
+          snapshot: fulfilmentSnapshot,
+        }),
+      ])
+      expect(new Set(fulfilmentResults.map(({ outcome }) => outcome))).toEqual(
+        new Set(['fulfilled', 'duplicate']),
+      )
+      await expect(
+        findWalletBalance(database.client, secondAccount.userId),
+      ).resolves.toEqual({ availableCredits: 5, version: 1 })
+      const [fulfilledOrder] = await database.client
+        .select()
+        .from(paymentOrders)
+        .where(eq(paymentOrders.id, secondPaymentOrder.order.id))
+      expect(fulfilledOrder).toMatchObject({
+        providerPaymentId: 'pi_test_fulfilment_fixture',
+        status: 'fulfilled',
+      })
+      const storedEvents = await database.client
+        .select()
+        .from(providerEvents)
+        .where(
+          eq(providerEvents.providerEventId, providerEnvelope.providerEventId),
+        )
+      expect(storedEvents).toHaveLength(1)
+      expect(storedEvents[0]).toMatchObject({
+        attemptCount: 1,
+        status: 'processed',
+      })
+      const fulfilledOutbox = await database.client
+        .select()
+        .from(outboxEvents)
+        .where(eq(outboxEvents.aggregateId, secondPaymentOrder.order.id))
+      expect(fulfilledOutbox).toHaveLength(1)
+
+      await recordProviderEvent(database.client, {
+        ...providerEnvelope,
+        eventType: 'checkout.session.async_payment_failed',
+        payloadDigest: 'b'.repeat(64),
+        providerEventId: 'evt_test_delayed_failure_fixture',
+      })
+      await expect(
+        processProviderEvent(database.client, {
+          providerEventId: 'evt_test_delayed_failure_fixture',
+          providerKey: 'stripe',
+          snapshot: {
+            ...fulfilmentSnapshot,
+            providerPaymentId: null,
+            state: 'canceled',
+          },
+        }),
+      ).resolves.toMatchObject({ outcome: 'duplicate' })
+      await expect(
+        findWalletBalance(database.client, secondAccount.userId),
+      ).resolves.toEqual({ availableCredits: 5, version: 1 })
+
+      const delayedAccount = await ensureIdentityAccount(
+        database.client,
+        'user_payment_order_delayed_fixture',
+        new Date('2026-09-20T10:03:54.000Z'),
+      )
+      const delayedOrder = await createPaymentOrder(database.client, {
+        operationKey: 'checkout:delayed-order-fixture',
+        returnPath: '/',
+        snapshot: {
+          amountMinor: 250,
+          credits: 2,
+          currency: 'EUR',
+          packKey: 'two-credits',
+        },
+        userId: delayedAccount.userId,
+      })
+      await recordProviderEvent(database.client, {
+        eventType: 'checkout.session.completed',
+        payloadDigest: 'c'.repeat(64),
+        providerCreatedAt: new Date('2026-09-20T10:03:55.000Z'),
+        providerEventId: 'evt_test_delayed_order_fixture',
+        providerKey: 'stripe',
+      })
+      const delayedSnapshot = {
+        checkoutUrl: null,
+        providerPaymentId: 'pi_test_delayed_order_fixture',
+        providerSessionId: 'cs_test_delayed_order_fixture',
+        state: 'paid',
+      } as const
+      await expect(
+        processProviderEvent(database.client, {
+          providerEventId: 'evt_test_delayed_order_fixture',
+          providerKey: 'stripe',
+          snapshot: delayedSnapshot,
+        }),
+      ).rejects.toBeInstanceOf(ProviderEventRetryableError)
+      const [pendingDelayedEvent] = await database.client
+        .select()
+        .from(providerEvents)
+        .where(
+          eq(providerEvents.providerEventId, 'evt_test_delayed_order_fixture'),
+        )
+      expect(pendingDelayedEvent).toMatchObject({
+        attemptCount: 0,
+        status: 'pending',
+      })
+      if (!pendingDelayedEvent) {
+        throw new Error('Expected persisted delayed provider event.')
+      }
+      await attachPaymentCheckoutSession(database.client, {
+        orderId: delayedOrder.order.id,
+        providerKey: 'stripe',
+        providerSessionId: 'cs_test_delayed_order_fixture',
+      })
+      await expect(
+        processProviderEvent(database.client, {
+          providerEventId: 'evt_test_delayed_order_fixture',
+          providerKey: 'stripe',
+          snapshot: delayedSnapshot,
+        }),
+      ).resolves.toMatchObject({ outcome: 'fulfilled' })
+      await expect(
+        findWalletBalance(database.client, delayedAccount.userId),
+      ).resolves.toEqual({ availableCredits: 2, version: 1 })
+
+      await expect(
+        database.client
+          .update(providerEvents)
+          .set({ payloadDigest: 'd'.repeat(64) })
+          .where(eq(providerEvents.id, pendingDelayedEvent.id)),
+      ).rejects.toThrow()
+      await expect(
+        database.client
+          .delete(outboxEvents)
+          .where(eq(outboxEvents.aggregateId, delayedOrder.order.id)),
+      ).rejects.toThrow()
 
       await expect(
         database.client.insert(paymentOrders).values({
