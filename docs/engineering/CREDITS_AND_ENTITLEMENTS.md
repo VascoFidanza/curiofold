@@ -99,6 +99,14 @@ Every attached Checkout order also receives one durable `payment_reconciliation_
 
 `runPaymentReconciliationBatch` claims a bounded batch, re-reads each Stripe Checkout Session, records synthetic reconciliation evidence in the same provider-event inbox, and delegates the state transition to the existing exactly-once processor. Paid and canceled orders complete their job; pending/provider failures are rescheduled with classified backoff. The worker is not enabled by an application startup side effect.
 
+## Payment reversal evidence
+
+`payment_reversals` records refund, dispute and support-correction requests without rewriting the original order or wallet history. Each request binds an immutable order, kind, amount, currency, requested credit quantity, normalized reason code, actor and globally unique operation key. Provider identifiers may be attached by a later trusted transition; raw provider payloads are never retained.
+
+Creation locks the fulfilled payment order before checking existing reversal evidence. Reusing the same operation key with identical semantics returns the original request; a conflicting replay fails closed. Active reversal requests may not cumulatively exceed either the order's paid minor-unit amount or its purchased credits. PostgreSQL prevents deletion and mutation of the original financial evidence, while domain policy defines the only legal status transitions.
+
+This foundation deliberately does not remove credits, submit provider refunds or decide what happens when purchased credits have already been spent. Those compensating operations belong to CRFD-36/CRFD-37 and remain constrained by OD-010.
+
 ## Idempotent grant transaction
 
 `grantCredits` performs this sequence in one PostgreSQL transaction:
@@ -200,13 +208,16 @@ The PostgreSQL 18 integration suite exercises:
 - concurrent webhook replay resulting in one payment grant, ledger credit and outbox event;
 - atomic rollback boundaries for order, grant, ledger, audit, inbox and outbox state;
 - delayed failure delivery after fulfilment without order regression or duplicate credit.
+- idempotent payment-reversal creation against fulfilled orders;
+- cumulative amount and credit limits across partial reversal requests;
+- immutable reversal evidence and deletion protection.
 
 The migration graph must apply cleanly to an empty database and upgrade from every committed predecessor. No live payment provider or production database is required for this foundation.
 
 ## Remaining work and decisions
 
-- Milestone 3.2 continues with stale-order reconciliation and truthful customer order status.
-- Milestone 3.3 adds compensating reversals and guarded operations.
+- Milestone 3.2's owner-safe status and stale-order reconciliation foundation is complete; live provider evidence remains an environment gate.
+- Milestone 3.3 continues with atomic reversal of unspent purchased credits and guarded operations.
 - OD-010 determines spent-credit treatment after refund or chargeback.
 - OD-011 determines the final payment-provider model.
 

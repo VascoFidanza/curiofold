@@ -3,6 +3,8 @@ import type {
   AccountState,
   CreditGrantSource,
   PaymentOrderStatus,
+  PaymentReversalKind,
+  PaymentReversalStatus,
   StaffRole,
 } from '@curiofold/domain'
 import {
@@ -338,6 +340,75 @@ export const paymentOrders = pgTable(
     check(
       'payment_orders_provider_shape_check',
       sql`(${table.providerKey} IS NULL AND ${table.providerCheckoutSessionId} IS NULL AND ${table.providerPaymentId} IS NULL) OR (${table.providerKey} IS NOT NULL AND ${table.providerCheckoutSessionId} IS NOT NULL)`,
+    ),
+  ],
+)
+
+export const paymentReversals = pgTable(
+  'payment_reversals',
+  {
+    amountMinor: integer('amount_minor').notNull(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    createdByUserId: uuid('created_by_user_id').references(() => users.id),
+    creditsRequested: integer('credits_requested').notNull(),
+    currency: varchar('currency', { length: 3 }).notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    kind: text('kind').$type<PaymentReversalKind>().notNull(),
+    operationKey: varchar('operation_key', { length: 200 }).notNull(),
+    orderId: uuid('order_id')
+      .notNull()
+      .references(() => paymentOrders.id),
+    providerKey: varchar('provider_key', { length: 80 }),
+    providerReversalId: varchar('provider_reversal_id', { length: 255 }),
+    reasonCode: varchar('reason_code', { length: 80 }).notNull(),
+    status: text('status')
+      .$type<PaymentReversalStatus>()
+      .notNull()
+      .default('requested'),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('payment_reversals_operation_unique').on(table.operationKey),
+    uniqueIndex('payment_reversals_provider_unique')
+      .on(table.providerKey, table.providerReversalId)
+      .where(sql`${table.providerReversalId} IS NOT NULL`),
+    index('payment_reversals_order_created_index').on(
+      table.orderId,
+      table.createdAt,
+    ),
+    index('payment_reversals_status_updated_index').on(
+      table.status,
+      table.updatedAt,
+    ),
+    check('payment_reversals_amount_check', sql`${table.amountMinor} > 0`),
+    check(
+      'payment_reversals_credits_check',
+      sql`${table.creditsRequested} >= 0`,
+    ),
+    check(
+      'payment_reversals_currency_check',
+      sql`${table.currency} ~ '^[A-Z]{3}$'`,
+    ),
+    check(
+      'payment_reversals_kind_check',
+      sql`${table.kind} IN ('refund', 'dispute', 'support_correction')`,
+    ),
+    check(
+      'payment_reversals_reason_check',
+      sql`${table.reasonCode} ~ '^[a-z0-9]+(_[a-z0-9]+)*$'`,
+    ),
+    check(
+      'payment_reversals_status_check',
+      sql`${table.status} IN ('requested', 'provider_pending', 'completed', 'rejected', 'canceled', 'manual_review')`,
+    ),
+    check(
+      'payment_reversals_provider_shape_check',
+      sql`(${table.providerKey} IS NULL AND ${table.providerReversalId} IS NULL) OR (${table.providerKey} IS NOT NULL AND ${table.providerReversalId} IS NOT NULL)`,
     ),
   ],
 )
