@@ -19,6 +19,7 @@
 
 ## Recently completed
 
+- CRFD-38 / S1-07A — PR #23 merged a production-refusing, idempotent synthetic Story catalogue seed after all hosted checks passed, including isolated PostgreSQL integration and responsive-browser validation. The separate nonproduction Neon migration/bootstrap remains intentionally unverified.
 - CRFD-36 / Milestone 3.3B — PR #22 merged atomic, idempotent removal of unspent payment-origin credits with wallet/lot locks, compensating ledger entries, explicit `policy_required` handling, audit/outbox evidence and reversal-aware reconciliation after all seven hosted checks passed.
 - CRFD-35 / Milestone 3.3A — PR #21 merged immutable refund/dispute/support-correction evidence, idempotent creation, cumulative amount/credit limits and transition policy to `development` after all seven hosted checks passed.
 - CRFD-33 / Milestone 3.2D — PR #20 merged owner-scoped payment status, canonical amount-based EUR pricing, durable reconciliation jobs, the Stripe worker and protected scheduler endpoint to `development` after all seven hosted checks passed. The obsolete public pack-catalogue contract was removed.
@@ -61,13 +62,14 @@
 
 ## Next
 
-1. Obtain the OD-010 product/legal decision before starting CRFD-37; options remain negative balance, spending suspension, entitlement revocation or manual review.
-2. Complete S1-10 visual acceptance when structured Figma access returns.
-3. Retain live Clerk, Stripe and entitled-preview acceptance gates until their development integrations are available.
-4. Do not provision production infrastructure or enable live payments without explicit product-owner approval.
+1. Apply migrations and the guarded synthetic seed only to `curiofold-nonproduction`, then verify the protected Preview Story Detail route. This is a controlled nonproduction integration action, not a production change.
+2. Obtain the OD-010 product/legal decision before starting CRFD-37; options remain negative balance, spending suspension, entitlement revocation or manual review.
+3. Complete S1-10 visual acceptance when structured Figma access returns.
+4. Retain live Clerk, Stripe and entitled-preview acceptance gates until their development integrations are available.
+5. Do not provision production infrastructure or enable live payments without explicit product-owner approval.
 
 ## Open decisions
 
 See `docs/project/OPEN_DECISIONS.md`. No open product decision blocks the foundation stage.
 
-**Last updated:** 2026-09-24
+**Last updated:** 2026-09-25
