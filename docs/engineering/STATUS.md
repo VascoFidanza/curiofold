@@ -2,11 +2,11 @@
 
 **Current phase:** Production-shaped walking skeleton with parallel financial-integrity work
 **Current milestone:** 3.3 — Reversals and support operations are auditable
-**Health:** On Track — Milestone 3.2 and CRFD-35 are merged to `development`; CRFD-36 has a validated atomic unspent-credit reversal implementation. Live provider gates remain intentionally deferred and do not block provider-independent work.
+**Health:** At Risk — CRFD-35 and CRFD-36 are complete, but Milestone 3.3 cannot close until OD-010 defines how already-spent credits behave after a refund or chargeback.
 
 ## In progress
 
-- CRFD-36 / Milestone 3.3B — Atomic, idempotent removal of unspent payment-origin credits is implemented with wallet/lot locks, compensating ledger entries, explicit `policy_required` handling for spent units, audit/outbox evidence and reversal-aware reconciliation. Local PostgreSQL 18 concurrency and migration validation pass.
+- No implementation issue is active. CRFD-37 is correctly held behind OD-010 rather than silently encoding a product/legal policy.
 
 ## In review
 
@@ -19,6 +19,7 @@
 
 ## Recently completed
 
+- CRFD-36 / Milestone 3.3B — PR #22 merged atomic, idempotent removal of unspent payment-origin credits with wallet/lot locks, compensating ledger entries, explicit `policy_required` handling, audit/outbox evidence and reversal-aware reconciliation after all seven hosted checks passed.
 - CRFD-35 / Milestone 3.3A — PR #21 merged immutable refund/dispute/support-correction evidence, idempotent creation, cumulative amount/credit limits and transition policy to `development` after all seven hosted checks passed.
 - CRFD-33 / Milestone 3.2D — PR #20 merged owner-scoped payment status, canonical amount-based EUR pricing, durable reconciliation jobs, the Stripe worker and protected scheduler endpoint to `development` after all seven hosted checks passed. The obsolete public pack-catalogue contract was removed.
 - CRFD-32 / Milestone 3.2C — PR #19 merged signed Stripe event verification, immutable provider-event deduplication, authoritative provider re-read and atomic order/grant/ledger/audit/outbox fulfilment after all seven GitHub gates passed. Concurrent replay, delayed retry and out-of-order non-regression pass against PostgreSQL 18; no live webhook configuration was enabled.
@@ -60,11 +61,10 @@
 
 ## Next
 
-1. Open CRFD-36's pull request against `development`, run hosted gates, review the wallet constraint migration and merge only when green.
-2. Keep CRFD-37's spent-credit behavior behind OD-010; do not invent negative-balance, suspension or entitlement-revocation policy.
-3. Complete S1-10 visual acceptance when structured Figma access returns.
-4. Retain live Clerk, Stripe and entitled-preview acceptance gates until their development integrations are available.
-5. Do not provision production infrastructure or enable live payments without explicit product-owner approval.
+1. Obtain the OD-010 product/legal decision before starting CRFD-37; options remain negative balance, spending suspension, entitlement revocation or manual review.
+2. Complete S1-10 visual acceptance when structured Figma access returns.
+3. Retain live Clerk, Stripe and entitled-preview acceptance gates until their development integrations are available.
+4. Do not provision production infrastructure or enable live payments without explicit product-owner approval.
 
 ## Open decisions
 
