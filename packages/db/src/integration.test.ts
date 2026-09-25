@@ -8,6 +8,10 @@ import { describe, expect, it } from 'vitest'
 
 import { createDatabase } from './client'
 import {
+  assertNonProductionSeedEnvironment,
+  seedDevelopmentCatalog,
+} from './development-seed'
+import {
   applyIdentityLifecycleEvent,
   ensureIdentityAccount,
   findIdentityAccount,
@@ -863,6 +867,51 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       const original = await loadStoryFixture('en/1.json')
       const correction = await loadStoryFixture('en/2.json')
       const portugueseDraft = await loadStoryFixture('pt-PT/1.json')
+      const seedStoryKey = 'development-seed-garden'
+      const seedOriginal = compileStoryDocument({
+        ...original.document,
+        slug: seedStoryKey,
+        storyKey: seedStoryKey,
+      })
+      const seedCorrection = compileStoryDocument({
+        ...correction.document,
+        slug: seedStoryKey,
+        storyKey: seedStoryKey,
+      })
+      await expect(
+        seedDevelopmentCatalog(database.client, [
+          { gitCommitSha: 'c'.repeat(40), story: seedOriginal },
+          { gitCommitSha: 'c'.repeat(40), story: seedCorrection },
+        ]),
+      ).resolves.toEqual({
+        createdLocalizations: 1,
+        createdStories: 1,
+        createdVersions: 2,
+        publishedLocalizations: 1,
+      })
+      await expect(
+        seedDevelopmentCatalog(database.client, [
+          { gitCommitSha: 'c'.repeat(40), story: seedOriginal },
+          { gitCommitSha: 'c'.repeat(40), story: seedCorrection },
+        ]),
+      ).resolves.toEqual({
+        createdLocalizations: 0,
+        createdStories: 0,
+        createdVersions: 0,
+        publishedLocalizations: 0,
+      })
+      await expect(
+        findPublishedStory(database.client, seedStoryKey, 'en'),
+      ).resolves.toMatchObject({ status: 'found' })
+      expect(() => {
+        assertNonProductionSeedEnvironment('production', 'nonproduction')
+      }).toThrow(/nonproduction/u)
+      expect(() => {
+        assertNonProductionSeedEnvironment('preview', undefined)
+      }).toThrow(/nonproduction/u)
+      expect(() => {
+        assertNonProductionSeedEnvironment(undefined, 'nonproduction')
+      }).toThrow(/explicit non-production/u)
       const [story] = await database.client
         .insert(stories)
         .values({ stableKey: correction.document.storyKey })

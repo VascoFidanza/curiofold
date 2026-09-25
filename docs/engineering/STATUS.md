@@ -51,7 +51,7 @@
 
 ## Environment state
 
-- Vercel Preview has development Clerk, Stripe test-mode and Neon nonproduction variables configured.
+- Vercel Preview has development Clerk, Stripe test-mode and Neon nonproduction variables configured. The remote Neon schema/bootstrap has not yet been verified.
 - The stable nonproduction integration branch is `development`; `main` remains the production/release branch.
 - No production Neon project, live Stripe configuration or production release has been created.
 

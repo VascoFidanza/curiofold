@@ -24,7 +24,9 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "audit": "pnpm audit --audit-level=high",
     "db:generate": "pnpm --filter @curiofold/db db:generate",
+    "db:migrate": "pnpm --filter @curiofold/db db:migrate",
     "db:migrate:check": "pnpm --filter @curiofold/db db:migrate:check",
+    "db:seed:development": "tsx scripts/seed-development.ts",
     "security:bundle": "node scripts/assert-no-client-secrets.mjs",
     "test:integration": "pnpm --filter @curiofold/db test:integration",
     "validate": "pnpm format:check && pnpm lint && node --check scripts/assert-no-client-secrets.mjs && pnpm boundaries && pnpm typecheck && pnpm test:unit && pnpm content:validate && pnpm build && pnpm security:bundle"
