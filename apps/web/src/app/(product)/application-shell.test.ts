@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import axe from 'axe-core'
 import { createElement } from 'react'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -11,7 +11,7 @@ import {
 } from './application-shell'
 
 afterEach(() => {
-  document.body.innerHTML = ''
+  cleanup()
 })
 
 function shell(

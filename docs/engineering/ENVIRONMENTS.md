@@ -5,13 +5,13 @@ connection strings, tokens, or other secret values.
 
 ## Current state
 
-| Environment | Application                                                                                                                                                                                  | Database                                                                            | Provider state                                     | Data policy                                           |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------- | ----------------------------------------------------- |
-| Local       | Run from `apps/web` with Node 24 and pnpm 11                                                                                                                                                 | Testcontainers PostgreSQL 18 when Docker is available                               | Synthetic Clerk/Stripe fixtures only               | No shared or production data                          |
-| CI          | GitHub Actions quality and database jobs                                                                                                                                                     | Fresh PostgreSQL 18 container per job                                               | Signed fixtures/mocks only                         | Destroyed after each job                              |
-| Preview     | Vercel `curiofold` project (`prj_qOjqibHnZATdR84vrDtAlEhOb8Qc`) linked to GitHub in `vascofidanzas-projects`; protected preview deployment verified; no environment variables configured yet | Neon `curiofold-nonproduction` project, default `main` branch in `aws-eu-central-1` | Clerk/Stripe development credentials not connected | Synthetic data only; no production branch ancestry    |
-| Staging     | Not provisioned                                                                                                                                                                              | Not provisioned                                                                     | Not configured                                     | Must be created separately from production            |
-| Production  | Not provisioned                                                                                                                                                                              | Not provisioned                                                                     | Not configured                                     | Requires product-owner authorization and launch gates |
+| Environment | Application                                                                                                                                         | Database                                                                            | Provider state                                                                                                   | Data policy                                           |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Local       | Run from `apps/web` with Node 24 and pnpm 11                                                                                                        | Testcontainers PostgreSQL 18 when Docker is available                               | Synthetic Clerk/Stripe fixtures only                                                                             | No shared or production data                          |
+| CI          | GitHub Actions quality and database jobs                                                                                                            | Fresh PostgreSQL 18 container per job                                               | Signed fixtures/mocks only                                                                                       | Destroyed after each job                              |
+| Preview     | Vercel `curiofold` project (`prj_qOjqibHnZATdR84vrDtAlEhOb8Qc`) linked to GitHub in `vascofidanzas-projects`; protected preview deployment verified | Neon `curiofold-nonproduction` project, default `main` branch in `aws-eu-central-1` | Development provider variables are configured in Vercel; remote database migration/bootstrap is not yet verified | Synthetic data only; no production branch ancestry    |
+| Staging     | Not provisioned                                                                                                                                     | Not provisioned                                                                     | Not configured                                                                                                   | Must be created separately from production            |
+| Production  | Not provisioned                                                                                                                                     | Not provisioned                                                                     | Not configured                                                                                                   | Requires product-owner authorization and launch gates |
 
 ## Neon nonproduction resource
 
@@ -44,13 +44,16 @@ only in provider-scoped environment storage and local ignored files.
 
 ## Required next actions
 
-1. Configure preview-only `DATABASE_URL` and public environment keys in Vercel;
-   never copy a production credential into preview.
-2. Connect development Clerk and Stripe projects before enabling authenticated or
-   payment flows.
-3. Create preview branch lifecycle and cleanup automation after the Vercel
+1. Use a direct, non-pooled `DATABASE_URL` scoped only to `curiofold-nonproduction`
+   to run `pnpm db:migrate`, then verify the schema before enabling preview data.
+2. Run `NEXT_PUBLIC_ENVIRONMENT=preview CURIOFOLD_SEED_CONFIRMATION=nonproduction pnpm db:seed:development`
+   against that same nonproduction database. The command only projects reviewed
+   repository fixtures and is idempotent.
+3. Run the public Story Detail smoke test against the protected Preview after the
+   migration and seed complete.
+4. Create preview branch lifecycle and cleanup automation after the Vercel
    project is linked.
-4. Upgrade/secure the production Neon organization only at the production gate:
+5. Upgrade/secure the production Neon organization only at the production gate:
    MFA enabled, paid plan approved, separate project, protected branch, roles and
    backup policy verified.
 

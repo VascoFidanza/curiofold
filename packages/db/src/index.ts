@@ -5,6 +5,13 @@ export interface TransactionScope {
 
 export { createDatabase } from './client'
 export {
+  assertNonProductionSeedEnvironment,
+  DevelopmentSeedConflictError,
+  seedDevelopmentCatalog,
+  type DevelopmentSeedDocument,
+  type DevelopmentSeedResult,
+} from './development-seed'
+export {
   findEntitledStoryBySlug,
   grantStoryEntitlement,
   revokeStoryEntitlement,
