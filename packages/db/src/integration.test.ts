@@ -35,6 +35,7 @@ import {
 import {
   createPaymentReversal,
   PaymentReversalConflictError,
+  reverseUnspentPurchasedCredits,
 } from './payment-reversals'
 import {
   processProviderEvent,
@@ -467,6 +468,44 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           operationKey: 'refund:order-fixture:request-3',
         }),
       ).rejects.toMatchObject({ code: 'amount_exceeded' })
+      const completedReversal = await reverseUnspentPurchasedCredits(
+        database.client,
+        {
+          completedAt: new Date('2026-09-20T10:03:55.000Z'),
+          reversalId: createdReversal.reversal.id,
+          transitionSource: 'reconciliation',
+        },
+      )
+      expect(completedReversal).toMatchObject({
+        availableCredits: 2,
+        availablePurchasedCredits: 2,
+        outcome: 'reversed',
+        reversedCredits: 3,
+        walletVersion: 2,
+      })
+      await expect(
+        reverseUnspentPurchasedCredits(database.client, {
+          reversalId: createdReversal.reversal.id,
+          transitionSource: 'reconciliation',
+        }),
+      ).resolves.toMatchObject({
+        availableCredits: 2,
+        outcome: 'already_reversed',
+        reversedCredits: 3,
+        walletEntryId: completedReversal.walletEntryId,
+        walletVersion: 2,
+      })
+      const [reversedPaymentGrant] = await database.client
+        .select({ unitsRemaining: creditGrants.unitsRemaining })
+        .from(creditGrants)
+        .where(eq(creditGrants.sourceReference, secondPaymentOrder.order.id))
+        .limit(1)
+      expect(reversedPaymentGrant?.unitsRemaining).toBe(2)
+      await expect(
+        assertWalletsReconciled(database.client, {
+          userId: secondAccount.userId,
+        }),
+      ).resolves.toMatchObject({ healthy: true })
       await expect(
         database.client
           .update(paymentReversals)
@@ -498,7 +537,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       ).resolves.toMatchObject({ outcome: 'duplicate' })
       await expect(
         findWalletBalance(database.client, secondAccount.userId),
-      ).resolves.toEqual({ availableCredits: 5, version: 1 })
+      ).resolves.toEqual({ availableCredits: 2, version: 2 })
 
       const delayedAccount = await ensureIdentityAccount(
         database.client,
@@ -932,6 +971,86 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         })
         .where(eq(storyLocalizations.id, localization.id))
 
+      const reversalRaceReader = await ensureIdentityAccount(
+        database.client,
+        'user_reversal_race_fixture',
+        new Date('2026-09-20T10:05:00.000Z'),
+      )
+      const reversalRaceOrder = await createPaymentOrder(database.client, {
+        operationKey: 'checkout:reversal-race-fixture',
+        returnPath: '/en/stories/clockwork-gardens',
+        snapshot: {
+          amountMinor: 100,
+          baseCredits: 1,
+          bonusCredits: 0,
+          bonusRateBps: 0,
+          credits: 1,
+          currency: 'EUR',
+          packKey: 'top-up-v1',
+          pricingVersion: 'top-up-eur-v1',
+          purchaseType: 'credit_top_up',
+        },
+        userId: reversalRaceReader.userId,
+      })
+      await database.client
+        .update(paymentOrders)
+        .set({
+          providerCheckoutSessionId: 'cs_reversal_race_fixture',
+          providerKey: 'stripe',
+          providerPaymentId: 'pi_reversal_race_fixture',
+          status: 'fulfilled',
+        })
+        .where(eq(paymentOrders.id, reversalRaceOrder.order.id))
+      await grantCredits(database.client, {
+        operationKey: `payment:${reversalRaceOrder.order.id}`,
+        reason: 'Concurrent spend and reversal fixture.',
+        source: 'payment',
+        sourceReference: reversalRaceOrder.order.id,
+        units: 1,
+        userId: reversalRaceReader.userId,
+      })
+      const reversalRaceRequest = await createPaymentReversal(database.client, {
+        amountMinor: 100,
+        creditsRequested: 1,
+        kind: 'refund',
+        operationKey: 'refund:reversal-race-fixture',
+        orderId: reversalRaceOrder.order.id,
+        reasonCode: 'concurrency_test',
+      })
+      const reversalRace = await Promise.allSettled([
+        unlockStoryWithCredit(database.client, {
+          operationKey: 'unlock:reversal-race-fixture',
+          storyId: story.id,
+          userId: reversalRaceReader.userId,
+        }),
+        reverseUnspentPurchasedCredits(database.client, {
+          reversalId: reversalRaceRequest.reversal.id,
+          transitionSource: 'reconciliation',
+        }),
+      ])
+      const unlockRaceResult = reversalRace[0]
+      const creditRaceResult = reversalRace[1]
+      expect(creditRaceResult.status).toBe('fulfilled')
+      if (creditRaceResult.status !== 'fulfilled') {
+        throw creditRaceResult.reason
+      }
+      if (creditRaceResult.value.outcome === 'policy_required') {
+        expect(unlockRaceResult).toMatchObject({ status: 'fulfilled' })
+      } else {
+        expect(creditRaceResult.value.outcome).toBe('reversed')
+        expect(unlockRaceResult).toMatchObject({ status: 'rejected' })
+        if (unlockRaceResult.status === 'rejected') {
+          expect(unlockRaceResult.reason).toBeInstanceOf(
+            InsufficientCreditsError,
+          )
+        }
+      }
+      await expect(
+        assertWalletsReconciled(database.client, {
+          userId: reversalRaceReader.userId,
+        }),
+      ).resolves.toMatchObject({ healthy: true })
+
       const unlockReader = await ensureIdentityAccount(
         database.client,
         'user_unlock_fixture',
@@ -1029,7 +1148,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           id: walletEntries.id,
         })
         .from(walletEntries)
-        .where(eq(walletEntries.entryType, 'spend'))
+        .where(eq(walletEntries.id, repeatedUnlocks[0].walletEntryId ?? ''))
       expect(unlockLedgerEntries).toHaveLength(1)
       expect(unlockLedgerEntries[0]?.delta).toBe(-1)
       const allocations = await database.client

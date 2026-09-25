@@ -39,6 +39,7 @@ export type WalletDiscrepancyCode =
   | 'credit_grant_ledger_mismatch'
   | 'credit_grant_remaining_mismatch'
   | 'entitlement_unlock_mismatch'
+  | 'reversal_grant_mismatch'
   | 'spend_allocation_mismatch'
   | 'unlock_operation_mismatch'
   | 'wallet_balance_mismatch'
@@ -412,7 +413,26 @@ export async function reconcileWallets(
       const allocatedUnits = allocations
         .filter((allocation) => allocation.creditGrantId === grant.id)
         .reduce((sum, allocation) => sum + allocation.units, 0)
-      const expectedRemaining = grant.unitsGranted - allocatedUnits
+      const reversalEntries = walletEntries.filter(
+        (entry) =>
+          entry.entryType === 'reversal' && entry.creditGrantId === grant.id,
+      )
+      const reversedUnits = reversalEntries.reduce(
+        (sum, entry) => sum + Math.abs(entry.delta),
+        0,
+      )
+      if (reversalEntries.some((entry) => entry.delta >= 0)) {
+        discrepancies.push({
+          actual: reversalEntries.reduce((sum, entry) => sum + entry.delta, 0),
+          code: 'reversal_grant_mismatch',
+          entityId: grant.id,
+          entityType: 'credit_grant',
+          expected: -reversedUnits,
+          walletId: wallet.id,
+        })
+      }
+      const expectedRemaining =
+        grant.unitsGranted - allocatedUnits - reversedUnits
       if (grant.unitsRemaining !== expectedRemaining) {
         discrepancies.push({
           actual: grant.unitsRemaining,
@@ -457,6 +477,23 @@ export async function reconcileWallets(
             walletId: wallet.id,
           })
         }
+      }
+    }
+
+    for (const entry of walletEntries.filter(
+      ({ entryType }) => entryType === 'reversal',
+    )) {
+      if (
+        !entry.creditGrantId ||
+        entry.delta >= 0 ||
+        grantsById.get(entry.creditGrantId)?.walletAccountId !== wallet.id
+      ) {
+        discrepancies.push({
+          code: 'reversal_grant_mismatch',
+          entityId: entry.id,
+          entityType: 'wallet_entry',
+          walletId: wallet.id,
+        })
       }
     }
 

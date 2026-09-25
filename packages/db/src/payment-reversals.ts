@@ -1,4 +1,5 @@
 import {
+  assertPaymentReversalTransition,
   normalizeCreditOperationKey,
   normalizeReversalReasonCode,
   paymentReversalKinds,
@@ -55,6 +56,33 @@ export class PaymentReversalUnavailableError extends Error {
 
   constructor(readonly code: 'amount_exceeded' | 'order_not_fulfilled') {
     super('Payment reversal cannot be created for this order.')
+  }
+}
+
+export interface ReverseUnspentPurchasedCreditsInput {
+  readonly completedAt?: Date
+  readonly reversalId: string
+  readonly transitionSource: 'guarded_operator' | 'reconciliation'
+}
+
+export interface ReverseUnspentPurchasedCreditsResult {
+  readonly availableCredits: number
+  readonly availablePurchasedCredits: number
+  readonly outcome:
+    'already_reversed' | 'no_credit_adjustment' | 'policy_required' | 'reversed'
+  readonly reversedCredits: number
+  readonly walletEntryId: string | null
+  readonly walletVersion: number
+}
+
+export class PaymentCreditReversalUnavailableError extends Error {
+  override readonly name = 'PaymentCreditReversalUnavailableError'
+
+  constructor(
+    readonly code:
+      'payment_grant_missing' | 'reversal_not_found' | 'status_unavailable',
+  ) {
+    super('Purchased credits cannot be reversed for this request.')
   }
 }
 
@@ -205,5 +233,241 @@ export async function createPaymentReversal(
     })
 
     return { created: true, reversal: serialize(created) }
+  })
+}
+
+export async function reverseUnspentPurchasedCredits(
+  database: CuriofoldDatabase,
+  input: ReverseUnspentPurchasedCreditsInput,
+): Promise<ReverseUnspentPurchasedCreditsResult> {
+  const completedAt = input.completedAt ?? new Date()
+
+  return database.transaction(async (transaction) => {
+    const [reversal] = await transaction
+      .select()
+      .from(schema.paymentReversals)
+      .where(eq(schema.paymentReversals.id, input.reversalId))
+      .limit(1)
+      .for('update')
+    if (!reversal) {
+      throw new PaymentCreditReversalUnavailableError('reversal_not_found')
+    }
+
+    const operationKey = normalizeCreditOperationKey(
+      `payment-reversal:${reversal.id}`,
+    )
+    if (reversal.status === 'completed') {
+      const [existingEntry] = await transaction
+        .select({ id: schema.walletEntries.id })
+        .from(schema.walletEntries)
+        .where(eq(schema.walletEntries.operationKey, operationKey))
+        .limit(1)
+      const [order] = await transaction
+        .select({ userId: schema.paymentOrders.userId })
+        .from(schema.paymentOrders)
+        .where(eq(schema.paymentOrders.id, reversal.orderId))
+        .limit(1)
+      if (!order) {
+        throw new PaymentCreditReversalUnavailableError('payment_grant_missing')
+      }
+      const [wallet] = await transaction
+        .select({
+          availableCredits: schema.walletAccounts.balanceCached,
+          id: schema.walletAccounts.id,
+          version: schema.walletAccounts.version,
+        })
+        .from(schema.walletAccounts)
+        .where(eq(schema.walletAccounts.userId, order.userId))
+        .limit(1)
+        .for('update')
+      const [grant] = wallet
+        ? await transaction
+            .select({ unitsRemaining: schema.creditGrants.unitsRemaining })
+            .from(schema.creditGrants)
+            .where(
+              and(
+                eq(schema.creditGrants.walletAccountId, wallet.id),
+                eq(schema.creditGrants.source, 'payment'),
+                eq(schema.creditGrants.sourceReference, reversal.orderId),
+              ),
+            )
+            .limit(1)
+            .for('update')
+        : []
+      if (!wallet || !grant) {
+        throw new PaymentCreditReversalUnavailableError('payment_grant_missing')
+      }
+      return {
+        availableCredits: wallet.availableCredits,
+        availablePurchasedCredits: grant.unitsRemaining,
+        outcome: 'already_reversed',
+        reversedCredits: reversal.creditsRequested,
+        walletEntryId: existingEntry?.id ?? null,
+        walletVersion: wallet.version,
+      }
+    }
+    if (reversal.status !== 'requested') {
+      throw new PaymentCreditReversalUnavailableError('status_unavailable')
+    }
+
+    const [order] = await transaction
+      .select({
+        id: schema.paymentOrders.id,
+        userId: schema.paymentOrders.userId,
+      })
+      .from(schema.paymentOrders)
+      .where(eq(schema.paymentOrders.id, reversal.orderId))
+      .limit(1)
+    if (!order) {
+      throw new PaymentCreditReversalUnavailableError('payment_grant_missing')
+    }
+    const [wallet] = await transaction
+      .select()
+      .from(schema.walletAccounts)
+      .where(eq(schema.walletAccounts.userId, order.userId))
+      .limit(1)
+      .for('update')
+    if (!wallet) {
+      throw new PaymentCreditReversalUnavailableError('payment_grant_missing')
+    }
+    const [grant] = await transaction
+      .select()
+      .from(schema.creditGrants)
+      .where(
+        and(
+          eq(schema.creditGrants.walletAccountId, wallet.id),
+          eq(schema.creditGrants.source, 'payment'),
+          eq(schema.creditGrants.sourceReference, order.id),
+        ),
+      )
+      .limit(1)
+      .for('update')
+    if (!grant) {
+      throw new PaymentCreditReversalUnavailableError('payment_grant_missing')
+    }
+
+    if (reversal.creditsRequested > grant.unitsRemaining) {
+      return {
+        availableCredits: wallet.balanceCached,
+        availablePurchasedCredits: grant.unitsRemaining,
+        outcome: 'policy_required',
+        reversedCredits: 0,
+        walletEntryId: null,
+        walletVersion: wallet.version,
+      }
+    }
+
+    assertPaymentReversalTransition(
+      reversal.status,
+      'provider_pending',
+      input.transitionSource,
+    )
+    assertPaymentReversalTransition(
+      'provider_pending',
+      'completed',
+      input.transitionSource,
+    )
+    if (reversal.creditsRequested === 0) {
+      await transaction
+        .update(schema.paymentReversals)
+        .set({
+          completedAt,
+          status: 'completed',
+          updatedAt: completedAt,
+        })
+        .where(eq(schema.paymentReversals.id, reversal.id))
+      await transaction.insert(schema.auditEvents).values({
+        action: 'payment.reversal_completed_without_credit_adjustment',
+        actorUserId: reversal.createdByUserId,
+        metadata: { transitionSource: input.transitionSource },
+        targetId: reversal.id,
+        targetType: 'payment_reversal',
+      })
+      await transaction.insert(schema.outboxEvents).values({
+        aggregateId: reversal.id,
+        aggregateType: 'payment_reversal',
+        eventType: 'payment.reversal_completed',
+        payload: { orderId: order.id, reversalId: reversal.id },
+      })
+      return {
+        availableCredits: wallet.balanceCached,
+        availablePurchasedCredits: grant.unitsRemaining,
+        outcome: 'no_credit_adjustment',
+        reversedCredits: 0,
+        walletEntryId: null,
+        walletVersion: wallet.version,
+      }
+    }
+
+    const nextBalance = wallet.balanceCached - reversal.creditsRequested
+    const nextVersion = wallet.version + 1
+    const [entry] = await transaction
+      .insert(schema.walletEntries)
+      .values({
+        actorUserId: reversal.createdByUserId,
+        balanceAfter: nextBalance,
+        creditGrantId: grant.id,
+        delta: -reversal.creditsRequested,
+        entryType: 'reversal',
+        occurredAt: completedAt,
+        operationKey,
+        reason: `Payment reversal: ${reversal.reasonCode}`,
+        walletAccountId: wallet.id,
+        walletVersion: nextVersion,
+      })
+      .returning({ id: schema.walletEntries.id })
+    if (!entry) {
+      throw new PaymentReversalConflictError()
+    }
+
+    await transaction
+      .update(schema.creditGrants)
+      .set({
+        unitsRemaining: grant.unitsRemaining - reversal.creditsRequested,
+        updatedAt: completedAt,
+      })
+      .where(eq(schema.creditGrants.id, grant.id))
+    await transaction
+      .update(schema.walletAccounts)
+      .set({
+        balanceCached: nextBalance,
+        updatedAt: completedAt,
+        version: nextVersion,
+      })
+      .where(eq(schema.walletAccounts.id, wallet.id))
+    await transaction
+      .update(schema.paymentReversals)
+      .set({ completedAt, status: 'completed', updatedAt: completedAt })
+      .where(eq(schema.paymentReversals.id, reversal.id))
+    await transaction.insert(schema.auditEvents).values({
+      action: 'wallet.purchased_credits_reversed',
+      actorUserId: reversal.createdByUserId,
+      metadata: {
+        transitionSource: input.transitionSource,
+        units: reversal.creditsRequested,
+      },
+      targetId: reversal.id,
+      targetType: 'payment_reversal',
+    })
+    await transaction.insert(schema.outboxEvents).values({
+      aggregateId: reversal.id,
+      aggregateType: 'payment_reversal',
+      eventType: 'payment.reversal_credits_removed',
+      payload: {
+        orderId: order.id,
+        reversalId: reversal.id,
+        userId: order.userId,
+      },
+    })
+
+    return {
+      availableCredits: nextBalance,
+      availablePurchasedCredits:
+        grant.unitsRemaining - reversal.creditsRequested,
+      outcome: 'reversed',
+      reversedCredits: reversal.creditsRequested,
+      walletEntryId: entry.id,
+      walletVersion: nextVersion,
+    }
   })
 }
