@@ -107,6 +107,10 @@ Creation locks the fulfilled payment order before checking existing reversal evi
 
 This foundation deliberately does not remove credits, submit provider refunds or decide what happens when purchased credits have already been spent. Those compensating operations belong to CRFD-36/CRFD-37 and remain constrained by OD-010.
 
+`reverseUnspentPurchasedCredits` implements the safe portion of that compensation. It locks the reversal request, wallet and payment-origin credit lot in a consistent order; removes exactly the requested units only when the lot still contains them; appends one negative reversal entry linked to that lot; and updates the lot, wallet projection and reversal status in one transaction. Its operation key is derived from the reversal ID, so retrying a completed request returns the stored result without another debit.
+
+If any requested units have already been spent, the command returns `policy_required` without changing the ledger, wallet, entitlement or reversal state. This preserves the OD-010 boundary: the implementation neither creates a negative balance nor revokes content access. A zero-credit financial reversal can complete with audit/outbox evidence but without fabricating a zero-value ledger entry.
+
 ## Idempotent grant transaction
 
 `grantCredits` performs this sequence in one PostgreSQL transaction:
@@ -211,13 +215,16 @@ The PostgreSQL 18 integration suite exercises:
 - idempotent payment-reversal creation against fulfilled orders;
 - cumulative amount and credit limits across partial reversal requests;
 - immutable reversal evidence and deletion protection.
+- idempotent partial/full removal of unspent payment-origin credits;
+- real concurrent spend/reversal serialization with either one valid debit or an explicit policy-required result;
+- reversal-aware credit-lot and wallet reconciliation.
 
 The migration graph must apply cleanly to an empty database and upgrade from every committed predecessor. No live payment provider or production database is required for this foundation.
 
 ## Remaining work and decisions
 
 - Milestone 3.2's owner-safe status and stale-order reconciliation foundation is complete; live provider evidence remains an environment gate.
-- Milestone 3.3 continues with atomic reversal of unspent purchased credits and guarded operations.
+- Milestone 3.3 continues with guarded finance operations and the OD-010 spent-credit policy hook.
 - OD-010 determines spent-credit treatment after refund or chargeback.
 - OD-011 determines the final payment-provider model.
 

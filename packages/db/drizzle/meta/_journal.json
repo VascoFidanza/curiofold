@@ -99,6 +99,13 @@
       "when": 1790262033098,
       "tag": "0013_daily_proteus",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1790334362097,
+      "tag": "0014_fancy_exodus",
+      "breakpoints": true
     }
   ]
 }
