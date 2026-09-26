@@ -63,7 +63,7 @@
 
 ## Environment state
 
-- Vercel Preview has development Clerk, Stripe test-mode and Neon nonproduction variables configured. The named Neon project now has 15 applied migrations and one seeded synthetic Story; protected-Preview route acceptance remains unverified.
+- Vercel Preview has development Clerk, Stripe test-mode and Neon nonproduction variables configured. The named Neon project now has 18 applied migrations, including the direct Story purchase schema, and one seeded synthetic Story; protected-Preview route acceptance remains unverified.
 - The stable nonproduction integration branch is `development`; `main` remains the production/release branch.
 - No production Neon project, live Stripe configuration or production release has been created.
 
