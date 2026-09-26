@@ -423,6 +423,66 @@ h3.sectionHeading {
   line-height: 1.6;
 }
 
+.completion {
+  display: grid;
+  gap: var(--cf-space-4);
+  margin-top: var(--cf-space-12);
+  padding: clamp(var(--cf-space-5), 5vw, var(--cf-space-8));
+  background: var(--cf-color-bg-surface);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: var(--cf-radius-lg);
+}
+
+.completion h2,
+.completion p {
+  margin: 0;
+}
+
+.completion h2 {
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: var(--cf-font-size-heading-h2);
+  line-height: var(--cf-line-height-heading-h2);
+}
+
+.completion > p:not(.sectionEyebrow) {
+  color: var(--cf-color-text-secondary);
+  line-height: var(--cf-line-height-body-default);
+}
+
+.completionLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-3);
+}
+
+.completionLinks a {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: var(--cf-space-2) var(--cf-space-4);
+  color: var(--cf-color-action-primary);
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid currentcolor;
+  border-radius: var(--cf-radius-md);
+}
+
+.completionLinks a:first-child {
+  color: var(--cf-color-action-on-primary);
+  background: var(--cf-color-action-primary);
+  border-color: var(--cf-color-action-primary);
+}
+
+.completionLinks a:hover {
+  text-decoration: underline;
+}
+
+.completionLinks a:focus-visible {
+  outline: 3px solid var(--cf-color-accent-curiosity);
+  outline-offset: 3px;
+}
+
 .sourceNumber {
   color: var(--cf-color-action-primary);
   font-weight: 750;

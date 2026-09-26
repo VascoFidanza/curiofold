@@ -6,7 +6,10 @@ import type {
 import type { ReadingProgressSnapshot } from '@curiofold/db'
 
 import { ReaderFrame } from './reader-frame'
-import { ReaderProgressProvider } from './reader-progress'
+import {
+  ReaderCompletionActions,
+  ReaderProgressProvider,
+} from './reader-progress'
 import styles from './reader.module.css'
 
 function humanizeKey(value: string): string {
@@ -297,6 +300,7 @@ export function StoryReader({
               </ol>
             </section>
             <div aria-hidden="true" id="story-end-marker" />
+            <ReaderCompletionActions />
           </article>
         </main>
       </ReaderFrame>

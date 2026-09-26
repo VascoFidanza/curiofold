@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+
 import {
   createContext,
   useContext,
@@ -447,5 +449,24 @@ export function ReaderProgressIndicator() {
         {status}
       </span>
     </div>
+  )
+}
+
+export function ReaderCompletionActions() {
+  const progress = useContext(ProgressContext)
+  if (!progress?.completed) {
+    return null
+  }
+
+  return (
+    <section aria-labelledby="completion-heading" className={styles.completion}>
+      <p className={styles.sectionEyebrow}>Story complete</p>
+      <h2 id="completion-heading">Where should curiosity take you next?</h2>
+      <p>Your progress is saved. Return to your shelf or find another Story.</p>
+      <div className={styles.completionLinks}>
+        <Link href="/library">Your Library</Link>
+        <Link href="/">Discover Stories</Link>
+      </div>
+    </section>
   )
 }
