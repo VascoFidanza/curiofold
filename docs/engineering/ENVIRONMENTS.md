@@ -5,13 +5,13 @@ connection strings, tokens, or other secret values.
 
 ## Current state
 
-| Environment | Application                                                                                                                                         | Database                                                                            | Provider state                                                                                                   | Data policy                                           |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| Local       | Run from `apps/web` with Node 24 and pnpm 11                                                                                                        | Testcontainers PostgreSQL 18 when Docker is available                               | Synthetic Clerk/Stripe fixtures only                                                                             | No shared or production data                          |
-| CI          | GitHub Actions quality and database jobs                                                                                                            | Fresh PostgreSQL 18 container per job                                               | Signed fixtures/mocks only                                                                                       | Destroyed after each job                              |
-| Preview     | Vercel `curiofold` project (`prj_qOjqibHnZATdR84vrDtAlEhOb8Qc`) linked to GitHub in `vascofidanzas-projects`; protected preview deployment verified | Neon `curiofold-nonproduction` project, default `main` branch in `aws-eu-central-1` | Development provider variables are configured in Vercel; remote database migration/bootstrap is not yet verified | Synthetic data only; no production branch ancestry    |
-| Staging     | Not provisioned                                                                                                                                     | Not provisioned                                                                     | Not configured                                                                                                   | Must be created separately from production            |
-| Production  | Not provisioned                                                                                                                                     | Not provisioned                                                                     | Not configured                                                                                                   | Requires product-owner authorization and launch gates |
+| Environment | Application                                                                                                                                 | Database                                                                                                                                  | Provider state                                                                                          | Data policy                                           |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Local       | Run from `apps/web` with Node 24 and pnpm 11                                                                                                | Testcontainers PostgreSQL 18 when Docker is available                                                                                     | Synthetic Clerk/Stripe fixtures only                                                                    | No shared or production data                          |
+| CI          | GitHub Actions quality and database jobs                                                                                                    | Fresh PostgreSQL 18 container per job                                                                                                     | Signed fixtures/mocks only                                                                              | Destroyed after each job                              |
+| Preview     | Vercel `curiofold` project (`prj_qOjqibHnZATdR84vrDtAlEhOb8Qc`) linked to GitHub in `vascofidanzas-projects`; deployment protection enabled | Neon `curiofold-nonproduction` project, default `main` branch in `aws-eu-central-1`; 15 migrations applied and synthetic catalogue seeded | Development provider variables are configured in Vercel; authenticated route smoke test remains pending | Synthetic data only; no production branch ancestry    |
+| Staging     | Not provisioned                                                                                                                             | Not provisioned                                                                                                                           | Not configured                                                                                          | Must be created separately from production            |
+| Production  | Not provisioned                                                                                                                             | Not provisioned                                                                                                                           | Not configured                                                                                          | Requires product-owner authorization and launch gates |
 
 ## Neon nonproduction resource
 
@@ -23,7 +23,8 @@ connection strings, tokens, or other secret values.
 - Initial database: `curiofold`
 - Initial role: `curiofold`
 - Plan limitation: the organization is currently on Neon Free; history retention is 21,600 seconds and the account does not permit changing the suspend interval.
-- The project is empty and contains no personal or production data.
+- On 2026-09-26, all 15 repository migrations were applied through the direct connection. The guarded development seed created one synthetic Story, two immutable versions and one published English localization. A read-only database check confirmed 15 migration records, one Story and one published locale.
+- The project contains synthetic data only; no personal or production data was introduced by this bootstrap.
 
 The privileged connection string is intentionally not recorded here. It belongs
 only in provider-scoped environment storage and local ignored files.
@@ -44,16 +45,13 @@ only in provider-scoped environment storage and local ignored files.
 
 ## Required next actions
 
-1. Use a direct, non-pooled `DATABASE_URL` scoped only to `curiofold-nonproduction`
-   to run `pnpm db:migrate`, then verify the schema before enabling preview data.
-2. Run `NEXT_PUBLIC_ENVIRONMENT=preview CURIOFOLD_SEED_CONFIRMATION=nonproduction pnpm db:seed:development`
-   against that same nonproduction database. The command only projects reviewed
-   repository fixtures and is idempotent.
-3. Run the public Story Detail smoke test against the protected Preview after the
-   migration and seed complete.
-4. Create preview branch lifecycle and cleanup automation after the Vercel
+1. Run an authenticated Story Detail smoke test against the protected Preview.
+   An unauthenticated request reaches Vercel's login page; the connected Vercel
+   account currently returns 403 for deployment listing, so the route itself
+   has not been independently verified after the database bootstrap.
+2. Create preview branch lifecycle and cleanup automation after the Vercel
    project is linked.
-5. Upgrade/secure the production Neon organization only at the production gate:
+3. Upgrade/secure the production Neon organization only at the production gate:
    MFA enabled, paid plan approved, separate project, protected branch, roles and
    backup policy verified.
 
