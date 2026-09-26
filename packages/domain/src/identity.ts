@@ -112,6 +112,7 @@ const exactReturnPaths = new Set([
   '/',
   '/account',
   '/collections',
+  '/credits',
   '/library',
   '/progress',
   '/search',

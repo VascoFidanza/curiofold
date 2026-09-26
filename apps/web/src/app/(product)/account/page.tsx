@@ -88,6 +88,11 @@ export default async function AccountPage() {
               shortly.
             </p>
           )}
+          {account.emailVerified ? (
+            <Link className={styles.signInLink} href="/credits">
+              Add credits
+            </Link>
+          ) : null}
         </section>
       </PageFrame>
     )
