@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
-import { safeReturnPath } from '@curiofold/domain'
 import { ErrorState, PageFrame } from '@curiofold/ui'
 
 import {
@@ -11,6 +10,7 @@ import {
 } from '@/server/identity'
 
 import { CreditsPurchase } from './purchase'
+import { resolveCreditsReturnContext } from './return-context'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,10 +18,10 @@ interface CreditsPageProps {
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-const uuidPattern =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu
-
 export default async function CreditsPage({ searchParams }: CreditsPageProps) {
+  const { orderId, returnPath, signInPath } = resolveCreditsReturnContext(
+    await searchParams,
+  )
   if (!isClerkSessionConfigured()) {
     return (
       <PageFrame>
@@ -40,7 +40,7 @@ export default async function CreditsPage({ searchParams }: CreditsPageProps) {
   } catch (error) {
     if (error instanceof IdentitySessionError) {
       if (error.code === 'unauthenticated') {
-        redirect('/sign-in?redirect_url=%2Fcredits')
+        redirect(signInPath)
       }
       return (
         <PageFrame>
@@ -67,19 +67,6 @@ export default async function CreditsPage({ searchParams }: CreditsPageProps) {
       </PageFrame>
     )
   }
-
-  const query = await searchParams
-  const orderValue = query.payment_order
-  const orderId =
-    typeof orderValue === 'string' && uuidPattern.test(orderValue)
-      ? orderValue
-      : null
-  const returnValue = query.return
-  const safePath = safeReturnPath(
-    typeof returnValue === 'string' ? returnValue : null,
-    '/account',
-  )
-  const returnPath = safePath.startsWith('/credits') ? '/account' : safePath
 
   return (
     <PageFrame>
