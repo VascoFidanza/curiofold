@@ -32,6 +32,7 @@ export {
 export {
   findPublishedStory,
   findPublishedStoryBySlug,
+  listPublishedStories,
   type PublishedStoryLocalization,
   type PublishedStoryRouteResolution,
 } from './published-stories'
