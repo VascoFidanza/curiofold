@@ -19,6 +19,8 @@
 
 ## Recently completed
 
+- CRFD-42 / S1-13A — PR #28 merged an entitlement-backed Reader Library. It derives unread, in-progress and completed state from authoritative active entitlements and reading progress, excludes revoked or unpublished Stories, and provides safe unauthenticated, disabled-account and unavailable-data states. All hosted checks, including isolated PostgreSQL integration and responsive-browser validation, passed. Live session acceptance remains subject to the existing Clerk development configuration.
+- CRFD-40 / S1-11B — PR #27 merged locale-scoped PostgreSQL full-text published-Story search with bounded, metadata-only results, query validation and an accessible public search surface. All hosted checks passed.
 - CRFD-38 / S1-07A — PR #23 merged a production-refusing, idempotent synthetic Story catalogue seed after all hosted checks passed, including isolated PostgreSQL integration and responsive-browser validation. The separate nonproduction Neon migration/bootstrap remains intentionally unverified.
 - CRFD-39 / S1-11A — PR #25 merged the bounded published-Story catalogue query and accessible home discovery cards after all hosted checks passed. The home now has a real catalogue surface when nonproduction data is seeded and a safe empty state otherwise.
 - CRFD-36 / Milestone 3.3B — PR #22 merged atomic, idempotent removal of unspent payment-origin credits with wallet/lot locks, compensating ledger entries, explicit `policy_required` handling, audit/outbox evidence and reversal-aware reconciliation after all seven hosted checks passed.
@@ -64,10 +66,11 @@
 ## Next
 
 1. Apply migrations and the guarded synthetic seed only to `curiofold-nonproduction`, then verify the protected Preview Story Detail route. This is a controlled nonproduction integration action, not a production change.
-2. Obtain the OD-010 product/legal decision before starting CRFD-37; options remain negative balance, spending suspension, entitlement revocation or manual review.
-3. Complete S1-10 visual acceptance when structured Figma access returns.
-4. Retain live Clerk, Stripe and entitled-preview acceptance gates until their development integrations are available.
-5. Do not provision production infrastructure or enable live payments without explicit product-owner approval.
+2. Continue the owned-reader journey from the merged Library with contextual completion and related-Story continuation, using the existing entitlement, Story relation and collection contracts.
+3. Obtain the OD-010 product/legal decision before starting CRFD-37; options remain negative balance, spending suspension, entitlement revocation or manual review.
+4. Complete S1-10 visual acceptance when structured Figma access returns.
+5. Retain live Clerk, Stripe and entitled-preview acceptance gates until their development integrations are available.
+6. Do not provision production infrastructure or enable live payments without explicit product-owner approval.
 
 ## Open decisions
 
