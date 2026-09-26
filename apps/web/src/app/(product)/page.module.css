@@ -60,3 +60,84 @@
   border: 2px solid var(--cf-color-text-primary);
   border-radius: var(--cf-radius-full);
 }
+
+.catalog {
+  display: grid;
+  gap: var(--cf-space-5);
+  margin-top: var(--cf-space-8);
+}
+
+.catalogHeading {
+  display: grid;
+  gap: var(--cf-space-2);
+}
+
+.catalogHeading h2 {
+  max-width: 26ch;
+  margin: 0;
+  font-size: var(--cf-font-size-heading-large);
+  line-height: var(--cf-line-height-heading-large);
+}
+
+.storyGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--cf-space-4);
+}
+
+.storyCard {
+  display: grid;
+  min-height: 15rem;
+  align-content: start;
+  gap: var(--cf-space-3);
+  padding: var(--cf-space-5);
+  background: var(--cf-color-bg-surface);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: var(--cf-radius-lg);
+}
+
+.storyCard h3,
+.storyCard p {
+  margin: 0;
+}
+
+.storyCard h3 {
+  font-size: var(--cf-font-size-heading-medium);
+  line-height: var(--cf-line-height-heading-medium);
+}
+
+.storyCard > p:not(.cardCategory) {
+  color: var(--cf-color-text-secondary);
+  line-height: var(--cf-line-height-body-default);
+}
+
+.cardCategory {
+  color: var(--cf-color-action-primary);
+  font-size: var(--cf-font-size-label-medium);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.storyCard a {
+  align-self: end;
+  margin-top: auto;
+  color: var(--cf-color-action-primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.storyCard a:hover,
+.storyCard a:focus-visible {
+  text-decoration: underline;
+}
+
+@media (max-width: 52rem) {
+  .storyGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .storyCard {
+    min-height: auto;
+  }
+}

@@ -24,6 +24,7 @@ import {
 import {
   findPublishedStory,
   findPublishedStoryBySlug,
+  listPublishedStories,
 } from './published-stories'
 import {
   attachPaymentCheckoutSession,
@@ -903,6 +904,12 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       await expect(
         findPublishedStory(database.client, seedStoryKey, 'en'),
       ).resolves.toMatchObject({ status: 'found' })
+      await expect(
+        listPublishedStories(database.client, 'en', 1),
+      ).resolves.toHaveLength(1)
+      await expect(
+        listPublishedStories(database.client, 'en', 25),
+      ).rejects.toThrow(/1 to 24/u)
       expect(() => {
         assertNonProductionSeedEnvironment('production', 'nonproduction')
       }).toThrow(/nonproduction/u)

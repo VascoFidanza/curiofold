@@ -3,7 +3,7 @@ import {
   type CompiledStoryDocument,
   type PublishedStoryResolution,
 } from '@curiofold/content'
-import { and, asc, eq, isNotNull } from 'drizzle-orm'
+import { and, asc, desc, eq, isNotNull } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 
 import * as schema from './schema'
@@ -29,6 +29,54 @@ export type PublishedStoryRouteResolution =
       status: 'not_found'
     }>
 
+export async function listPublishedStories(
+  database: CuriofoldDatabase,
+  locale: string,
+  limit = 12,
+): Promise<readonly CompiledStoryDocument[]> {
+  if (!locale.trim()) throw new TypeError('Story listing locale is required.')
+  if (!Number.isInteger(limit) || limit < 1 || limit > 24) {
+    throw new RangeError('Story listing limit must be an integer from 1 to 24.')
+  }
+
+  const rows = await database
+    .select({ document: schema.storyVersions.document })
+    .from(schema.stories)
+    .innerJoin(
+      schema.storyLocalizations,
+      eq(schema.storyLocalizations.storyId, schema.stories.id),
+    )
+    .innerJoin(
+      schema.storyVersions,
+      eq(
+        schema.storyVersions.id,
+        schema.storyLocalizations.currentPublishedVersionId,
+      ),
+    )
+    .where(
+      and(
+        eq(schema.storyLocalizations.locale, locale),
+        eq(schema.storyLocalizations.state, 'published'),
+        isNotNull(schema.storyLocalizations.currentPublishedVersionId),
+      ),
+    )
+    .orderBy(
+      desc(schema.storyLocalizations.updatedAt),
+      asc(schema.storyLocalizations.title),
+    )
+    .limit(limit)
+
+  return rows.map(({ document }) => {
+    const story = compileStoryDocument(document)
+    if (
+      story.document.locale !== locale ||
+      story.document.publication.state !== 'published'
+    ) {
+      throw new Error('Published Story listing returned an invalid projection.')
+    }
+    return story
+  })
+}
 async function listPublishedLocalizations(
   database: CuriofoldDatabase,
   storyId: string,

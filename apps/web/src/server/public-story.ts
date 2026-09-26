@@ -4,12 +4,14 @@ import {
 } from '@curiofold/content'
 import {
   findPublishedStoryBySlug,
+  listPublishedStories,
   type PublishedStoryLocalization,
   type PublishedStoryRouteResolution,
 } from '@curiofold/db'
 import { cache } from 'react'
 
 import { getDatabase } from './database'
+import { runtimeLogger } from './observability'
 
 export type PublicStoryRouteData =
   | Readonly<{
@@ -50,3 +52,25 @@ async function loadPublicStoryRoute(
 }
 
 export const getPublicStoryRoute = cache(loadPublicStoryRoute)
+
+async function loadPublicStoryCards(locale: string) {
+  const { client } = getDatabase()
+  return (await listPublishedStories(client, locale)).map(
+    createPublicStoryDetail,
+  )
+}
+
+export async function getPublicStoryCards(
+  locale: string,
+): Promise<readonly PublicStoryDetail[]> {
+  try {
+    return await loadPublicStoryCards(locale)
+  } catch (error: unknown) {
+    runtimeLogger.error('story.catalog.failed', {
+      dependency: 'database',
+      errorKind: error instanceof Error ? error.name : 'unknown',
+      route: '/',
+    })
+    return []
+  }
+}
