@@ -1,12 +1,12 @@
 # Curiofold Engineering Status
 
-**Current phase:** Production-shaped walking skeleton with parallel financial-integrity work
-**Current milestone:** 3.3 — Reversals and support operations are auditable
-**Health:** At Risk — CRFD-35 and CRFD-36 are complete, but Milestone 3.3 cannot close until OD-010 defines how already-spent credits behave after a refund or chargeback.
+**Current phase:** Production-shaped walking skeleton and reader purchase journey
+**Current milestone:** 4.2 — Contextual auth, top-up and unlock preserve momentum
+**Health:** At Risk — the nonproduction database is ready and the wallet/top-up surfaces are merged, but protected Preview acceptance and the Story unlock UI remain open. Milestone 3.3 separately waits for OD-010 on already-spent credits.
 
 ## In progress
 
-- No implementation issue is active. CRFD-37 is correctly held behind OD-010 rather than silently encoding a product/legal policy.
+- No implementation issue is active. The next focused issue should connect Story Detail to existing entitlement and unlock APIs. CRFD-37 remains held behind OD-010.
 
 ## In review
 
@@ -19,6 +19,8 @@
 
 ## Recently completed
 
+- CRFD-46 / Milestone 4.2 — PR #34 merged the Add Credits surface, canonical top-up quotes, Stripe test Checkout handoff and owner-scoped order status on return. The UI never treats a redirect as payment fulfilment. All hosted checks passed; live test payment/webhook acceptance remains pending.
+- CRFD-45 / Milestone 4.2 — PR #33 merged the authenticated Account wallet balance and recent ledger activity, including empty and temporary-unavailable states. All hosted checks passed; live Clerk session acceptance remains pending.
 - S1-07 nonproduction database bootstrap — Applied all 15 tracked migrations to the named Frankfurt `curiofold-nonproduction` project and ran the guarded synthetic catalogue seed. Read-only Neon verification found one Story and one published locale. Authenticated protected-Preview route acceptance remains pending.
 - CRFD-44 — PR #31 merged Reader completion actions that appear only when durable progress reports completion; readers can return to the Library or public discovery.
 - CRFD-43 — PR #30 merged a labelled native progress indicator on in-progress Library cards.
@@ -69,11 +71,12 @@
 ## Next
 
 1. Verify the protected Preview Story Detail route with an authenticated Vercel session and confirm that its database variables point to the bootstrapped nonproduction project.
-2. Connect the existing wallet and checkout backend to the account and purchase surfaces so a development user can exercise the credit journey.
-3. Obtain the OD-010 product/legal decision before starting CRFD-37; options remain negative balance, spending suspension, entitlement revocation or manual review.
-4. Complete S1-10 visual acceptance when structured Figma access returns.
-5. Retain live Clerk, Stripe and entitled-preview acceptance gates until their development integrations are available.
-6. Do not provision production infrastructure or enable live payments without explicit product-owner approval.
+2. Connect Story Detail to the existing entitlement, wallet and atomic unlock APIs, including owned and zero-credit states that preserve the Story context.
+3. Exercise a complete Stripe test payment and webhook reconciliation once the protected Preview and development provider configuration can be inspected.
+4. Obtain the OD-010 product/legal decision before starting CRFD-37; options remain negative balance, spending suspension, entitlement revocation or manual review.
+5. Complete S1-10 visual acceptance when structured Figma access returns.
+6. Retain live Clerk, Stripe and entitled-preview acceptance gates until their development integrations are available.
+7. Do not provision production infrastructure or enable live payments without explicit product-owner approval.
 
 ## Open decisions
 
