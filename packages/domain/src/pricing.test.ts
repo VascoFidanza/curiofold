@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { quoteCreditTopUp } from './pricing'
+import { quoteCreditTopUp, quoteDirectStoryPurchase } from './pricing'
 
 describe('canonical EUR credit top-up pricing', () => {
   it.each([
@@ -39,4 +39,23 @@ describe('canonical EUR credit top-up pricing', () => {
       expect(() => quoteCreditTopUp(amountMinor)).toThrow(TypeError)
     },
   )
+})
+
+describe('canonical direct Story pricing', () => {
+  it('quotes every Story at exactly 130 EUR cents without wallet credits', () => {
+    expect(quoteDirectStoryPurchase()).toEqual({
+      amountMinor: 130,
+      credits: 0,
+      currency: 'EUR',
+      pricingVersion: 'story-direct-eur-v1',
+      purchaseType: 'individual_story',
+    })
+  })
+
+  it('returns a fresh immutable-shaped quote on every call', () => {
+    const first = quoteDirectStoryPurchase()
+    const second = quoteDirectStoryPurchase()
+    expect(first).not.toBe(second)
+    expect(first.amountMinor).toBe(130)
+  })
 })

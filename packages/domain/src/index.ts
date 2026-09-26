@@ -50,10 +50,14 @@ export {
   type PaymentTransitionSource,
 } from './payments'
 export {
+  directStoryPriceMinor,
+  directStoryPricingVersion,
   minimumTopUpAmountMinor,
   pricingVersion,
+  quoteDirectStoryPurchase,
   quoteCreditTopUp,
   type CreditTopUpQuote,
+  type DirectStoryPurchaseQuote,
 } from './pricing'
 export {
   assertPaymentReversalTransition,

@@ -1,5 +1,7 @@
 export const pricingVersion = 'top-up-eur-v1'
 export const minimumTopUpAmountMinor = 500
+export const directStoryPriceMinor = 130
+export const directStoryPricingVersion = 'story-direct-eur-v1'
 
 const maximumSafeMinorAmount = Number.MAX_SAFE_INTEGER
 
@@ -13,6 +15,25 @@ export type CreditTopUpQuote = Readonly<{
   pricingVersion: string
   totalCredits: number
 }>
+
+export type DirectStoryPurchaseQuote = Readonly<{
+  amountMinor: 130
+  credits: 0
+  currency: 'EUR'
+  pricingVersion: typeof directStoryPricingVersion
+  purchaseType: 'individual_story'
+}>
+
+/** Returns the server-owned, non-wallet price for every direct Story purchase. */
+export function quoteDirectStoryPurchase(): DirectStoryPurchaseQuote {
+  return {
+    amountMinor: directStoryPriceMinor,
+    credits: 0,
+    currency: 'EUR',
+    pricingVersion: directStoryPricingVersion,
+    purchaseType: 'individual_story',
+  }
+}
 
 function bonusRateForAmount(amountEUR: number): number {
   if (amountEUR >= 100) return 1_800
