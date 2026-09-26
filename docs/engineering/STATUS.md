@@ -2,23 +2,25 @@
 
 **Current phase:** Production-shaped walking skeleton and reader purchase journey
 **Current milestone:** 4.2 — Contextual auth, top-up and unlock preserve momentum
-**Health:** At Risk — the nonproduction database is ready and the wallet/top-up surfaces are merged, but protected Preview acceptance and the Story unlock UI remain open. Milestone 3.3 separately waits for OD-010 on already-spent credits.
+**Health:** At Risk — the nonproduction database and complete Story-to-unlock code path are merged, but the protected Preview journey with live development providers is not yet accepted. Milestone 3.3 separately waits for OD-010 on already-spent credits.
 
 ## In progress
 
-- No implementation issue is active. The next focused issue should connect Story Detail to existing entitlement and unlock APIs. CRFD-37 remains held behind OD-010.
+- No implementation issue is active. The next high-value gate is end-to-end acceptance of the seeded Story, Clerk session, Stripe test Checkout and webhook-backed credit fulfilment on the protected Preview. CRFD-37 remains held behind OD-010.
 
 ## In review
 
 - S1-09 — The structured Story, locale, revision and source contract is merged; final closure waits for the public/Reader vertical slice to consume it.
 - S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
-- S1-11 — PR #9 merged the public Story Detail route, safe preview projection, missing-locale handling and SEO/share metadata. Local validation is complete and Vercel deploys the protected preview successfully, but the Story route cannot render there until S1-07 authorizes and supplies the preview database connection.
+- S1-11 — PR #9 merged the public Story Detail route, safe preview projection, missing-locale handling and SEO/share metadata. The nonproduction database is now seeded; authenticated acceptance of the protected Preview route remains unverified.
 - S1-08 — PR #10 merged the provider-independent identity/session boundary, database-owned roles, allowlisted force redirects and signed/idempotent lifecycle projection. Local, CI and protected-preview provider-free validation pass; live Clerk session/revocation validation remains externally blocked.
 - S1-12 — PR #11 merged the provider-independent entitlement and Reader boundary: unique/auditable Story ownership, owner-only retrieval, private response policy, structured semantic rendering, accessible sources and simple reading controls. Local, CI, PostgreSQL 18 and protected-preview provider-free gates pass; live entitled preview evidence remains externally blocked.
 - S1-13 — PR #12 merged weighted progress, stable resume anchors, monotonic sequence handling, durable completion, correction fallback and offline retry. Local, CI, protected-preview and PostgreSQL 18 provider-free gates pass; live refresh/session/reconnect evidence remains externally blocked.
 
 ## Recently completed
 
+- CRFD-49 / Milestone 4.2 — PR #37 preserved validated Story and payment-order context across Credits sign-in, including session expiry on Checkout return. All seven hosted gates passed and the change is merged into `development`.
+- CRFD-48 / Milestone 4.2 — PR #36 connected Story Detail to server-verified ownership, locale-aware reading state, wallet balance and the atomic one-credit unlock API. Anonymous sign-in and zero-credit recovery retain Story context; Reader navigation waits for confirmed entitlement. Local unit, build and browser checks plus all seven hosted gates passed; live development-provider acceptance remains pending.
 - CRFD-46 / Milestone 4.2 — PR #34 merged the Add Credits surface, canonical top-up quotes, Stripe test Checkout handoff and owner-scoped order status on return. The UI never treats a redirect as payment fulfilment. All hosted checks passed; live test payment/webhook acceptance remains pending.
 - CRFD-45 / Milestone 4.2 — PR #33 merged the authenticated Account wallet balance and recent ledger activity, including empty and temporary-unavailable states. All hosted checks passed; live Clerk session acceptance remains pending.
 - S1-07 nonproduction database bootstrap — Applied all 15 tracked migrations to the named Frankfurt `curiofold-nonproduction` project and ran the guarded synthetic catalogue seed. Read-only Neon verification found one Story and one published locale. Authenticated protected-Preview route acceptance remains pending.
@@ -71,8 +73,8 @@
 ## Next
 
 1. Verify the protected Preview Story Detail route with an authenticated Vercel session and confirm that its database variables point to the bootstrapped nonproduction project.
-2. Connect Story Detail to the existing entitlement, wallet and atomic unlock APIs, including owned and zero-credit states that preserve the Story context.
-3. Exercise a complete Stripe test payment and webhook reconciliation once the protected Preview and development provider configuration can be inspected.
+2. Exercise the complete seeded Story → sign-in → Stripe test top-up → webhook reconciliation → unlock → Reader → progress journey on the protected Preview. Record evidence and fix any integration defects found.
+3. Close Milestone 4.2 and the walking-skeleton gate only after live development-provider, authorization and progress acceptance, not merely green provider-free tests.
 4. Obtain the OD-010 product/legal decision before starting CRFD-37; options remain negative balance, spending suspension, entitlement revocation or manual review.
 5. Complete S1-10 visual acceptance when structured Figma access returns.
 6. Retain live Clerk, Stripe and entitled-preview acceptance gates until their development integrations are available.
