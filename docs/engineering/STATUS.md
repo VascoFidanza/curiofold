@@ -2,11 +2,11 @@
 
 **Current phase:** Production-shaped walking skeleton and reader purchase journey
 **Current milestone:** 4.2 — Contextual auth, top-up and unlock preserve momentum
-**Health:** At Risk — the credit-backed Story journey is implemented but not live-Preview accepted; the Product Owner's fixed €1.30 direct Story path is now required and is not yet implemented. Milestone 3.3 separately waits for OD-010 on already-spent credits.
+**Health:** At Risk — the credit-backed Story journey and fixed €1.30 direct purchase path are implemented but not live-Preview accepted. Milestone 3.3 separately waits for OD-010 on already-spent credits.
 
 ## In progress
 
-- The fixed €1.30 direct Story purchase requires a distinct order, verified fulfilment into the Story entitlement, and a two-option Story Detail UI. The existing credit top-up and one-credit unlock remain intact. The credit-backed Preview journey still needs end-to-end acceptance. CRFD-37 remains held behind OD-010.
+- The fixed €1.30 direct Story purchase now has a distinct Story-linked order, server-owned 130-cent quote, Stripe Checkout route, provider-confirmed entitlement fulfilment without wallet credits, and a two-option Story Detail UI. The existing credit top-up and one-credit unlock remain intact. Protected Preview and live webhook acceptance still need end-to-end validation. CRFD-37 remains held behind OD-010.
 
 ## In review
 
@@ -55,7 +55,7 @@
 
 ## Blocked
 
-- Direct Story purchase cannot be declared complete until its provider-confirmed entitlement path, refund/reversal behavior, and two-option UI pass money and access-control tests. Live production commerce still waits for OD-007.
+- Direct Story purchase cannot be declared complete until its provider-confirmed entitlement path, refund/reversal behavior, and two-option UI pass protected Preview money and access-control tests. Live production commerce still waits for OD-007.
 - Linear cycle creation is subject to the workspace exposing cycle-management capability.
 - Visual acceptance remains dependent on renewed structured access to the Curiofold Figma file.
 - Final spent-credit behavior for refunds and chargebacks is gated by OD-010. CRFD-35 and the unspent-credit portion of CRFD-36 can proceed independently.
@@ -73,14 +73,13 @@
 
 ## Next
 
-1. Implement Milestone 3.4: fixed 130-cent direct Story orders, provider-confirmed entitlement fulfilment without wallet credits, reversal evidence and the two-option Story Detail UI. Start with CRFD-53, then CRFD-51/54/55/52 in dependency order.
-2. Verify the protected Preview Story Detail route with an authenticated Vercel session and confirm that its database variables point to the bootstrapped nonproduction project.
-3. Exercise both payment paths on the protected Preview: direct €1.30 purchase and credit top-up → one-credit unlock, each ending in Reader ownership and durable progress. Record evidence and fix integration defects.
-4. Close Milestone 4.2 and the walking-skeleton gate only after live development-provider, authorization and progress acceptance, not merely green provider-free tests.
-5. Obtain the OD-010 product/legal decision before starting CRFD-37; options remain negative balance, spending suspension, entitlement revocation or manual review.
-6. Complete S1-10 visual acceptance when structured Figma access returns.
-7. Retain live Clerk, Stripe and entitled-preview acceptance gates until their development integrations are available.
-8. Do not provision production infrastructure or enable live payments without explicit product-owner approval.
+1. Verify the protected Preview Story Detail route with an authenticated Vercel session and confirm that its database variables point to the bootstrapped nonproduction project.
+2. Exercise both payment paths on the protected Preview: direct €1.30 purchase and credit top-up → one-credit unlock, each ending in Reader ownership and durable progress. Record evidence and fix integration defects.
+3. Close Milestone 4.2 and the walking-skeleton gate only after live development-provider, authorization and progress acceptance, not merely green provider-free tests.
+4. Obtain the OD-010 product/legal decision before starting CRFD-37; options remain negative balance, spending suspension, entitlement revocation or manual review.
+5. Complete S1-10 visual acceptance when structured Figma access returns.
+6. Retain live Clerk, Stripe and entitled-preview acceptance gates until their development integrations are available.
+7. Do not provision production infrastructure or enable live payments without explicit product-owner approval.
 
 ## Open decisions
 

@@ -1,7 +1,4 @@
-import {
-  assertPositiveCreditUnits,
-  normalizeCreditOperationKey,
-} from './credits'
+import { normalizeCreditOperationKey } from './credits'
 import { safeReturnPath } from './identity'
 
 export const paymentOrderStatuses = [
@@ -84,12 +81,22 @@ export function normalizeCreditPackSnapshot(
   ) {
     throw new TypeError('Payment amounts must be positive integer minor units.')
   }
-  assertPositiveCreditUnits(snapshot.credits)
+  if (snapshot.credits < 0 || !Number.isSafeInteger(snapshot.credits)) {
+    throw new TypeError('Purchased credits must be a non-negative integer.')
+  }
+  if (snapshot.credits === 0 && snapshot.purchaseType !== 'individual_story') {
+    throw new TypeError(
+      'Only direct Story purchases may have zero purchased credits.',
+    )
+  }
   if (
     snapshot.baseCredits !== undefined &&
-    (!Number.isSafeInteger(snapshot.baseCredits) || snapshot.baseCredits <= 0)
+    (!Number.isSafeInteger(snapshot.baseCredits) ||
+      snapshot.baseCredits < 0 ||
+      (snapshot.baseCredits === 0 &&
+        snapshot.purchaseType !== 'individual_story'))
   ) {
-    throw new TypeError('Base credits must be a positive integer.')
+    throw new TypeError('Base credits must be a non-negative integer.')
   }
   if (
     snapshot.bonusCredits !== undefined &&
@@ -140,6 +147,18 @@ export function normalizeCreditPackSnapshot(
     (currency !== 'EUR' || snapshot.amountMinor !== baseCredits * 100)
   ) {
     throw new TypeError('Credit top-ups require whole-EUR base pricing.')
+  }
+  if (
+    snapshot.purchaseType === 'individual_story' &&
+    (currency !== 'EUR' ||
+      snapshot.amountMinor !== 130 ||
+      snapshot.credits !== 0 ||
+      snapshot.baseCredits !== 0 ||
+      snapshot.bonusCredits !== 0 ||
+      snapshot.bonusRateBps !== 0 ||
+      snapshot.pricingVersion !== 'story-direct-eur-v1')
+  ) {
+    throw new TypeError('Direct Story purchases require the fixed €1.30 price.')
   }
 
   return {

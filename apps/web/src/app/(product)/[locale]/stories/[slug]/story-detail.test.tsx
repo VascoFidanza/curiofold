@@ -2,9 +2,13 @@
 
 import { render, screen } from '@testing-library/react'
 import axe from 'axe-core'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { PublicStoryDetail } from '@curiofold/content'
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}))
 
 import { MissingStoryLocale, StoryDetail } from './story-detail'
 
@@ -166,6 +170,9 @@ describe('public Story Detail', () => {
         .getByRole('link', { name: 'Add credits to continue' })
         .getAttribute('href'),
     ).toBe('/credits?return=%2Fen%2Fstories%2Fclockwork-gardens')
+    expect(
+      screen.getByRole('button', { name: 'Buy this Story for €1.30' }),
+    ).toBeTruthy()
 
     rerender(
       <StoryDetail

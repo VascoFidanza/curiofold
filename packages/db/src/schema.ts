@@ -25,7 +25,7 @@ type StoryState = 'draft' | 'published' | 'archived' | 'withdrawn'
 type IdentityEventResult = 'applied' | 'duplicate' | 'ignored'
 type IdentityEventType = 'user.created' | 'user.deleted' | 'user.updated'
 type EntitlementEventType = 'granted' | 'restored' | 'revoked'
-type EntitlementGrantSource = 'seed' | 'support' | 'unlock'
+type EntitlementGrantSource = 'seed' | 'support' | 'unlock' | 'payment'
 type EntitlementStatus = 'active' | 'revoked'
 type UnlockOutcome = 'already_owned' | 'unlocked'
 type WalletEntryType = 'correction' | 'grant' | 'reversal' | 'spend'
@@ -281,6 +281,7 @@ export const paymentOrders = pgTable(
     providerKey: varchar('provider_key', { length: 80 }),
     providerPaymentId: varchar('provider_payment_id', { length: 255 }),
     returnPath: varchar('return_path', { length: 500 }).notNull(),
+    storyId: uuid('story_id').references(() => stories.id),
     status: text('status')
       .$type<PaymentOrderStatus>()
       .notNull()
@@ -314,9 +315,13 @@ export const paymentOrders = pgTable(
     check('payment_orders_amount_check', sql`${table.amountMinor} > 0`),
     check(
       'payment_orders_pricing_shape_check',
-      sql`(${table.pricingVersion} IS NULL AND ${table.purchaseType} IS NULL AND ${table.baseCredits} IS NULL AND ${table.bonusRateBps} IS NULL AND ${table.bonusCredits} IS NULL) OR (${table.pricingVersion} IS NOT NULL AND ${table.purchaseType} IN ('credit_top_up', 'individual_story') AND ${table.baseCredits} IS NOT NULL AND ${table.bonusRateBps} IS NOT NULL AND ${table.bonusCredits} IS NOT NULL AND ${table.baseCredits} > 0 AND ${table.bonusRateBps} BETWEEN 0 AND 1800 AND ${table.bonusCredits} >= 0 AND ${table.creditsPurchased} = ${table.baseCredits} + ${table.bonusCredits} AND (${table.purchaseType} <> 'credit_top_up' OR (${table.currency} = 'EUR' AND ${table.amountMinor} = ${table.baseCredits} * 100)))`,
+      sql`(${table.pricingVersion} IS NULL AND ${table.purchaseType} IS NULL AND ${table.baseCredits} IS NULL AND ${table.bonusRateBps} IS NULL AND ${table.bonusCredits} IS NULL) OR (${table.pricingVersion} IS NOT NULL AND ${table.purchaseType} IN ('credit_top_up', 'individual_story') AND ${table.baseCredits} IS NOT NULL AND ${table.bonusRateBps} IS NOT NULL AND ${table.bonusCredits} IS NOT NULL AND ${table.baseCredits} >= 0 AND ${table.bonusRateBps} BETWEEN 0 AND 1800 AND ${table.bonusCredits} >= 0 AND ${table.creditsPurchased} = ${table.baseCredits} + ${table.bonusCredits} AND ((${table.purchaseType} = 'credit_top_up' AND ${table.baseCredits} > 0 AND ${table.currency} = 'EUR' AND ${table.amountMinor} = ${table.baseCredits} * 100) OR (${table.purchaseType} = 'individual_story' AND ${table.baseCredits} = 0 AND ${table.bonusCredits} = 0 AND ${table.bonusRateBps} = 0 AND ${table.currency} = 'EUR' AND ${table.amountMinor} = 130 AND ${table.pricingVersion} = 'story-direct-eur-v1')))`,
     ),
-    check('payment_orders_credits_check', sql`${table.creditsPurchased} > 0`),
+    check('payment_orders_credits_check', sql`${table.creditsPurchased} >= 0`),
+    check(
+      'payment_orders_purchase_type_shape_check',
+      sql`(${table.purchaseType} = 'individual_story' AND ${table.storyId} IS NOT NULL AND ${table.creditsPurchased} = 0) OR (${table.purchaseType} = 'credit_top_up' AND ${table.storyId} IS NULL AND ${table.creditsPurchased} > 0) OR (${table.purchaseType} IS NULL AND ${table.storyId} IS NULL AND ${table.creditsPurchased} > 0)`,
+    ),
     check(
       'payment_orders_currency_check',
       sql`${table.currency} ~ '^[A-Z]{3}$'`,
@@ -621,7 +626,7 @@ export const storyEntitlements = pgTable(
     ),
     check(
       'story_entitlements_grant_source_check',
-      sql`grant_source IN ('seed', 'support', 'unlock')`,
+      sql`grant_source IN ('seed', 'support', 'unlock', 'payment')`,
     ),
     check(
       'story_entitlements_revocation_check',

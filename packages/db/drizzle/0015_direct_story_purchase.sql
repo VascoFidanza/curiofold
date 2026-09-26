@@ -1,0 +1,5 @@
+ALTER TABLE "payment_orders" DROP CONSTRAINT "payment_orders_credits_check";--> statement-breakpoint
+ALTER TABLE "payment_orders" ADD COLUMN "story_id" uuid;--> statement-breakpoint
+ALTER TABLE "payment_orders" ADD CONSTRAINT "payment_orders_story_id_stories_id_fk" FOREIGN KEY ("story_id") REFERENCES "public"."stories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "payment_orders" ADD CONSTRAINT "payment_orders_purchase_type_shape_check" CHECK (("payment_orders"."purchase_type" = 'individual_story' AND "payment_orders"."story_id" IS NOT NULL AND "payment_orders"."credits_purchased" = 0) OR ("payment_orders"."purchase_type" = 'credit_top_up' AND "payment_orders"."story_id" IS NULL AND "payment_orders"."credits_purchased" > 0) OR ("payment_orders"."purchase_type" IS NULL AND "payment_orders"."story_id" IS NULL AND "payment_orders"."credits_purchased" > 0));--> statement-breakpoint
+ALTER TABLE "payment_orders" ADD CONSTRAINT "payment_orders_credits_check" CHECK ("payment_orders"."credits_purchased" >= 0);

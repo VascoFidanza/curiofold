@@ -28,6 +28,7 @@ function order(status: PaymentOrderRecord['status']): PaymentOrderRecord {
     providerCheckoutSessionId: 'cs_test_private',
     providerKey: 'stripe',
     providerPaymentId: status === 'fulfilled' ? 'pi_test_private' : null,
+    storyId: null,
     returnPath: '/en/stories/example',
     status,
     updatedAt: '2026-09-24T10:01:00.000Z',

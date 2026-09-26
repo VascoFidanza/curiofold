@@ -231,6 +231,23 @@
   margin-top: var(--cf-space-6);
 }
 
+.purchaseDivider {
+  display: flex;
+  align-items: center;
+  gap: var(--cf-space-3);
+  margin-top: var(--cf-space-5);
+  color: var(--cf-color-text-secondary);
+  font-size: var(--cf-font-size-body-small);
+}
+
+.purchaseDivider::before,
+.purchaseDivider::after {
+  height: 1px;
+  flex: 1;
+  background: var(--cf-color-border-subtle);
+  content: '';
+}
+
 .unlockLink {
   display: flex;
   min-height: 2.75rem;

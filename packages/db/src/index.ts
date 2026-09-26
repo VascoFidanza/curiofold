@@ -38,6 +38,7 @@ export {
 export {
   findPublishedStory,
   findPublishedStoryBySlug,
+  isPublishedStory,
   listPublishedStories,
   searchPublishedStories,
   type PublishedStoryLocalization,
