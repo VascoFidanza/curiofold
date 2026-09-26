@@ -73,6 +73,9 @@ describe('safe return paths', () => {
       '/pt-PT/stories/jardins-de-relogio/read',
     )
     expect(safeReturnPath('/library')).toBe('/library')
+    expect(safeReturnPath('/credits?return=%2Faccount')).toBe(
+      '/credits?return=%2Faccount',
+    )
   })
 
   it.each([
