@@ -44,6 +44,84 @@
   font-weight: 600;
 }
 
+.walletCard {
+  display: grid;
+  gap: var(--cf-space-5);
+  padding: var(--cf-space-5);
+  background: var(--cf-color-bg-surface);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: var(--cf-radius-lg);
+}
+
+.walletCard p,
+.walletCard h2,
+.walletCard h3 {
+  margin: 0;
+}
+
+.walletCard > p {
+  color: var(--cf-color-text-secondary);
+}
+
+.walletHeading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--cf-space-4);
+}
+
+.walletHeading > div {
+  display: grid;
+  gap: var(--cf-space-2);
+}
+
+.balance {
+  color: var(--cf-color-action-primary);
+  font-size: var(--cf-font-size-body-large);
+}
+
+.balance strong {
+  font-size: var(--cf-font-size-heading-h1);
+  line-height: var(--cf-line-height-heading-h1);
+}
+
+.activity {
+  display: grid;
+  gap: var(--cf-space-3);
+  padding-top: var(--cf-space-5);
+  border-top: 1px solid var(--cf-color-border-subtle);
+}
+
+.activity ol {
+  display: grid;
+  gap: var(--cf-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.activity li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--cf-space-4);
+}
+
+.activity li > span:first-child {
+  display: grid;
+  gap: var(--cf-space-1);
+}
+
+.activity time {
+  color: var(--cf-color-text-secondary);
+  font-size: var(--cf-font-size-label-medium);
+}
+
+.creditChange {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .signInLink {
   display: inline-flex;
   min-height: 2.75rem;

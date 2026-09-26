@@ -3,6 +3,7 @@ import Link from 'next/link'
 
 import { ErrorState, PageFrame } from '@curiofold/ui'
 
+import { getAccountWallet } from '@/server/account-wallet'
 import {
   IdentitySessionError,
   isClerkSessionConfigured,
@@ -10,6 +11,7 @@ import {
 } from '@/server/identity'
 
 import styles from './account.module.css'
+import { WalletSummary } from './wallet-summary'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,6 +19,7 @@ type AccountResolution =
   | Readonly<{
       emailVerified: boolean
       status: 'authenticated'
+      userId: string
     }>
   | Readonly<{
       status: 'account_disabled' | 'unauthenticated'
@@ -28,6 +31,7 @@ async function resolveAccount(): Promise<AccountResolution> {
     return {
       emailVerified: context.emailVerified,
       status: 'authenticated',
+      userId: context.userId,
     }
   } catch (error) {
     if (error instanceof IdentitySessionError) {
@@ -58,6 +62,7 @@ export default async function AccountPage() {
 
   const account = await resolveAccount()
   if (account.status === 'authenticated') {
+    const wallet = await getAccountWallet(account.userId)
     return (
       <PageFrame>
         <section className={styles.account}>
@@ -75,6 +80,14 @@ export default async function AccountPage() {
             </p>
             <UserButton />
           </div>
+          {wallet.status === 'available' ? (
+            <WalletSummary wallet={wallet.wallet} />
+          ) : (
+            <p role="status">
+              Your credits are temporarily unavailable. Please try again
+              shortly.
+            </p>
+          )}
         </section>
       </PageFrame>
     )
