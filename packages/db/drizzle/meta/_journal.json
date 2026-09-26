@@ -106,6 +106,27 @@
       "when": 1790334362097,
       "tag": "0014_fancy_exodus",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1790459483274,
+      "tag": "0015_direct_story_purchase",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1790459594464,
+      "tag": "0016_direct_story_entitlement",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790459948926,
+      "tag": "0017_direct_story_pricing_check",
+      "breakpoints": true
     }
   ]
 }

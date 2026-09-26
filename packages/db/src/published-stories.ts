@@ -316,3 +316,25 @@ export async function findPublishedStoryBySlug(
     status: 'missing_locale',
   }
 }
+
+export async function isPublishedStory(
+  database: CuriofoldDatabase,
+  storyId: string,
+): Promise<boolean> {
+  const [row] = await database
+    .select({ id: schema.stories.id })
+    .from(schema.stories)
+    .innerJoin(
+      schema.storyLocalizations,
+      eq(schema.storyLocalizations.storyId, schema.stories.id),
+    )
+    .where(
+      and(
+        eq(schema.stories.id, storyId),
+        eq(schema.storyLocalizations.state, 'published'),
+        isNotNull(schema.storyLocalizations.currentPublishedVersionId),
+      ),
+    )
+    .limit(1)
+  return Boolean(row)
+}

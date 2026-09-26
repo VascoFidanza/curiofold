@@ -37,6 +37,7 @@ const order: PaymentOrderRecord = {
   providerCheckoutSessionId: null,
   providerKey: null,
   providerPaymentId: null,
+  storyId: null,
   returnPath: '/en/stories/the-moon?source=detail',
   status: 'pending',
   updatedAt: '2026-09-24T10:00:00.000Z',

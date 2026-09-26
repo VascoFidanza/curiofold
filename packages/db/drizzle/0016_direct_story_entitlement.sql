@@ -1,0 +1,2 @@
+ALTER TABLE "story_entitlements" DROP CONSTRAINT "story_entitlements_grant_source_check";--> statement-breakpoint
+ALTER TABLE "story_entitlements" ADD CONSTRAINT "story_entitlements_grant_source_check" CHECK (grant_source IN ('seed', 'support', 'unlock', 'payment'));

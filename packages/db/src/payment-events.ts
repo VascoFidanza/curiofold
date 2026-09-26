@@ -184,15 +184,58 @@ export async function processProviderEvent(
         )
       }
       assertPaymentOrderTransition(order.status, 'fulfilled', 'provider_event')
-      await grantCreditsWithinTransaction(transaction, {
-        grantedAt: processedAt,
-        operationKey: `payment:${order.id}`,
-        reason: 'Credits purchased through a verified payment order.',
-        source: 'payment',
-        sourceReference: order.id,
-        units: order.creditsPurchased,
-        userId: order.userId,
-      })
+      if (order.purchaseType === 'individual_story') {
+        if (!order.storyId || order.creditsPurchased !== 0) {
+          throw new ProviderEventConflictError()
+        }
+        const [existing] = await transaction
+          .select({ id: schema.storyEntitlements.id })
+          .from(schema.storyEntitlements)
+          .where(
+            and(
+              eq(schema.storyEntitlements.userId, order.userId),
+              eq(schema.storyEntitlements.storyId, order.storyId),
+              eq(schema.storyEntitlements.status, 'active'),
+            ),
+          )
+          .limit(1)
+        if (!existing) {
+          const [entitlement] = await transaction
+            .insert(schema.storyEntitlements)
+            .values({
+              grantSource: 'payment',
+              grantedAt: processedAt,
+              storyId: order.storyId,
+              updatedAt: processedAt,
+              userId: order.userId,
+            })
+            .onConflictDoNothing({
+              target: [
+                schema.storyEntitlements.userId,
+                schema.storyEntitlements.storyId,
+              ],
+            })
+            .returning({ id: schema.storyEntitlements.id })
+          if (entitlement) {
+            await transaction.insert(schema.entitlementEvents).values({
+              entitlementId: entitlement.id,
+              eventType: 'granted',
+              occurredAt: processedAt,
+              reason: 'Story purchased directly at the canonical price.',
+            })
+          }
+        }
+      } else {
+        await grantCreditsWithinTransaction(transaction, {
+          grantedAt: processedAt,
+          operationKey: `payment:${order.id}`,
+          reason: 'Credits purchased through a verified payment order.',
+          source: 'payment',
+          sourceReference: order.id,
+          units: order.creditsPurchased,
+          userId: order.userId,
+        })
+      }
       await transaction
         .update(schema.paymentOrders)
         .set({

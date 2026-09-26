@@ -17,6 +17,7 @@ export interface CreatePaymentOrderInput {
   readonly returnPath?: string | null
   readonly snapshot: CreditPackSnapshot
   readonly userId: string
+  readonly storyId?: string | null
 }
 
 export interface PaymentOrderRecord extends CreditPackSnapshot {
@@ -27,6 +28,7 @@ export interface PaymentOrderRecord extends CreditPackSnapshot {
   readonly providerKey: string | null
   readonly providerPaymentId: string | null
   readonly returnPath: string
+  readonly storyId: string | null
   readonly status: PaymentOrderStatus
   readonly updatedAt: string
   readonly userId: string
@@ -112,6 +114,7 @@ function serializeOrder(
     providerKey: order.providerKey,
     providerPaymentId: order.providerPaymentId,
     returnPath: order.returnPath,
+    storyId: order.storyId,
     status: order.status,
     updatedAt: order.updatedAt.toISOString(),
     userId: order.userId,
@@ -121,6 +124,7 @@ function serializeOrder(
 function matchesCommand(
   order: typeof schema.paymentOrders.$inferSelect,
   input: ReturnType<typeof normalizePaymentOrderInput>,
+  storyId: string | null | undefined,
 ): boolean {
   return (
     order.amountMinor === input.snapshot.amountMinor &&
@@ -132,7 +136,8 @@ function matchesCommand(
     order.bonusRateBps === (input.snapshot.bonusRateBps ?? null) &&
     order.pricingVersion === (input.snapshot.pricingVersion ?? null) &&
     order.purchaseType === (input.snapshot.purchaseType ?? null) &&
-    order.returnPath === input.returnPath
+    order.returnPath === input.returnPath &&
+    order.storyId === (storyId ?? null)
   )
 }
 
@@ -145,6 +150,18 @@ export async function createPaymentOrder(
     returnPath: input.returnPath,
     snapshot: input.snapshot,
   })
+  if (
+    normalized.snapshot.purchaseType === 'individual_story' &&
+    !input.storyId
+  ) {
+    throw new TypeError('Direct Story orders require a Story id.')
+  }
+  if (
+    normalized.snapshot.purchaseType !== 'individual_story' &&
+    input.storyId
+  ) {
+    throw new TypeError('Only direct Story orders may reference a Story.')
+  }
   const createdAt = input.createdAt ?? new Date()
 
   return database.transaction(async (transaction) => {
@@ -163,6 +180,7 @@ export async function createPaymentOrder(
         pricingVersion: normalized.snapshot.pricingVersion,
         purchaseType: normalized.snapshot.purchaseType,
         returnPath: normalized.returnPath,
+        storyId: input.storyId ?? null,
         updatedAt: createdAt,
         userId: input.userId,
       })
@@ -207,7 +225,7 @@ export async function createPaymentOrder(
       )
       .limit(1)
 
-    if (!existing || !matchesCommand(existing, normalized)) {
+    if (!existing || !matchesCommand(existing, normalized, input.storyId)) {
       throw new PaymentOrderConflictError()
     }
 

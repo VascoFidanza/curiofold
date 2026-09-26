@@ -10,6 +10,7 @@ import type { StoryPurchaseState } from '@/server/story-purchase-state'
 
 import styles from './story-detail.module.css'
 import { UnlockAction } from './unlock-action'
+import { DirectPurchaseAction } from './direct-purchase-action'
 
 function humanizeKey(value: string): string {
   return value
@@ -113,7 +114,7 @@ export function StoryDetail({
           <p className={styles.hook}>{detail.hook}</p>
           <ul aria-label="Story information" className={styles.metadata}>
             <li>{detail.readingMinutes} min</li>
-            <li>1 credit</li>
+            <li>€1.30 or 1 credit</li>
             <li>{sourceLabel}</li>
           </ul>
           <p className={styles.deck}>{detail.deck}</p>
@@ -173,7 +174,7 @@ export function StoryDetail({
 
         <aside aria-labelledby="unlock-heading" className={styles.unlock}>
           <p className={styles.unlockCost}>
-            {purchase.status === 'owned' ? 'In your Library' : '1 credit'}
+            {purchase.status === 'owned' ? 'In your Library' : 'Your options'}
           </p>
           <h2 id="unlock-heading">
             {purchase.status === 'owned'
@@ -209,10 +210,15 @@ export function StoryDetail({
             </>
           ) : purchase.status === 'unowned' ? (
             <>
+              <p>Keep this Story with either purchase option.</p>
+              <DirectPurchaseAction detailPath={detailPath} storyId={storyId} />
+              <div className={styles.purchaseDivider}>
+                <span>or use credits</span>
+              </div>
               <p>
                 You have {purchase.availableCredits}{' '}
                 {purchase.availableCredits === 1 ? 'credit' : 'credits'}{' '}
-                available.
+                available. One credit unlocks one Story.
               </p>
               {!purchase.canUnlock ? (
                 <p>
