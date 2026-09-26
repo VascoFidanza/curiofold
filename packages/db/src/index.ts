@@ -22,6 +22,11 @@ export {
   type RevokeStoryEntitlementResult,
 } from './entitlements'
 export {
+  listLibraryStories,
+  type LibraryStory,
+  type LibraryStoryState,
+} from './library'
+export {
   applyIdentityLifecycleEvent,
   ensureIdentityAccount,
   findIdentityAccount,

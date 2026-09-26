@@ -21,6 +21,7 @@ import {
   grantStoryEntitlement,
   revokeStoryEntitlement,
 } from './entitlements'
+import { listLibraryStories } from './library'
 import {
   findPublishedStory,
   findPublishedStoryBySlug,
@@ -1479,6 +1480,22 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         },
         status: 'found',
       })
+
+      await expect(
+        listLibraryStories(database.client, linkedAccount.userId, 'en'),
+      ).resolves.toEqual([
+        expect.objectContaining({
+          completedAt: '2026-09-20T11:01:40.000Z',
+          highWaterPercent: 100,
+          locale: 'en',
+          slug: 'clockwork-gardens',
+          state: 'completed',
+          storyId: story.id,
+        }),
+      ])
+      await expect(
+        listLibraryStories(database.client, otherReader.userId, 'en'),
+      ).resolves.toEqual([])
 
       const staleProgress = await saveReadingProgress(database.client, {
         clientSequence: 2,
