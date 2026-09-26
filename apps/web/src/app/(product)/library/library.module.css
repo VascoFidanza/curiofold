@@ -1,0 +1,126 @@
+.layout {
+  display: grid;
+  max-width: 64rem;
+  gap: var(--cf-space-8);
+}
+
+.header {
+  display: grid;
+  max-width: 42rem;
+  gap: var(--cf-space-3);
+}
+
+.header h1,
+.header p,
+.emptyState h2,
+.emptyState p,
+.storyCard h2,
+.storyCard p {
+  margin: 0;
+}
+
+.header h1 {
+  font-size: var(--cf-font-size-display-large);
+  line-height: var(--cf-line-height-display-large);
+}
+
+.eyebrow,
+.state {
+  color: var(--cf-color-action-primary);
+  font-size: var(--cf-font-size-label-medium);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: var(--cf-line-height-label-medium);
+  text-transform: uppercase;
+}
+
+.lede {
+  color: var(--cf-color-text-secondary);
+  font-size: var(--cf-font-size-body-large);
+  line-height: var(--cf-line-height-body-large);
+}
+
+.storyGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--cf-space-4);
+}
+
+.storyCard,
+.emptyState {
+  display: grid;
+  gap: var(--cf-space-3);
+  padding: var(--cf-space-5);
+  background: var(--cf-color-bg-surface);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: var(--cf-radius-lg);
+}
+
+.storyCard {
+  min-height: 15rem;
+  align-content: start;
+}
+
+.storyCard h2,
+.emptyState h2 {
+  font-size: var(--cf-font-size-heading-medium);
+  line-height: var(--cf-line-height-heading-medium);
+}
+
+.storyCard > p:not(.state):not(.progress),
+.emptyState p {
+  color: var(--cf-color-text-secondary);
+  line-height: var(--cf-line-height-body-default);
+}
+
+.progress {
+  color: var(--cf-color-text-primary);
+  font-weight: 700;
+}
+
+.storyCard a,
+.emptyState a,
+.signInLink {
+  color: var(--cf-color-action-primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.storyCard a {
+  align-self: end;
+  margin-top: auto;
+}
+
+.storyCard a:hover,
+.emptyState a:hover,
+.signInLink:hover {
+  text-decoration: underline;
+}
+
+.storyCard a:focus-visible,
+.emptyState a:focus-visible,
+.signInLink:focus-visible {
+  outline: 3px solid var(--cf-color-accent-curiosity);
+  outline-offset: 3px;
+}
+
+.signInLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-self: start;
+  padding: var(--cf-space-3) var(--cf-space-4);
+  color: var(--cf-color-action-on-primary);
+  background: var(--cf-color-action-primary);
+  border-radius: var(--cf-radius-md);
+}
+
+@media (max-width: 52rem) {
+  .storyGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .storyCard {
+    min-height: auto;
+  }
+}
