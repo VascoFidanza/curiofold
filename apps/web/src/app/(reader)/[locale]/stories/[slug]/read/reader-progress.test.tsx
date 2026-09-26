@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   ReaderProgressIndicator,
+  ReaderCompletionActions,
   ReaderProgressProvider,
   readingPositionAtViewportLine,
 } from './reader-progress'
@@ -53,6 +54,61 @@ describe('Reader progress client', () => {
       screen.getByRole('progressbar', { name: 'Reading progress' }),
     ).toHaveProperty('value', 42)
     expect(screen.getByText('42% read.')).toBeTruthy()
+  })
+
+  it('offers safe next actions only after a Story is complete', () => {
+    const { unmount } = render(
+      <ReaderProgressProvider
+        blocks={[{ id: 'opening', readingUnits: 10 }]}
+        initialProgress={{
+          completedAt: null,
+          highWaterPercent: 100,
+          lastClientSequence: 3,
+          resumeBlockId: 'opening',
+          resumeOffset: 10,
+        }}
+        locale="en"
+        storyId="11111111-1111-4111-8111-111111111111"
+        versionId="22222222-2222-4222-8222-222222222222"
+      >
+        <ReaderCompletionActions />
+      </ReaderProgressProvider>,
+    )
+
+    expect(
+      screen.queryByRole('heading', {
+        name: 'Where should curiosity take you next?',
+      }),
+    ).toBeNull()
+
+    unmount()
+
+    render(
+      <ReaderProgressProvider
+        blocks={[{ id: 'opening', readingUnits: 10 }]}
+        initialProgress={{
+          completedAt: '2026-09-26T12:00:00.000Z',
+          highWaterPercent: 100,
+          lastClientSequence: 4,
+          resumeBlockId: 'opening',
+          resumeOffset: 10,
+        }}
+        locale="en"
+        storyId="11111111-1111-4111-8111-111111111111"
+        versionId="22222222-2222-4222-8222-222222222222"
+      >
+        <ReaderCompletionActions />
+      </ReaderProgressProvider>,
+    )
+
+    expect(
+      screen.getByRole('link', { name: 'Your Library' }).getAttribute('href'),
+    ).toBe('/library')
+    expect(
+      screen
+        .getByRole('link', { name: 'Discover Stories' })
+        .getAttribute('href'),
+    ).toBe('/')
   })
 
   it('discards malformed local retry state without sending it', () => {
