@@ -137,9 +137,14 @@ export default async function LibraryPage() {
                 <h2>{story.title}</h2>
                 <p>{story.hook}</p>
                 {story.state === 'in_progress' ? (
-                  <p className={styles.progress}>
-                    {story.highWaterPercent}% read
-                  </p>
+                  <div className={styles.progress}>
+                    <progress
+                      aria-label={`Reading progress for ${story.title}`}
+                      max={100}
+                      value={story.highWaterPercent}
+                    />
+                    <span>{story.highWaterPercent}% read</span>
+                  </div>
                 ) : null}
                 <Link href={`/${story.locale}/stories/${story.slug}/read`}>
                   {story.state === 'in_progress'
