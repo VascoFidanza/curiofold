@@ -18,6 +18,7 @@ export type PublicStoryRouteData =
       availableLocalizations: readonly PublishedStoryLocalization[]
       detail: PublicStoryDetail
       status: 'found'
+      storyId: string
     }>
   | Readonly<{
       availableLocalizations: readonly PublishedStoryLocalization[]
@@ -38,6 +39,7 @@ export function projectPublicStoryRoute(
     availableLocalizations: resolution.availableLocalizations,
     detail: createPublicStoryDetail(resolution.story),
     status: 'found',
+    storyId: resolution.storyId,
   }
 }
 

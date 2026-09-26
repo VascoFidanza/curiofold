@@ -81,6 +81,7 @@ export type PublishedStoryRouteResolution =
       availableLocalizations: readonly PublishedStoryLocalization[]
       status: 'found'
       story: CompiledStoryDocument
+      storyId: string
     }>
   | Readonly<{
       availableLocalizations: readonly PublishedStoryLocalization[]
@@ -282,6 +283,7 @@ export async function findPublishedStoryBySlug(
       ),
       status: 'found',
       story,
+      storyId: localized.storyId,
     }
   }
 
