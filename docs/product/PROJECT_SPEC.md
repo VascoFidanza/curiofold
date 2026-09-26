@@ -1,8 +1,10 @@
 # Curiofold — Product Specification
 
-**Version:** 1.0  
-**Status:** Pre-engineering planning baseline  
-**Date:** 2026-09-19  
+**Version:** 1.1
+
+**Status:** Active product specification
+
+**Date:** 2026-09-26
 **Owner:** Product Owner  
 **Technical planning owner:** Codex after Plan Mode approval
 
@@ -280,21 +282,16 @@ Initial fixed price:
 
 > €1 per PDF.
 
-## Adopted product/design decision
+## Current product-owner decision (2026-09-26)
 
-The user-facing unit is:
+Every individual Story has two purchase paths:
 
-> **1 Story = 1 credit**
+1. **Buy this Story directly for €1.30** (exactly 130 EUR cents charged through the payment provider).
+2. **Unlock with 1 credit** (exactly one credit debited from the wallet).
 
-The purpose is to preserve the simple “one euro / one item” mental model while avoiding a separate payment transaction for every Story.
+Both paths grant the same Story entitlement and Library ownership. A direct Story payment does **not** add credits to the wallet; a credit unlock does not create a card charge. Owned Stories show a reading action, not another purchase action. There is no per-Story variable price unless the Product Owner explicitly changes this rule.
 
-Initial design assumes packs such as:
-
-- €5 → 5 credits
-- €10 → 10 credits
-- €20 → 20 credits
-
-These exact pack values are a current design baseline and may be changed later by business decision.
+Credit top-ups remain a separate product: minimum €5, whole-euro amounts only, with progressive bonus credits according to the canonical pricing rule. The former €5/€10/€20 no-bonus table is superseded; those amounts are examples of top-ups, not fixed packs or a different pricing algorithm.
 
 Product behavior must make the following clear:
 
@@ -304,7 +301,7 @@ Product behavior must make the following clear:
 - zero-credit recovery path;
 - purchase history.
 
-Exact payment provider/architecture is a Codex technical decision subject to business/legal constraints.
+Exact payment provider/architecture is a Codex technical decision subject to business/legal constraints. Direct payment and credit top-up fulfilment must remain distinguishable and auditable, with no entitlement or credits granted from browser redirects alone.
 
 ---
 

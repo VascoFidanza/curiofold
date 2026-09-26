@@ -8,7 +8,7 @@ This document is the canonical engineering and delivery plan for Curiofold v1. P
 
 ## 1. Mission and delivery outcome
 
-Deliver a production-ready browser platform in which a user can discover a factual Story, authenticate, fund a credit wallet, unlock the Story exactly once, read it in an editorial browser-native Reader, resume reliably, complete it, find it in the Library and continue into another relevant Story.
+Deliver a production-ready browser platform in which a user can discover a factual Story, authenticate, buy it directly for the fixed €1.30 price or unlock it for one credit, read it in an editorial browser-native Reader, resume reliably, complete it, find it in the Library and continue into another relevant Story. Credit top-ups remain a distinct purchase flow.
 
 Production-ready means the platform is secure, accessible, observable, recoverable, tested and operationally supportable. A working demo or a set of implemented screens is not sufficient.
 
@@ -67,13 +67,14 @@ One entitlement owns a Story across all locales. Progress is locale-specific; co
 ### Money invariants
 
 1. Cached wallet balance equals the sum of immutable ledger entries.
-2. One fulfilled order creates one credit grant and one ledger credit.
+2. One fulfilled credit top-up order creates exactly one credit grant and corresponding ledger entry. A direct Story order creates no wallet credit.
 3. One new unlock creates one debit and one entitlement atomically.
 4. An existing entitlement is an idempotent success and never debits again.
 5. Concurrent unlocks cannot overspend.
 6. Browser redirects never grant credits.
 7. Provider event, order, provider object and idempotency identifiers are uniquely constrained.
 8. Refunds, disputes and corrections use compensating entries.
+9. One fulfilled direct Story order grants the intended Story entitlement exactly once after verified provider evidence. It is never fulfilled by a browser redirect, and never mints credits.
 
 ## 4. Identity and authorization
 
@@ -163,7 +164,8 @@ Production release additionally requires zero reconciliation discrepancies, no u
 1. Auditable credits and atomic entitlements.
 2. Payment top-ups reconcile.
 3. Reversals and support operations are auditable.
-4. Money-flow assurance gate.
+4. Direct Story purchases grant ownership for the fixed €1.30 price.
+5. Money-flow assurance gate across both purchase modes.
 
 #### Project 4 — The Curiosity-to-Completion Loop Works
 

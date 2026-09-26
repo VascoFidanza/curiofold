@@ -1,7 +1,9 @@
 # Curiofold — Product Design Source of Truth
-**Version:** 1.0  
+**Version:** 1.1
+
 **Status:** Design specification ready for technical planning and implementation  
-**Date:** 2026-09-19  
+**Date:** 2026-09-26
+
 **Audience:** Product owner, Codex / engineering, future designers, content operations  
 **Working brand:** Curiofold — final legal/trademark/domain clearance still required  
 **Figma:** https://www.figma.com/design/MMhGFEM4kfTa6lHrrGrA8g
@@ -428,23 +430,16 @@ Internal content tooling may continue to use PDF where technically relevant.
 
 ## 8.1 Core rule
 
-> **1 Story = 1 credit**
+The Product Owner's 2026-09-26 commercial decision supersedes the earlier credit-only examples in this design document. A locked Story offers two clear options:
 
-The user should not be asked to perform a card payment for every €1 Story.
+| Purchase path | Customer-facing cost | Result |
+|---|---:|---|
+| Buy this Story directly | €1.30 | The Story becomes owned after verified payment. |
+| Unlock with credits | 1 credit | One wallet credit is debited and the Story becomes owned. |
 
-The experience should use a credit wallet.
+Direct purchase must not look like a credit top-up or silently convert the charge into wallet credits. No Story-specific price variation is allowed without a later Product Owner decision. Once owned, show the appropriate Start/Continue/Read again action instead of either purchase CTA.
 
-Recommended initial packs:
-
-| Pack | Price | Credits |
-|---|---:|---:|
-| Try it | €5 | 5 |
-| Popular | €10 | 10 |
-| Stock up | €20 | 20 |
-
-Do not add fake discounts merely to manipulate conversion.
-
-If commercial strategy later introduces bonuses, show them transparently.
+Credit top-ups remain separate: minimum €5, whole-euro amounts, and progressive bonus credits under the canonical pricing formula. Show the quoted total and bonus transparently; the former no-bonus pack table is historical design context, not current pricing.
 
 ---
 
@@ -468,9 +463,7 @@ Never show `8.00 credits`.
 
 ## 8.3 Unlock behavior
 
-When user has at least one credit:
-
-Primary CTA:
+When the user has at least one credit, show both the one-credit unlock and €1.30 direct-purchase choices without hiding the existing wallet balance. The credit action is:
 
 > **Unlock for 1 credit**
 
@@ -478,7 +471,7 @@ Secondary supporting text:
 
 > Yours permanently in your Library.
 
-The interaction should not require a full checkout if the user already owns credits.
+The credit action must not require a card checkout; choosing direct purchase uses a payment checkout. With zero credits, keep the €1.30 direct option and offer contextual credit top-up without losing the originating Story.
 
 Recommended confirmation behavior:
 

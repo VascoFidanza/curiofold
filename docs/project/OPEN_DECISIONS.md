@@ -84,22 +84,21 @@ Pending.
 
 ## OD-003 — Initial credit packs / commercial pricing
 
-**Status:** PROVISIONAL  
+**Status:** DECIDED
+
 **Owner:** Product Owner  
 **Blocking point:** Production payment configuration / launch  
-**Decision:** Confirm final launch packs and prices.
+**Decision:** Direct Story price, credit unlock cost and top-up pricing shape.
 
-### Current design baseline
-- €5 → 5 credits
-- €10 → 10 credits
-- €20 → 20 credits
-- 1 Story = 1 credit
+### Superseded design baseline
+- €5 → 5 credits, €10 → 10 credits and €20 → 20 credits were illustrative no-bonus packs.
+- The earlier design offered only the one-credit path.
 
 ### Constraint
 Do not introduce fake discounts without an explicit business decision.
 
 ### Resolution
-Current values are design baseline, not yet a final commercial approval.
+On 2026-09-26 the Product Owner explicitly set a fixed direct price of €1.30 (130 EUR cents) per Story and retained the alternative cost of one credit per Story. Top-ups remain minimum €5, whole-euro amounts, with the implemented progressive bonus formula. No variable per-Story pricing is authorized. This decision does not resolve OD-007 tax, refund, withdrawal or receipt policy for live commerce.
 
 ### Destination
 `docs/product/PROJECT_SPEC.md` and payment configuration/docs.
