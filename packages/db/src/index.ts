@@ -22,6 +22,7 @@ export {
   type RevokeStoryEntitlementResult,
 } from './entitlements'
 export {
+  findOwnedStoryState,
   listLibraryStories,
   type LibraryStory,
   type LibraryStoryState,

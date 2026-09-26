@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { getPublicStoryRoute } from '@/server/public-story'
+import { resolveStoryPurchaseState } from '@/server/story-purchase-state'
 
 import { StoryDetail, MissingStoryLocale } from './story-detail'
 import { createStoryMetadata } from './story-metadata'
@@ -39,5 +40,12 @@ export default async function StoryPage({ params }: StoryPageProps) {
     )
   }
 
-  return <StoryDetail detail={route.detail} />
+  const purchase = await resolveStoryPurchaseState(route.storyId, locale)
+  return (
+    <StoryDetail
+      detail={route.detail}
+      purchase={purchase}
+      storyId={route.storyId}
+    />
+  )
 }

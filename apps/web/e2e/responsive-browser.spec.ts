@@ -29,7 +29,7 @@ test.describe('responsive browser contract', () => {
       ).toBeLessThanOrEqual(1)
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
       await expect(
-        page.getByRole('button', { name: 'Unlock for 1 credit' }),
+        page.getByRole('link', { name: 'Sign in to unlock' }),
       ).toBeVisible()
     }
   })
@@ -129,7 +129,7 @@ test.describe('responsive browser contract', () => {
     await page.goto('/test-fixtures/story-detail')
 
     await expect(
-      page.getByRole('button', { name: 'Unlock for 1 credit' }),
+      page.getByRole('link', { name: 'Sign in to unlock' }),
     ).toBeVisible()
     expect(
       await page.evaluate(

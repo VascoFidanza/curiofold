@@ -33,16 +33,21 @@ const detail: PublicStoryDetail = {
   title: 'Clockwork Gardens',
   updateNote: null,
 }
+const storyId = '00000000-0000-4000-8000-000000000001'
 
 afterEach(() => {
   document.body.innerHTML = ''
 })
 
 describe('public Story Detail', () => {
-  it('renders public credibility, preview and a non-operational unlock state', () => {
+  it('renders public credibility, preview and a contextual sign-in path', () => {
     render(
       <main>
-        <StoryDetail detail={detail} />
+        <StoryDetail
+          detail={detail}
+          purchase={{ status: 'anonymous' }}
+          storyId={storyId}
+        />
       </main>,
     )
 
@@ -55,8 +60,10 @@ describe('public Story Detail', () => {
       screen.getByText('At noon, every path aligned for a single minute.'),
     ).toBeTruthy()
     expect(
-      screen.getByRole('button', { name: 'Unlock for 1 credit' }),
-    ).toHaveProperty('disabled', true)
+      screen
+        .getByRole('link', { name: 'Sign in to unlock' })
+        .getAttribute('href'),
+    ).toBe('/sign-in?redirect_url=%2Fen%2Fstories%2Fclockwork-gardens')
     expect(document.body.textContent).not.toContain(
       'The garden never tells time',
     )
@@ -101,6 +108,8 @@ describe('public Story Detail', () => {
               },
             ],
           }}
+          purchase={{ status: 'anonymous' }}
+          storyId={storyId}
         />
       </main>,
     )
@@ -114,7 +123,11 @@ describe('public Story Detail', () => {
   it('has no detectable automated accessibility violations', async () => {
     const { container } = render(
       <main>
-        <StoryDetail detail={detail} />
+        <StoryDetail
+          detail={detail}
+          purchase={{ status: 'anonymous' }}
+          storyId={storyId}
+        />
       </main>,
     )
     const result = await axe.run(container, {
@@ -124,5 +137,48 @@ describe('public Story Detail', () => {
     })
 
     expect(result.violations).toEqual([])
+  })
+
+  it('distinguishes owned, zero-credit and unavailable states', () => {
+    const { rerender } = render(
+      <StoryDetail
+        detail={detail}
+        purchase={{ status: 'owned', readingState: 'in_progress' }}
+        storyId={storyId}
+      />,
+    )
+    expect(
+      screen
+        .getByRole('link', { name: 'Continue reading' })
+        .getAttribute('href'),
+    ).toBe('/en/stories/clockwork-gardens/read')
+    expect(screen.queryByText('Unlock for 1 credit')).toBeNull()
+
+    rerender(
+      <StoryDetail
+        detail={detail}
+        purchase={{ status: 'unowned', availableCredits: 0, canUnlock: true }}
+        storyId={storyId}
+      />,
+    )
+    expect(
+      screen
+        .getByRole('link', { name: 'Add credits to continue' })
+        .getAttribute('href'),
+    ).toBe('/credits?return=%2Fen%2Fstories%2Fclockwork-gardens')
+
+    rerender(
+      <StoryDetail
+        detail={detail}
+        purchase={{ status: 'unavailable' }}
+        storyId={storyId}
+      />,
+    )
+    expect(
+      screen.getByText(/Ownership is temporarily unavailable/u),
+    ).toBeTruthy()
+    expect(
+      screen.queryByRole('button', { name: 'Unlock for 1 credit' }),
+    ).toBeNull()
   })
 })

@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNotNull, min } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 
 import * as schema from './schema'
@@ -17,6 +17,53 @@ export interface LibraryStory {
   readonly state: LibraryStoryState
   readonly storyId: string
   readonly title: string
+}
+
+export async function findOwnedStoryState(
+  database: CuriofoldDatabase,
+  userId: string,
+  storyId: string,
+  locale: string,
+): Promise<LibraryStoryState | null> {
+  const [owned] = await database
+    .select({
+      completedAt: schema.readingProgress.completedAt,
+      highWaterPercent: schema.readingProgress.highWaterPercent,
+    })
+    .from(schema.storyEntitlements)
+    .leftJoin(
+      schema.readingProgress,
+      and(
+        eq(schema.readingProgress.userId, userId),
+        eq(schema.readingProgress.storyId, storyId),
+        eq(schema.readingProgress.locale, locale),
+      ),
+    )
+    .where(
+      and(
+        eq(schema.storyEntitlements.userId, userId),
+        eq(schema.storyEntitlements.storyId, storyId),
+        eq(schema.storyEntitlements.status, 'active'),
+      ),
+    )
+    .limit(1)
+
+  if (!owned) return null
+  if (owned.completedAt) return 'completed'
+  const [completion] = await database
+    .select({ completedAt: min(schema.readingProgress.completedAt) })
+    .from(schema.readingProgress)
+    .where(
+      and(
+        eq(schema.readingProgress.userId, userId),
+        eq(schema.readingProgress.storyId, storyId),
+        isNotNull(schema.readingProgress.completedAt),
+      ),
+    )
+  if (completion?.completedAt) return 'completed'
+  return owned.highWaterPercent && owned.highWaterPercent > 0
+    ? 'in_progress'
+    : 'unread'
 }
 
 export async function listLibraryStories(

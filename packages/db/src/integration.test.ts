@@ -21,7 +21,7 @@ import {
   grantStoryEntitlement,
   revokeStoryEntitlement,
 } from './entitlements'
-import { listLibraryStories } from './library'
+import { findOwnedStoryState, listLibraryStories } from './library'
 import {
   findPublishedStory,
   findPublishedStoryBySlug,
@@ -1357,6 +1357,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       )
       expect(routed.status).toBe('found')
       if (routed.status === 'found') {
+        expect(routed.storyId).toBe(story.id)
         expect(routed.story.contentHash).toBe(correction.contentHash)
         expect(routed.availableLocalizations).toEqual([
           { locale: 'en', slug: 'clockwork-gardens' },
@@ -1496,6 +1497,30 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       await expect(
         listLibraryStories(database.client, otherReader.userId, 'en'),
       ).resolves.toEqual([])
+      await expect(
+        findOwnedStoryState(
+          database.client,
+          linkedAccount.userId,
+          story.id,
+          'en',
+        ),
+      ).resolves.toBe('completed')
+      await expect(
+        findOwnedStoryState(
+          database.client,
+          linkedAccount.userId,
+          story.id,
+          'pt-PT',
+        ),
+      ).resolves.toBe('completed')
+      await expect(
+        findOwnedStoryState(
+          database.client,
+          otherReader.userId,
+          story.id,
+          'en',
+        ),
+      ).resolves.toBeNull()
 
       const staleProgress = await saveReadingProgress(database.client, {
         clientSequence: 2,

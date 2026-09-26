@@ -16,7 +16,11 @@ export default function StoryDetailFixturePage() {
 
   return (
     <ApplicationShell activeNavigation="discover">
-      <StoryDetail detail={e2ePublicStory} />
+      <StoryDetail
+        detail={e2ePublicStory}
+        purchase={{ status: 'anonymous' }}
+        storyId="00000000-0000-4000-8000-000000000001"
+      />
     </ApplicationShell>
   )
 }

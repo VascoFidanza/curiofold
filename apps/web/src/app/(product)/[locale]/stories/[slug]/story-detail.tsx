@@ -1,13 +1,15 @@
 import Link from 'next/link'
 
-import { Button, PageFrame } from '@curiofold/ui'
+import { PageFrame } from '@curiofold/ui'
 import type {
   PublicStoryDetail,
   PublicStoryPreviewBlock,
 } from '@curiofold/content'
 import type { PublishedStoryLocalization } from '@curiofold/db'
+import type { StoryPurchaseState } from '@/server/story-purchase-state'
 
 import styles from './story-detail.module.css'
+import { UnlockAction } from './unlock-action'
 
 function humanizeKey(value: string): string {
   return value
@@ -85,7 +87,15 @@ function PreviewBlock({ block }: Readonly<{ block: PublicStoryPreviewBlock }>) {
 
 export function StoryDetail({
   detail,
-}: Readonly<{ detail: PublicStoryDetail }>) {
+  purchase,
+  storyId,
+}: Readonly<{
+  detail: PublicStoryDetail
+  purchase: StoryPurchaseState
+  storyId: string
+}>) {
+  const detailPath = `/${detail.locale}/stories/${detail.slug}`
+  const creditsPath = `/credits?return=${encodeURIComponent(detailPath)}`
   const sourceLabel = `${String(detail.credibility.sourceCount)} ${
     detail.credibility.sourceCount === 1 ? 'source' : 'sources'
   } recorded`
@@ -162,15 +172,71 @@ export function StoryDetail({
         </div>
 
         <aside aria-labelledby="unlock-heading" className={styles.unlock}>
-          <p className={styles.unlockCost}>1 credit</p>
-          <h2 id="unlock-heading">Keep this Story in your Library</h2>
-          <p>Sign in to see your balance and unlock this Story.</p>
-          <Button className={styles.unlockButton} disabled>
-            Unlock for 1 credit
-          </Button>
-          <p className={styles.unlockNote}>
-            Yours permanently in your Library.
+          <p className={styles.unlockCost}>
+            {purchase.status === 'owned' ? 'In your Library' : '1 credit'}
           </p>
+          <h2 id="unlock-heading">
+            {purchase.status === 'owned'
+              ? 'This Story is yours'
+              : 'Keep this Story in your Library'}
+          </h2>
+          {purchase.status === 'owned' ? (
+            <>
+              <p>
+                {purchase.readingState === 'completed'
+                  ? 'You completed this Story.'
+                  : purchase.readingState === 'in_progress'
+                    ? 'Pick up where you left off.'
+                    : 'Ready whenever you are.'}
+              </p>
+              <Link className={styles.unlockLink} href={`${detailPath}/read`}>
+                {purchase.readingState === 'completed'
+                  ? 'Read again'
+                  : purchase.readingState === 'in_progress'
+                    ? 'Continue reading'
+                    : 'Start reading'}
+              </Link>
+            </>
+          ) : purchase.status === 'anonymous' ? (
+            <>
+              <p>Sign in to see your balance and unlock this Story.</p>
+              <Link
+                className={styles.unlockLink}
+                href={`/sign-in?redirect_url=${encodeURIComponent(detailPath)}`}
+              >
+                Sign in to unlock
+              </Link>
+            </>
+          ) : purchase.status === 'unowned' ? (
+            <>
+              <p>
+                You have {purchase.availableCredits}{' '}
+                {purchase.availableCredits === 1 ? 'credit' : 'credits'}{' '}
+                available.
+              </p>
+              {!purchase.canUnlock ? (
+                <p>
+                  Verify your email in <Link href="/account">Account</Link>{' '}
+                  before unlocking.
+                </p>
+              ) : purchase.availableCredits < 1 ? (
+                <Link className={styles.unlockLink} href={creditsPath}>
+                  Add credits to continue
+                </Link>
+              ) : (
+                <UnlockAction detailPath={detailPath} storyId={storyId} />
+              )}
+              <p className={styles.unlockNote}>
+                Yours permanently in your Library.
+              </p>
+            </>
+          ) : (
+            <p>
+              {purchase.status === 'disabled'
+                ? 'This account cannot unlock Stories. Contact support if you believe this is a mistake.'
+                : 'Ownership is temporarily unavailable. Please try again shortly.'}
+            </p>
+          )}
         </aside>
       </article>
     </PageFrame>

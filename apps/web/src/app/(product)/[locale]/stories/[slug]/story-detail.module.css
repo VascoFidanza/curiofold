@@ -231,6 +231,33 @@
   margin-top: var(--cf-space-6);
 }
 
+.unlockLink {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: var(--cf-space-3) var(--cf-space-4);
+  margin-top: var(--cf-space-6);
+  color: var(--cf-color-action-on-primary);
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  background: var(--cf-color-action-primary);
+  border-radius: var(--cf-radius-md);
+}
+
+.unlockLink:hover {
+  background: var(--cf-color-action-primary-hover);
+}
+.unlockLink:focus-visible {
+  outline: 3px solid var(--cf-color-action-primary);
+  outline-offset: 3px;
+}
+
+.unlock .unlockError {
+  color: var(--cf-color-text-primary);
+}
+
 .unlock .unlockNote {
   margin-top: var(--cf-space-3);
   font-size: var(--cf-font-size-body-small);
