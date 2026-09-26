@@ -3,7 +3,7 @@ import {
   type CompiledStoryDocument,
   type PublishedStoryResolution,
 } from '@curiofold/content'
-import { and, asc, desc, eq, isNotNull } from 'drizzle-orm'
+import { and, asc, desc, eq, ilike, isNotNull, or } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 
 import * as schema from './schema'
@@ -13,6 +13,67 @@ type CuriofoldDatabase = NodePgDatabase<typeof schema>
 export interface PublishedStoryLocalization {
   readonly locale: string
   readonly slug: string
+}
+
+export interface PublishedStorySearchResult {
+  readonly deck: string
+  readonly hook: string
+  readonly locale: string
+  readonly readingMinutes: number
+  readonly slug: string
+  readonly title: string
+}
+
+function escapeSearchTerm(value: string): string {
+  return value
+    .replaceAll('\\', '\\\\')
+    .replaceAll('%', '\\%')
+    .replaceAll('_', '\\_')
+}
+
+export async function searchPublishedStories(
+  database: CuriofoldDatabase,
+  locale: string,
+  query: string,
+  limit = 24,
+): Promise<readonly PublishedStorySearchResult[]> {
+  const normalizedQuery = query.trim()
+  if (!locale.trim()) throw new TypeError('Story search locale is required.')
+  if (normalizedQuery.length < 2 || normalizedQuery.length > 100) return []
+  if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+    throw new RangeError('Story search limit must be an integer from 1 to 50.')
+  }
+
+  const pattern = `%${escapeSearchTerm(normalizedQuery)}%`
+  return database
+    .select({
+      deck: schema.storyLocalizations.deck,
+      hook: schema.storyLocalizations.hook,
+      locale: schema.storyLocalizations.locale,
+      readingMinutes: schema.storyLocalizations.readingMinutes,
+      slug: schema.storyLocalizations.slug,
+      title: schema.storyLocalizations.title,
+    })
+    .from(schema.stories)
+    .innerJoin(
+      schema.storyLocalizations,
+      eq(schema.storyLocalizations.storyId, schema.stories.id),
+    )
+    .where(
+      and(
+        eq(schema.storyLocalizations.locale, locale),
+        eq(schema.storyLocalizations.state, 'published'),
+        isNotNull(schema.storyLocalizations.currentPublishedVersionId),
+        or(
+          ilike(schema.storyLocalizations.title, pattern),
+          ilike(schema.storyLocalizations.deck, pattern),
+          ilike(schema.storyLocalizations.hook, pattern),
+          ilike(schema.storyLocalizations.preview, pattern),
+        ),
+      ),
+    )
+    .orderBy(asc(schema.storyLocalizations.title))
+    .limit(limit)
 }
 
 export type PublishedStoryRouteResolution =

@@ -33,8 +33,10 @@ export {
   findPublishedStory,
   findPublishedStoryBySlug,
   listPublishedStories,
+  searchPublishedStories,
   type PublishedStoryLocalization,
   type PublishedStoryRouteResolution,
+  type PublishedStorySearchResult,
 } from './published-stories'
 export {
   processProviderEvent,
