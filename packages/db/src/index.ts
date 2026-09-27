@@ -83,6 +83,10 @@ export {
   type PaymentReversalRecord,
 } from './payment-reversals'
 export {
+  listPurchaseHistory,
+  type PurchaseHistoryItem,
+} from './purchase-history'
+export {
   findReadingProgress,
   saveReadingProgress,
   type ReadingProgressSnapshot,

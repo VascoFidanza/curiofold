@@ -6,7 +6,7 @@
 
 ## In progress
 
-- The fixed €1.30 direct Story purchase has a Story-linked order, 130-cent server quote, and provider-confirmed entitlement fulfilment. The pending change adds a truthful owner-scoped return state and correct Stripe Story line-item label. Credit top-ups gain a custom whole-euro input and immediate canonical bonus quote. Protected Preview Checkout, webhook, and Library acceptance remain outstanding; CRFD-56 and CRFD-50 track them. CRFD-37 remains held behind OD-010.
+- The fixed €1.30 direct Story purchase has a Story-linked order, 130-cent server quote, provider-confirmed entitlement fulfilment, truthful owner-scoped return state and Stripe Story line-item label. Credit top-ups accept custom whole-euro amounts with an immediate canonical bonus quote. CRFD-52 is adding owner-scoped payment history and auditable review for direct-purchase reversals or duplicate ownership. These records do not themselves perform a Stripe refund or decide entitlement revocation; OD-007 remains open. Protected Preview Checkout, webhook and Library acceptance remain outstanding under CRFD-56 and CRFD-50. CRFD-37 remains held behind OD-010.
 
 ## In review
 
@@ -55,7 +55,7 @@
 
 ## Blocked
 
-- Direct Story purchase cannot be declared complete until its provider-confirmed entitlement path, refund/reversal behavior, and two-option UI pass protected Preview money and access-control tests. Isolated PostgreSQL CI exposed the direct-button root cause: the server's 130-cent order omitted required zero-valued pricing fields, so order validation threw before persistence or Stripe. The quote contract now includes them. The Vercel connector still returns 403 for historical runtime logs; the nonproduction database has all 18 migrations and no direct Story orders as of 2026-09-27. Live checkout must be retried after this fix. Live production commerce still waits for OD-007.
+- Direct Story purchase cannot be declared complete until the provider-confirmed entitlement path, refund/reversal behavior, and two-option UI pass protected Preview money and access-control tests. Isolated PostgreSQL CI exposed the direct-button root cause: the server's 130-cent order omitted required zero-valued pricing fields, so order validation threw before persistence or Stripe. The quote contract now includes them. The Vercel connector still returns 403 for historical runtime logs; the nonproduction database has all 18 migrations and no direct Story orders as of 2026-09-27. Live checkout must be retried after this fix. Direct reversal evidence is review-only until OD-007 defines the legal/provider and entitlement policy. Live production commerce still waits for OD-007.
 - Linear cycle creation is subject to the workspace exposing cycle-management capability.
 - Visual acceptance remains dependent on renewed structured access to the Curiofold Figma file.
 - Final spent-credit behavior for refunds and chargebacks is gated by OD-010. CRFD-35 and the unspent-credit portion of CRFD-36 can proceed independently.

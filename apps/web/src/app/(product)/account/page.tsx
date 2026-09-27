@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ErrorState, PageFrame } from '@curiofold/ui'
 
 import { getAccountWallet } from '@/server/account-wallet'
+import { getAccountPurchases } from '@/server/account-purchases'
 import {
   IdentitySessionError,
   isClerkSessionConfigured,
@@ -11,6 +12,7 @@ import {
 } from '@/server/identity'
 
 import styles from './account.module.css'
+import { PurchaseHistory } from './purchase-history'
 import { WalletSummary } from './wallet-summary'
 
 export const dynamic = 'force-dynamic'
@@ -62,7 +64,10 @@ export default async function AccountPage() {
 
   const account = await resolveAccount()
   if (account.status === 'authenticated') {
-    const wallet = await getAccountWallet(account.userId)
+    const [wallet, purchases] = await Promise.all([
+      getAccountWallet(account.userId),
+      getAccountPurchases(account.userId),
+    ])
     return (
       <PageFrame>
         <section className={styles.account}>
@@ -85,6 +90,14 @@ export default async function AccountPage() {
           ) : (
             <p role="status">
               Your credits are temporarily unavailable. Please try again
+              shortly.
+            </p>
+          )}
+          {purchases.status === 'available' ? (
+            <PurchaseHistory purchases={purchases.purchases} />
+          ) : (
+            <p role="status">
+              Your purchases are temporarily unavailable. Please try again
               shortly.
             </p>
           )}

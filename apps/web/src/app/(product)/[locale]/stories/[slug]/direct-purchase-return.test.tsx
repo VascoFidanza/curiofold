@@ -18,7 +18,7 @@ afterEach(() => {
 })
 
 describe('direct Story purchase return', () => {
-  it('waits for the matching owner-scoped fulfilled order before claiming ownership', async () => {
+  it('confirms payment without assuming the Story entitlement is active', async () => {
     let resolveOrder: (response: Response) => void = () => undefined
     vi.spyOn(globalThis, 'fetch').mockImplementation(
       () =>
@@ -49,10 +49,14 @@ describe('direct Story purchase return', () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          'Payment confirmed. This Story is now in your Library.',
+          /Payment confirmed. We are checking your Story access/u,
         ),
       ).toBeTruthy()
     })
+    expect(screen.queryByText(/Story is now in your Library/u)).toBeNull()
+    expect(
+      screen.getByRole('link', { name: 'Check Story access' }),
+    ).toBeTruthy()
     expect(refresh).toHaveBeenCalledOnce()
   })
 

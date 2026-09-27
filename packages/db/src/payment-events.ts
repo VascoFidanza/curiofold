@@ -223,7 +223,36 @@ export async function processProviderEvent(
               occurredAt: processedAt,
               reason: 'Story purchased directly at the canonical price.',
             })
+          } else {
+            await transaction.insert(schema.outboxEvents).values({
+              aggregateId: order.id,
+              aggregateType: 'payment_order',
+              eventType: 'payment.direct_entitlement_review_required',
+              payload: {
+                orderId: order.id,
+                reason: 'existing_inactive_entitlement',
+              },
+            })
+            await transaction.insert(schema.auditEvents).values({
+              action: 'payment.direct_entitlement_review_required',
+              metadata: { reason: 'existing_inactive_entitlement' },
+              targetId: order.id,
+              targetType: 'payment_order',
+            })
           }
+        } else {
+          await transaction.insert(schema.outboxEvents).values({
+            aggregateId: order.id,
+            aggregateType: 'payment_order',
+            eventType: 'payment.direct_entitlement_review_required',
+            payload: { orderId: order.id, reason: 'already_owned' },
+          })
+          await transaction.insert(schema.auditEvents).values({
+            action: 'payment.direct_entitlement_review_required',
+            metadata: { reason: 'already_owned' },
+            targetId: order.id,
+            targetType: 'payment_order',
+          })
         }
       } else {
         await grantCreditsWithinTransaction(transaction, {

@@ -23,6 +23,7 @@ import {
   revokeStoryEntitlement,
 } from './entitlements'
 import { findOwnedStoryState, listLibraryStories } from './library'
+import { listPurchaseHistory } from './purchase-history'
 import {
   findPublishedStory,
   findPublishedStoryBySlug,
@@ -1117,6 +1118,122 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           .from(storyEntitlements)
           .where(eq(storyEntitlements.userId, directReader.userId)),
       ).toHaveLength(1)
+
+      const directReversal = await createPaymentReversal(database.client, {
+        amountMinor: 130,
+        creditsRequested: 0,
+        kind: 'refund',
+        operationKey: 'refund:direct-story-fixture',
+        orderId: directOrderId,
+        reasonCode: 'test_review',
+      })
+      expect(directReversal.reversal.status).toBe('requested')
+      await expect(
+        reverseUnspentPurchasedCredits(database.client, {
+          reversalId: directReversal.reversal.id,
+          transitionSource: 'guarded_operator',
+        }),
+      ).resolves.toMatchObject({
+        availableCredits: 0,
+        availablePurchasedCredits: 0,
+        outcome: 'policy_required',
+        reversedCredits: 0,
+        walletEntryId: null,
+      })
+      await expect(
+        reverseUnspentPurchasedCredits(database.client, {
+          reversalId: directReversal.reversal.id,
+          transitionSource: 'guarded_operator',
+        }),
+      ).resolves.toMatchObject({ outcome: 'policy_required' })
+      expect(
+        await listPurchaseHistory(database.client, directReader.userId, 'en'),
+      ).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            amountMinor: 130,
+            credits: 0,
+            kind: 'individual_story',
+            reversals: [
+              expect.objectContaining({
+                amountMinor: 130,
+                kind: 'refund',
+                status: 'manual_review',
+              }),
+            ],
+            status: 'fulfilled',
+            story: expect.objectContaining({ slug: 'clockwork-gardens' }),
+          }),
+        ]),
+      )
+      expect(
+        await listPurchaseHistory(database.client, linkedAccount.userId, 'en'),
+      ).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: directOrderId }),
+        ]),
+      )
+      await expect(
+        findOwnedStoryState(
+          database.client,
+          directReader.userId,
+          story.id,
+          'en',
+        ),
+      ).resolves.toBe('unread')
+      await expect(
+        findWalletBalance(database.client, directReader.userId),
+      ).resolves.toEqual({ availableCredits: 0, version: 0 })
+
+      // A second paid checkout racing with an existing entitlement is still
+      // paid, but must leave durable support evidence rather than duplicate it.
+      const duplicateDirectOrder = await createPaymentOrder(database.client, {
+        ...directCommand,
+        operationKey: 'checkout:duplicate-direct-story-fixture',
+      })
+      await attachPaymentCheckoutSession(database.client, {
+        orderId: duplicateDirectOrder.order.id,
+        providerKey: 'stripe',
+        providerSessionId: 'cs_test_duplicate_direct_story_fixture',
+      })
+      await recordProviderEvent(database.client, {
+        eventType: 'checkout.session.completed',
+        payloadDigest: 'e'.repeat(64),
+        providerCreatedAt: new Date('2026-09-20T10:04:53.000Z'),
+        providerEventId: 'evt_test_duplicate_direct_story_fixture',
+        providerKey: 'stripe',
+        receivedAt: new Date('2026-09-20T10:04:54.000Z'),
+      })
+      await expect(
+        processProviderEvent(database.client, {
+          providerEventId: 'evt_test_duplicate_direct_story_fixture',
+          providerKey: 'stripe',
+          snapshot: {
+            checkoutUrl: null,
+            providerPaymentId: 'pi_test_duplicate_direct_story_fixture',
+            providerSessionId: 'cs_test_duplicate_direct_story_fixture',
+            state: 'paid',
+          },
+        }),
+      ).resolves.toMatchObject({ outcome: 'fulfilled' })
+      expect(
+        await database.client
+          .select()
+          .from(storyEntitlements)
+          .where(eq(storyEntitlements.userId, directReader.userId)),
+      ).toHaveLength(1)
+      expect(
+        await database.client
+          .select()
+          .from(outboxEvents)
+          .where(eq(outboxEvents.aggregateId, duplicateDirectOrder.order.id)),
+      ).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            eventType: 'payment.direct_entitlement_review_required',
+          }),
+        ]),
+      )
 
       const reversalRaceReader = await ensureIdentityAccount(
         database.client,
