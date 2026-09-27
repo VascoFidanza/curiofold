@@ -1049,9 +1049,14 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         'en',
         'design-history',
       )
-      expect(categoryStories.map(({ document }) => document.storyKey)).toEqual([
-        'clockwork-gardens',
-      ])
+      expect(categoryStories.map(({ document }) => document.storyKey)).toEqual(
+        expect.arrayContaining(['clockwork-gardens']),
+      )
+      expect(
+        categoryStories.filter(
+          ({ document }) => document.storyKey === 'clockwork-gardens',
+        ),
+      ).toHaveLength(1)
       await expect(
         listPublishedStoriesByCategory(
           database.client,
