@@ -97,13 +97,32 @@ describe('Reader progress client', () => {
         storyId="11111111-1111-4111-8111-111111111111"
         versionId="22222222-2222-4222-8222-222222222222"
       >
-        <ReaderCompletionActions />
+        <ReaderCompletionActions
+          relatedStories={[
+            {
+              basis: 'editorial',
+              hook: 'A second reviewed rabbit hole.',
+              locale: 'en',
+              slug: 'next-garden',
+              title: 'The Next Garden',
+            },
+          ]}
+        />
       </ReaderProgressProvider>,
     )
 
     expect(
       screen.getByRole('link', { name: 'Your Library' }).getAttribute('href'),
     ).toBe('/library')
+    expect(
+      screen.getByRole('heading', { name: 'For your next rabbit hole' }),
+    ).toBeTruthy()
+    expect(screen.getByText('The Next Garden')).toBeTruthy()
+    expect(
+      screen
+        .getByRole('link', { name: 'Explore this Story' })
+        .getAttribute('href'),
+    ).toBe('/en/stories/next-garden')
     expect(
       screen
         .getByRole('link', { name: 'Discover Stories' })

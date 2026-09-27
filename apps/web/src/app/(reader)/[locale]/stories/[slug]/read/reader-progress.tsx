@@ -12,6 +12,7 @@ import {
 } from 'react'
 
 import { readingPercentAtAnchor } from '@curiofold/domain'
+import type { RelatedStorySuggestion } from '@curiofold/content'
 
 import styles from './reader.module.css'
 
@@ -452,7 +453,9 @@ export function ReaderProgressIndicator() {
   )
 }
 
-export function ReaderCompletionActions() {
+export function ReaderCompletionActions({
+  relatedStories = [],
+}: Readonly<{ relatedStories?: readonly RelatedStorySuggestion[] }>) {
   const progress = useContext(ProgressContext)
   if (!progress?.completed) {
     return null
@@ -463,6 +466,26 @@ export function ReaderCompletionActions() {
       <p className={styles.sectionEyebrow}>Story complete</p>
       <h2 id="completion-heading">Where should curiosity take you next?</h2>
       <p>Your progress is saved. Return to your shelf or find another Story.</p>
+      {relatedStories.length > 0 ? (
+        <div className={styles.nextStories}>
+          <h3>
+            {relatedStories[0]?.basis === 'editorial'
+              ? 'For your next rabbit hole'
+              : 'Worth exploring'}
+          </h3>
+          <ul>
+            {relatedStories.map((story) => (
+              <li key={`${story.locale}:${story.slug}`}>
+                <strong>{story.title}</strong>
+                <p>{story.hook}</p>
+                <Link href={`/${story.locale}/stories/${story.slug}`}>
+                  Explore this Story
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       <div className={styles.completionLinks}>
         <Link href="/library">Your Library</Link>
         <Link href="/">Discover Stories</Link>

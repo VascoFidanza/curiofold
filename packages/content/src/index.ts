@@ -21,6 +21,7 @@ export { categoryLabel } from './category-label'
 export {
   createReaderStory,
   type ReaderStory,
+  type RelatedStorySuggestion,
   type ReaderStoryBlock,
   type ReaderStorySource,
 } from './reader-story'

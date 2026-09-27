@@ -449,6 +449,46 @@ h3.sectionHeading {
   line-height: var(--cf-line-height-body-default);
 }
 
+.nextStories {
+  display: grid;
+  gap: var(--cf-space-3);
+  padding-block: var(--cf-space-4);
+  border-block: 1px solid var(--cf-color-border-subtle);
+}
+
+.nextStories h3,
+.nextStories p {
+  margin: 0;
+}
+
+.nextStories ul {
+  display: grid;
+  gap: var(--cf-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nextStories li {
+  display: grid;
+  gap: var(--cf-space-2);
+}
+
+.nextStories li + li {
+  padding-top: var(--cf-space-4);
+  border-top: 1px solid var(--cf-color-border-subtle);
+}
+
+.nextStories p {
+  color: var(--cf-color-text-secondary);
+}
+
+.nextStories a {
+  justify-self: start;
+  color: var(--cf-color-action-primary);
+  font-weight: 700;
+}
+
 .completionLinks {
   display: flex;
   flex-wrap: wrap;

@@ -65,6 +65,14 @@ export interface ReaderStorySource {
   readonly url: string | null
 }
 
+export interface RelatedStorySuggestion {
+  readonly basis: 'editorial' | 'shared_category'
+  readonly hook: string
+  readonly locale: string
+  readonly slug: string
+  readonly title: string
+}
+
 export interface ReaderStory {
   readonly blocks: readonly ReaderStoryBlock[]
   readonly categoryKeys: readonly string[]
