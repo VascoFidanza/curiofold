@@ -14,7 +14,7 @@
   margin-bottom: var(--cf-space-5);
 }
 
-.categories span,
+.categories a,
 .sectionEyebrow {
   color: var(--cf-color-action-primary);
   font-size: var(--cf-font-size-label-medium);
@@ -24,11 +24,17 @@
   text-transform: uppercase;
 }
 
-.categories span {
+.categories a {
   padding: var(--cf-space-2) var(--cf-space-3);
+  text-decoration: none;
   background: var(--cf-color-bg-surface);
   border: 1px solid var(--cf-color-border-subtle);
   border-radius: var(--cf-radius-full);
+}
+
+.categories a:hover,
+.categories a:focus-visible {
+  text-decoration: underline;
 }
 
 .title {

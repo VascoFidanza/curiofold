@@ -6,6 +6,7 @@
 
 ## In progress
 
+- CRFD-57 adds published-only, locale-scoped category browsing and links from Discover/Story Detail. Local tests and build pass; isolated PostgreSQL and Preview acceptance are pending. Additional category labels must be reviewed with launch content rather than relying on the readable fallback.
 - The fixed €1.30 direct Story purchase has a Story-linked order, 130-cent server quote, provider-confirmed entitlement fulfilment, truthful owner-scoped return state and Stripe Story line-item label. Credit top-ups accept custom whole-euro amounts with an immediate canonical bonus quote. CRFD-52 is adding owner-scoped payment history and auditable review for direct-purchase reversals or duplicate ownership. These records do not themselves perform a Stripe refund or decide entitlement revocation; OD-007 remains open. Protected Preview Checkout, webhook and Library acceptance remain outstanding under CRFD-56 and CRFD-50. CRFD-37 remains held behind OD-010.
 
 ## In review

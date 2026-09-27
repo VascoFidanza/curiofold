@@ -3,7 +3,7 @@ import {
   type CompiledStoryDocument,
   type PublishedStoryResolution,
 } from '@curiofold/content'
-import { and, asc, desc, eq, ilike, isNotNull, or } from 'drizzle-orm'
+import { and, asc, desc, eq, ilike, isNotNull, or, sql } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 
 import * as schema from './schema'
@@ -135,6 +135,56 @@ export async function listPublishedStories(
       story.document.publication.state !== 'published'
     ) {
       throw new Error('Published Story listing returned an invalid projection.')
+    }
+    return story
+  })
+}
+
+/** Filters the current published revision, never a draft or historical version. */
+export async function listPublishedStoriesByCategory(
+  database: CuriofoldDatabase,
+  locale: string,
+  categoryKey: string,
+  limit = 24,
+): Promise<readonly CompiledStoryDocument[]> {
+  if (!locale.trim() || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(categoryKey)) {
+    throw new TypeError('Category and locale are required.')
+  }
+  if (!Number.isInteger(limit) || limit < 1 || limit > 24) {
+    throw new RangeError('Category listing limit must be from 1 to 24.')
+  }
+
+  const rows = await database
+    .select({ document: schema.storyVersions.document })
+    .from(schema.storyLocalizations)
+    .innerJoin(
+      schema.storyVersions,
+      eq(
+        schema.storyVersions.id,
+        schema.storyLocalizations.currentPublishedVersionId,
+      ),
+    )
+    .where(
+      and(
+        eq(schema.storyLocalizations.locale, locale),
+        eq(schema.storyLocalizations.state, 'published'),
+        sql`${schema.storyVersions.document} @> ${JSON.stringify({ metadata: { categoryKeys: [categoryKey] } })}::jsonb`,
+      ),
+    )
+    .orderBy(
+      desc(schema.storyLocalizations.updatedAt),
+      asc(schema.storyLocalizations.title),
+    )
+    .limit(limit)
+
+  return rows.map(({ document }) => {
+    const story = compileStoryDocument(document)
+    if (
+      story.document.locale !== locale ||
+      story.document.publication.state !== 'published' ||
+      !story.document.metadata.categoryKeys.includes(categoryKey)
+    ) {
+      throw new Error('Category listing returned an invalid projection.')
     }
     return story
   })

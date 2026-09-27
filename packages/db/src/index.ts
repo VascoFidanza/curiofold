@@ -40,6 +40,7 @@ export {
   findPublishedStoryBySlug,
   isPublishedStory,
   listPublishedStories,
+  listPublishedStoriesByCategory,
   searchPublishedStories,
   type PublishedStoryLocalization,
   type PublishedStoryRouteResolution,

@@ -12,13 +12,7 @@ import styles from './story-detail.module.css'
 import { UnlockAction } from './unlock-action'
 import { DirectPurchaseAction } from './direct-purchase-action'
 import { DirectPurchaseReturn } from './direct-purchase-return'
-
-function humanizeKey(value: string): string {
-  return value
-    .split('-')
-    .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
-    .join(' ')
-}
+import { categoryLabel } from '@curiofold/content'
 
 function formatDate(value: string, locale: string): string {
   return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
@@ -115,7 +109,12 @@ export function StoryDetail({
         <div className={styles.story}>
           <div className={styles.categories}>
             {detail.categoryKeys.map((category) => (
-              <span key={category}>{humanizeKey(category)}</span>
+              <Link
+                href={`/${detail.locale}/categories/${category}`}
+                key={category}
+              >
+                {categoryLabel(category, detail.locale)}
+              </Link>
             ))}
           </div>
           <h1 className={styles.title}>{detail.title}</h1>

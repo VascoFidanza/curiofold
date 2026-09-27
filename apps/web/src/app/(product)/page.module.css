@@ -85,6 +85,27 @@
   gap: var(--cf-space-4);
 }
 
+.categoryLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-2);
+}
+
+.categoryLinks a {
+  padding: var(--cf-space-2) var(--cf-space-3);
+  color: var(--cf-color-action-primary);
+  font-weight: 700;
+  text-decoration: none;
+  background: var(--cf-color-bg-surface);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: var(--cf-radius-full);
+}
+
+.categoryLinks a:hover,
+.categoryLinks a:focus-visible {
+  text-decoration: underline;
+}
+
 .storyCard {
   display: grid;
   min-height: 15rem;

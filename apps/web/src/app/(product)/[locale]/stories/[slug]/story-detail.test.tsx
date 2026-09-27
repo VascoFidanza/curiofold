@@ -61,6 +61,9 @@ describe('public Story Detail', () => {
     expect(screen.getByText('2 min')).toBeTruthy()
     expect(screen.getByText('1 source recorded')).toBeTruthy()
     expect(
+      screen.getByRole('link', { name: 'Design history' }).getAttribute('href'),
+    ).toBe('/en/categories/design-history')
+    expect(
       screen.getByText('At noon, every path aligned for a single minute.'),
     ).toBeTruthy()
     expect(
