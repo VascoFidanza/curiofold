@@ -36,3 +36,10 @@ export const privateContentHeaders: readonly {
   { key: 'Pragma', value: 'no-cache' },
   { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
 ]
+
+/** Synthetic and test content must not be indexed before a production release. */
+export function publicIndexingHeaders(vercelEnvironment?: string) {
+  return vercelEnvironment === 'production'
+    ? []
+    : [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' }]
+}
