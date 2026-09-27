@@ -58,7 +58,13 @@ export function DirectPurchaseAction({
         result.status !== 'checkout_created'
       )
         throw new Error('Checkout confirmation was invalid')
-      window.location.assign(result.checkoutUrl)
+      const checkout = new URL(result.checkoutUrl)
+      if (
+        checkout.protocol !== 'https:' ||
+        checkout.hostname !== 'checkout.stripe.com'
+      )
+        throw new Error('Checkout destination was invalid')
+      window.location.assign(checkout.toString())
     } catch {
       setError(
         'We could not start checkout. Please try again; you will not be charged twice.',

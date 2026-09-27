@@ -2,6 +2,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
 import { compileStoryDocument } from '@curiofold/content'
+import { quoteDirectStoryPurchase } from '@curiofold/domain'
 import { eq } from 'drizzle-orm'
 import { Client } from 'pg'
 import { describe, expect, it } from 'vitest'
@@ -1040,6 +1041,82 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           state: 'published',
         })
         .where(eq(storyLocalizations.id, localization.id))
+
+      const directReader = await ensureIdentityAccount(
+        database.client,
+        'user_direct_purchase_fixture',
+        new Date('2026-09-20T10:04:50.000Z'),
+      )
+      const directCommand = {
+        operationKey: 'checkout:direct-story-fixture',
+        returnPath: '/en/stories/clockwork-gardens',
+        snapshot: {
+          ...quoteDirectStoryPurchase(),
+          packKey: 'story-direct-v1',
+        },
+        storyId: story.id,
+        userId: directReader.userId,
+      } as const
+      const directOrders = await Promise.all([
+        createPaymentOrder(database.client, directCommand),
+        createPaymentOrder(database.client, directCommand),
+      ])
+      expect(directOrders.filter(({ created }) => created)).toHaveLength(1)
+      const directOrderId = directOrders[0].order.id
+      await attachPaymentCheckoutSession(database.client, {
+        orderId: directOrderId,
+        providerKey: 'stripe',
+        providerSessionId: 'cs_test_direct_story_fixture',
+      })
+      await recordProviderEvent(database.client, {
+        eventType: 'checkout.session.completed',
+        payloadDigest: 'd'.repeat(64),
+        providerCreatedAt: new Date('2026-09-20T10:04:51.000Z'),
+        providerEventId: 'evt_test_direct_story_fixture',
+        providerKey: 'stripe',
+        receivedAt: new Date('2026-09-20T10:04:52.000Z'),
+      })
+      const directFulfilment = {
+        providerEventId: 'evt_test_direct_story_fixture',
+        providerKey: 'stripe',
+        snapshot: {
+          checkoutUrl: null,
+          providerPaymentId: 'pi_test_direct_story_fixture',
+          providerSessionId: 'cs_test_direct_story_fixture',
+          state: 'paid',
+        },
+      } as const
+      const directResults = await Promise.all([
+        processProviderEvent(database.client, directFulfilment),
+        processProviderEvent(database.client, directFulfilment),
+      ])
+      expect(new Set(directResults.map(({ outcome }) => outcome))).toEqual(
+        new Set(['fulfilled', 'duplicate']),
+      )
+      await expect(
+        findOwnedStoryState(
+          database.client,
+          directReader.userId,
+          story.id,
+          'en',
+        ),
+      ).resolves.toBe('unread')
+      await expect(
+        listLibraryStories(database.client, directReader.userId, 'en'),
+      ).resolves.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ storyId: story.id }),
+        ]),
+      )
+      await expect(
+        findWalletBalance(database.client, directReader.userId),
+      ).resolves.toEqual({ availableCredits: 0, version: 0 })
+      expect(
+        await database.client
+          .select()
+          .from(storyEntitlements)
+          .where(eq(storyEntitlements.userId, directReader.userId)),
+      ).toHaveLength(1)
 
       const reversalRaceReader = await ensureIdentityAccount(
         database.client,

@@ -100,7 +100,9 @@ describe('payment-order status route', () => {
       credits: 5,
       currency: 'EUR',
       orderId,
+      purchaseType: 'credit_top_up',
       status: 'fulfilled',
+      storyId: null,
       updatedAt: '2026-09-24T10:01:00.000Z',
     })
     expect(body).not.toHaveProperty('providerPaymentId')

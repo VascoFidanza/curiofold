@@ -132,13 +132,27 @@ export function CreditsPurchase({
   orderId,
   returnPath,
 }: Readonly<{ orderId: string | null; returnPath: string }>) {
-  const [amountEUR, setAmountEUR] = useState<number>(5)
+  const [amountInput, setAmountInput] = useState('5')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const operationKey = useRef<string | null>(null)
+  const pending = useRef(false)
+  const amountEUR = /^\d+$/u.test(amountInput) ? Number(amountInput) : NaN
+  const validAmount =
+    Number.isSafeInteger(amountEUR) &&
+    amountEUR >= 5 &&
+    Number.isSafeInteger(amountEUR * 100)
+  const quote = validAmount ? quoteCreditTopUp(amountEUR * 100) : null
+
+  function changeAmount(value: string) {
+    setAmountInput(value)
+    operationKey.current = null
+    setError(null)
+  }
 
   async function startCheckout() {
-    if (submitting) return
+    if (pending.current || !quote) return
+    pending.current = true
     setSubmitting(true)
     setError(null)
     operationKey.current ??= crypto.randomUUID()
@@ -170,6 +184,7 @@ export function CreditsPurchase({
     } catch {
       setError('Checkout could not start. Please try again.')
     } finally {
+      pending.current = false
       setSubmitting(false)
     }
   }
@@ -192,14 +207,12 @@ export function CreditsPurchase({
               const quote = quoteCreditTopUp(amount * 100)
               return (
                 <button
-                  aria-pressed={amountEUR === amount}
+                  aria-pressed={amountInput === String(amount)}
                   className={styles.amount}
                   disabled={submitting}
                   key={amount}
                   onClick={() => {
-                    setAmountEUR(amount)
-                    operationKey.current = null
-                    setError(null)
+                    changeAmount(String(amount))
                   }}
                   type="button"
                 >
@@ -212,9 +225,55 @@ export function CreditsPurchase({
               )
             })}
           </div>
+          <label className={styles.customAmount} htmlFor="top-up-amount">
+            Custom amount in whole euros
+            <span className={styles.amountInput}>
+              <span aria-hidden="true">€</span>
+              <input
+                aria-describedby="top-up-hint"
+                aria-invalid={!quote}
+                disabled={submitting}
+                id="top-up-amount"
+                inputMode="numeric"
+                onChange={(event) => {
+                  changeAmount(event.target.value)
+                }}
+                pattern="[0-9]*"
+                type="text"
+                value={amountInput}
+              />
+            </span>
+          </label>
+          <p id="top-up-hint">Enter any whole-euro amount of at least €5.</p>
+          {quote ? (
+            <dl aria-live="polite" className={styles.quote}>
+              <div>
+                <dt>Top up</dt>
+                <dd>€{quote.amountEUR}</dd>
+              </div>
+              <div>
+                <dt>Base credits</dt>
+                <dd>{quote.baseCredits}</dd>
+              </div>
+              <div>
+                <dt>Bonus rate</dt>
+                <dd>+{quote.bonusRateBps / 100}%</dd>
+              </div>
+              <div>
+                <dt>Bonus credits</dt>
+                <dd>+{quote.bonusCredits}</dd>
+              </div>
+              <div>
+                <dt>You receive</dt>
+                <dd>{quote.totalCredits} credits</dd>
+              </div>
+            </dl>
+          ) : (
+            <p role="alert">Enter a whole-euro amount of at least €5.</p>
+          )}
           <button
             className={styles.checkoutButton}
-            disabled={submitting}
+            disabled={submitting || !quote}
             onClick={() => void startCheckout()}
             type="button"
           >
