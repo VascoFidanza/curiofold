@@ -18,6 +18,9 @@ export type CreditTopUpQuote = Readonly<{
 
 export type DirectStoryPurchaseQuote = Readonly<{
   amountMinor: 130
+  baseCredits: 0
+  bonusCredits: 0
+  bonusRateBps: 0
   credits: 0
   currency: 'EUR'
   pricingVersion: typeof directStoryPricingVersion
@@ -28,6 +31,9 @@ export type DirectStoryPurchaseQuote = Readonly<{
 export function quoteDirectStoryPurchase(): DirectStoryPurchaseQuote {
   return {
     amountMinor: directStoryPriceMinor,
+    baseCredits: 0,
+    bonusCredits: 0,
+    bonusRateBps: 0,
     credits: 0,
     currency: 'EUR',
     pricingVersion: directStoryPricingVersion,

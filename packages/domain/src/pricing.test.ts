@@ -47,6 +47,9 @@ describe('canonical direct Story pricing', () => {
   it('quotes every Story at exactly 130 EUR cents without wallet credits', () => {
     expect(quoteDirectStoryPurchase()).toEqual({
       amountMinor: 130,
+      baseCredits: 0,
+      bonusCredits: 0,
+      bonusRateBps: 0,
       credits: 0,
       currency: 'EUR',
       pricingVersion: 'story-direct-eur-v1',

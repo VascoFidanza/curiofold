@@ -90,6 +90,9 @@ describe('Story purchase route', () => {
       returnPath: '/en/stories/clockwork-gardens',
       snapshot: {
         amountMinor: 130,
+        baseCredits: 0,
+        bonusCredits: 0,
+        bonusRateBps: 0,
         credits: 0,
         currency: 'EUR',
         packKey: 'story-direct-v1',

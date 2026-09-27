@@ -2,6 +2,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
 import { compileStoryDocument } from '@curiofold/content'
+import { quoteDirectStoryPurchase } from '@curiofold/domain'
 import { eq } from 'drizzle-orm'
 import { Client } from 'pg'
 import { describe, expect, it } from 'vitest'
@@ -1050,12 +1051,8 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         operationKey: 'checkout:direct-story-fixture',
         returnPath: '/en/stories/clockwork-gardens',
         snapshot: {
-          amountMinor: 130,
-          credits: 0,
-          currency: 'EUR',
+          ...quoteDirectStoryPurchase(),
           packKey: 'story-direct-v1',
-          pricingVersion: 'story-direct-eur-v1',
-          purchaseType: 'individual_story',
         },
         storyId: story.id,
         userId: directReader.userId,

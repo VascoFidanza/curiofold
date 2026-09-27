@@ -55,7 +55,7 @@
 
 ## Blocked
 
-- Direct Story purchase cannot be declared complete until its provider-confirmed entitlement path, refund/reversal behavior, and two-option UI pass protected Preview money and access-control tests. The Vercel connector currently returns 403 for runtime logs, so the historical button error has no confirmed log trace. The nonproduction database has all 18 migrations and no direct Story orders as of 2026-09-27; the earlier missing migration was repaired, but the live checkout must be retried. Live production commerce still waits for OD-007.
+- Direct Story purchase cannot be declared complete until its provider-confirmed entitlement path, refund/reversal behavior, and two-option UI pass protected Preview money and access-control tests. Isolated PostgreSQL CI exposed the direct-button root cause: the server's 130-cent order omitted required zero-valued pricing fields, so order validation threw before persistence or Stripe. The quote contract now includes them. The Vercel connector still returns 403 for historical runtime logs; the nonproduction database has all 18 migrations and no direct Story orders as of 2026-09-27. Live checkout must be retried after this fix. Live production commerce still waits for OD-007.
 - Linear cycle creation is subject to the workspace exposing cycle-management capability.
 - Visual acceptance remains dependent on renewed structured access to the Curiofold Figma file.
 - Final spent-credit behavior for refunds and chargebacks is gated by OD-010. CRFD-35 and the unspent-credit portion of CRFD-36 can proceed independently.
