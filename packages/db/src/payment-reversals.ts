@@ -253,6 +253,72 @@ export async function reverseUnspentPurchasedCredits(
       throw new PaymentCreditReversalUnavailableError('reversal_not_found')
     }
 
+    const [paymentOrder] = await transaction
+      .select({
+        purchaseType: schema.paymentOrders.purchaseType,
+        userId: schema.paymentOrders.userId,
+      })
+      .from(schema.paymentOrders)
+      .where(eq(schema.paymentOrders.id, reversal.orderId))
+      .limit(1)
+    if (!paymentOrder) {
+      throw new PaymentCreditReversalUnavailableError('payment_grant_missing')
+    }
+
+    // A direct purchase has no credit grant to reverse. Neither a refund nor
+    // entitlement policy is implied by this credit-only operation.
+    if (paymentOrder.purchaseType === 'individual_story') {
+      if (reversal.creditsRequested !== 0) {
+        throw new PaymentCreditReversalUnavailableError('status_unavailable')
+      }
+      if (
+        reversal.status !== 'requested' &&
+        reversal.status !== 'manual_review'
+      ) {
+        throw new PaymentCreditReversalUnavailableError('status_unavailable')
+      }
+      const [wallet] = await transaction
+        .select({
+          balance: schema.walletAccounts.balanceCached,
+          version: schema.walletAccounts.version,
+        })
+        .from(schema.walletAccounts)
+        .where(eq(schema.walletAccounts.userId, paymentOrder.userId))
+        .limit(1)
+      if (reversal.status === 'requested') {
+        assertPaymentReversalTransition(
+          'requested',
+          'manual_review',
+          input.transitionSource,
+        )
+        await transaction
+          .update(schema.paymentReversals)
+          .set({ status: 'manual_review', updatedAt: completedAt })
+          .where(eq(schema.paymentReversals.id, reversal.id))
+        await transaction.insert(schema.auditEvents).values({
+          action: 'payment.direct_reversal_review_required',
+          actorUserId: reversal.createdByUserId,
+          metadata: { transitionSource: input.transitionSource },
+          targetId: reversal.id,
+          targetType: 'payment_reversal',
+        })
+        await transaction.insert(schema.outboxEvents).values({
+          aggregateId: reversal.id,
+          aggregateType: 'payment_reversal',
+          eventType: 'payment.direct_reversal_review_required',
+          payload: { orderId: reversal.orderId, reversalId: reversal.id },
+        })
+      }
+      return {
+        availableCredits: wallet?.balance ?? 0,
+        availablePurchasedCredits: 0,
+        outcome: 'policy_required',
+        reversedCredits: 0,
+        walletEntryId: null,
+        walletVersion: wallet?.version ?? 0,
+      }
+    }
+
     const operationKey = normalizeCreditOperationKey(
       `payment-reversal:${reversal.id}`,
     )

@@ -83,8 +83,11 @@ export function DirectPurchaseReturn({
     <div aria-live="polite" className={styles.purchaseReturn}>
       {state === 'fulfilled' ? (
         <>
-          <p>Payment confirmed. This Story is now in your Library.</p>
-          <Link href={`${detailPath}/read`}>Start reading</Link>
+          <p>
+            Payment confirmed. We are checking your Story access. If it does not
+            appear in your Library, please contact support.
+          </p>
+          <Link href={detailPath}>Check Story access</Link>
         </>
       ) : state === 'canceled' ? (
         <>

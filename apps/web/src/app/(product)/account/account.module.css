@@ -117,6 +117,33 @@
   font-size: var(--cf-font-size-label-medium);
 }
 
+.purchaseList {
+  display: grid;
+  gap: var(--cf-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.purchaseItem {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--cf-space-3);
+  padding-top: var(--cf-space-4);
+  border-top: 1px solid var(--cf-color-border-subtle);
+}
+
+.purchaseItem > div {
+  display: grid;
+  gap: var(--cf-space-1);
+}
+
+.purchaseItem time,
+.purchaseItem span {
+  color: var(--cf-color-text-secondary);
+}
+
 .creditChange {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
