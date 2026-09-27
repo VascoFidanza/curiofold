@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { privateContentHeaders, securityHeaders } from './security-headers'
+import {
+  privateContentHeaders,
+  publicIndexingHeaders,
+  securityHeaders,
+} from './security-headers'
 
 describe('security headers', () => {
   it('prevents framing, MIME sniffing and broad browser capabilities', () => {
@@ -33,5 +37,15 @@ describe('security headers', () => {
       Pragma: 'no-cache',
       'X-Robots-Tag': 'noindex, nofollow, noarchive',
     })
+  })
+
+  it('blocks non-production indexing without suppressing production discovery', () => {
+    const noindex = [
+      { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+    ]
+    expect(publicIndexingHeaders('preview')).toEqual(noindex)
+    expect(publicIndexingHeaders('development')).toEqual(noindex)
+    expect(publicIndexingHeaders(undefined)).toEqual(noindex)
+    expect(publicIndexingHeaders('production')).toEqual([])
   })
 })

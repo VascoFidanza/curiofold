@@ -2,6 +2,7 @@ import type { NextConfig } from 'next'
 
 import {
   privateContentHeaders,
+  publicIndexingHeaders,
   securityHeaders,
 } from './src/server/security-headers'
 
@@ -9,7 +10,10 @@ const nextConfig: NextConfig = {
   headers: () =>
     Promise.resolve([
       {
-        headers: securityHeaders.map((header) => ({ ...header })),
+        headers: [
+          ...securityHeaders.map((header) => ({ ...header })),
+          ...publicIndexingHeaders(process.env.VERCEL_ENV),
+        ],
         source: '/(.*)',
       },
       {
