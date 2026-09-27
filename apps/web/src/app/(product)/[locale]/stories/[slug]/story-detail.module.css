@@ -231,6 +231,22 @@
   margin-top: var(--cf-space-6);
 }
 
+.purchaseReturn {
+  display: grid;
+  gap: var(--cf-space-4);
+}
+
+.purchaseReturn p {
+  margin: 0;
+}
+
+.purchaseReturn a,
+.purchaseReturn button {
+  color: var(--cf-color-action-primary);
+  font: inherit;
+  font-weight: 700;
+}
+
 .purchaseDivider {
   display: flex;
   align-items: center;

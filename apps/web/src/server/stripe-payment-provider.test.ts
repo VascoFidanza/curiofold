@@ -87,6 +87,43 @@ describe('Stripe payment provider', () => {
     })
   })
 
+  it('creates a direct Story Checkout for exactly 130 EUR cents without calling it credits', async () => {
+    const create = vi.fn().mockResolvedValue(session())
+    const provider = createStripePaymentProvider({
+      appUrl: 'https://curiofold.test',
+      client: { checkout: { sessions: { create, retrieve: vi.fn() } } },
+    })
+
+    await provider.createCheckoutSession(
+      {
+        amountMinor: 130,
+        cancelPath: '/en/stories/clockwork?payment=canceled',
+        credits: 0,
+        currency: 'EUR',
+        orderId: 'story-order-1',
+        packKey: 'story-direct-v1',
+        purchaseType: 'individual_story',
+        successPath: '/en/stories/clockwork?payment=processing',
+      },
+      'checkout:story-order-1',
+    )
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [
+          expect.objectContaining({
+            price_data: expect.objectContaining({
+              currency: 'eur',
+              product_data: { name: 'Curiofold Story' },
+              unit_amount: 130,
+            }),
+          }),
+        ],
+      }),
+      { idempotencyKey: 'checkout:story-order-1' },
+    )
+  })
+
   it('redacts provider failures and rejects non-HTTPS checkout URLs', async () => {
     const providerFailure = createStripePaymentProvider({
       appUrl: 'https://curiofold.test',

@@ -90,6 +90,58 @@
   line-height: 1.4;
 }
 
+.customAmount {
+  display: grid;
+  width: 100%;
+  max-width: 18rem;
+  gap: var(--cf-space-2);
+  font-weight: 700;
+}
+
+.amountInput {
+  display: flex;
+  align-items: center;
+  gap: var(--cf-space-2);
+  padding: var(--cf-space-3);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: var(--cf-radius-md);
+}
+
+.amountInput input {
+  width: 100%;
+  min-width: 0;
+  color: var(--cf-color-text-primary);
+  font: inherit;
+  background: transparent;
+  border: 0;
+}
+
+.quote {
+  display: grid;
+  width: 100%;
+  gap: var(--cf-space-2);
+  padding: var(--cf-space-4);
+  margin: 0;
+  background: var(--cf-color-bg-base);
+  border-radius: var(--cf-radius-md);
+}
+
+.quote div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--cf-space-4);
+}
+
+.quote dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.quote div:last-child {
+  padding-top: var(--cf-space-2);
+  border-top: 1px solid var(--cf-color-border-subtle);
+}
+
 .checkoutButton,
 .returnCard a,
 .returnCard button {
@@ -120,6 +172,7 @@
 }
 
 .amount:focus-visible,
+.amountInput:focus-within,
 .checkoutButton:focus-visible,
 .returnCard a:focus-visible,
 .returnCard button:focus-visible {

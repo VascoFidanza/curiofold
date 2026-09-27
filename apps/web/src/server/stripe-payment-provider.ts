@@ -109,7 +109,10 @@ export function createStripePaymentProvider(
                 price_data: {
                   currency: command.currency.toLowerCase(),
                   product_data: {
-                    name: `${String(command.credits)} Curiofold credits`,
+                    name:
+                      command.purchaseType === 'individual_story'
+                        ? 'Curiofold Story'
+                        : `${String(command.credits)} Curiofold credits`,
                   },
                   unit_amount: command.amountMinor,
                 },

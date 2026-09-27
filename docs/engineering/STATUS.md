@@ -6,7 +6,7 @@
 
 ## In progress
 
-- The fixed €1.30 direct Story purchase now has a distinct Story-linked order, server-owned 130-cent quote, Stripe Checkout route, provider-confirmed entitlement fulfilment without wallet credits, and a two-option Story Detail UI. The existing credit top-up and one-credit unlock remain intact. Protected Preview and live webhook acceptance still need end-to-end validation. CRFD-37 remains held behind OD-010.
+- The fixed €1.30 direct Story purchase has a Story-linked order, 130-cent server quote, and provider-confirmed entitlement fulfilment. The pending change adds a truthful owner-scoped return state and correct Stripe Story line-item label. Credit top-ups gain a custom whole-euro input and immediate canonical bonus quote. Protected Preview Checkout, webhook, and Library acceptance remain outstanding; CRFD-56 and CRFD-50 track them. CRFD-37 remains held behind OD-010.
 
 ## In review
 
@@ -55,7 +55,7 @@
 
 ## Blocked
 
-- Direct Story purchase cannot be declared complete until its provider-confirmed entitlement path, refund/reversal behavior, and two-option UI pass protected Preview money and access-control tests. Live production commerce still waits for OD-007.
+- Direct Story purchase cannot be declared complete until its provider-confirmed entitlement path, refund/reversal behavior, and two-option UI pass protected Preview money and access-control tests. The Vercel connector currently returns 403 for runtime logs, so the historical button error has no confirmed log trace. The nonproduction database has all 18 migrations and no direct Story orders as of 2026-09-27; the earlier missing migration was repaired, but the live checkout must be retried. Live production commerce still waits for OD-007.
 - Linear cycle creation is subject to the workspace exposing cycle-management capability.
 - Visual acceptance remains dependent on renewed structured access to the Curiofold Figma file.
 - Final spent-credit behavior for refunds and chargebacks is gated by OD-010. CRFD-35 and the unspent-credit portion of CRFD-36 can proceed independently.
@@ -85,4 +85,4 @@
 
 See `docs/project/OPEN_DECISIONS.md`. No open product decision blocks the foundation stage.
 
-**Last updated:** 2026-09-26
+**Last updated:** 2026-09-27

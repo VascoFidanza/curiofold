@@ -137,6 +137,14 @@ describe('credit Checkout route', () => {
     )
     expect(invalid.status).toBe(400)
     expect(createOrderSource).not.toHaveBeenCalled()
+
+    const unsupportedCurrency = await createCreditCheckoutResponse(
+      request({ amountEUR: 5, currency: 'USD' }),
+      'request-currency',
+      dependencies({ createOrderSource }),
+    )
+    expect(unsupportedCurrency.status).toBe(400)
+    expect(createOrderSource).not.toHaveBeenCalled()
   })
 
   it('requires authentication and verified email', async () => {

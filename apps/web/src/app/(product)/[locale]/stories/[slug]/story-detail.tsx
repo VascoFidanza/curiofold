@@ -11,6 +11,7 @@ import type { StoryPurchaseState } from '@/server/story-purchase-state'
 import styles from './story-detail.module.css'
 import { UnlockAction } from './unlock-action'
 import { DirectPurchaseAction } from './direct-purchase-action'
+import { DirectPurchaseReturn } from './direct-purchase-return'
 
 function humanizeKey(value: string): string {
   return value
@@ -87,15 +88,22 @@ function PreviewBlock({ block }: Readonly<{ block: PublicStoryPreviewBlock }>) {
 }
 
 export function StoryDetail({
+  checkoutCanceled = false,
   detail,
+  orderId,
   purchase,
   storyId,
 }: Readonly<{
+  checkoutCanceled?: boolean
   detail: PublicStoryDetail
+  orderId?: string | null
   purchase: StoryPurchaseState
   storyId: string
 }>) {
   const detailPath = `/${detail.locale}/stories/${detail.slug}`
+  const detailReturnPath = orderId
+    ? `${detailPath}?payment_order=${encodeURIComponent(orderId)}`
+    : detailPath
   const creditsPath = `/credits?return=${encodeURIComponent(detailPath)}`
   const sourceLabel = `${String(detail.credibility.sourceCount)} ${
     detail.credibility.sourceCount === 1 ? 'source' : 'sources'
@@ -203,39 +211,51 @@ export function StoryDetail({
               <p>Sign in to see your balance and unlock this Story.</p>
               <Link
                 className={styles.unlockLink}
-                href={`/sign-in?redirect_url=${encodeURIComponent(detailPath)}`}
+                href={`/sign-in?redirect_url=${encodeURIComponent(detailReturnPath)}`}
               >
                 Sign in to unlock
               </Link>
             </>
           ) : purchase.status === 'unowned' ? (
-            <>
-              <p>Keep this Story with either purchase option.</p>
-              <DirectPurchaseAction detailPath={detailPath} storyId={storyId} />
-              <div className={styles.purchaseDivider}>
-                <span>or use credits</span>
-              </div>
-              <p>
-                You have {purchase.availableCredits}{' '}
-                {purchase.availableCredits === 1 ? 'credit' : 'credits'}{' '}
-                available. One credit unlocks one Story.
-              </p>
-              {!purchase.canUnlock ? (
+            orderId ? (
+              <DirectPurchaseReturn
+                checkoutCanceled={checkoutCanceled}
+                detailPath={detailPath}
+                orderId={orderId}
+                storyId={storyId}
+              />
+            ) : (
+              <>
+                <p>Keep this Story with either purchase option.</p>
+                <DirectPurchaseAction
+                  detailPath={detailPath}
+                  storyId={storyId}
+                />
+                <div className={styles.purchaseDivider}>
+                  <span>or use credits</span>
+                </div>
                 <p>
-                  Verify your email in <Link href="/account">Account</Link>{' '}
-                  before unlocking.
+                  You have {purchase.availableCredits}{' '}
+                  {purchase.availableCredits === 1 ? 'credit' : 'credits'}{' '}
+                  available. One credit unlocks one Story.
                 </p>
-              ) : purchase.availableCredits < 1 ? (
-                <Link className={styles.unlockLink} href={creditsPath}>
-                  Add credits to continue
-                </Link>
-              ) : (
-                <UnlockAction detailPath={detailPath} storyId={storyId} />
-              )}
-              <p className={styles.unlockNote}>
-                Yours permanently in your Library.
-              </p>
-            </>
+                {!purchase.canUnlock ? (
+                  <p>
+                    Verify your email in <Link href="/account">Account</Link>{' '}
+                    before unlocking.
+                  </p>
+                ) : purchase.availableCredits < 1 ? (
+                  <Link className={styles.unlockLink} href={creditsPath}>
+                    Add credits to continue
+                  </Link>
+                ) : (
+                  <UnlockAction detailPath={detailPath} storyId={storyId} />
+                )}
+                <p className={styles.unlockNote}>
+                  Yours permanently in your Library.
+                </p>
+              </>
+            )
           ) : (
             <p>
               {purchase.status === 'disabled'

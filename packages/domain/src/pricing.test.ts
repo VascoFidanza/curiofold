@@ -5,8 +5,10 @@ import { quoteCreditTopUp, quoteDirectStoryPurchase } from './pricing'
 describe('canonical EUR credit top-up pricing', () => {
   it.each([
     [5, 5, 0, 5],
+    [7, 7, 0, 7],
     [9, 9, 0, 9],
     [10, 11, 1_000, 11],
+    [13, 14, 1_000, 14],
     [19, 21, 1_000, 21],
     [20, 23, 1_500, 23],
     [23, 26, 1_500, 26],
