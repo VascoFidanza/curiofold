@@ -1,16 +1,23 @@
-import { createReaderStory, type ReaderStory } from '@curiofold/content'
+import {
+  createReaderStory,
+  type ReaderStory,
+  type RelatedStorySuggestion,
+} from '@curiofold/content'
 import {
   findEntitledStoryBySlug,
   findReadingProgress,
+  listRelatedPublishedStories,
   type PublishedStoryLocalization,
   type ReadingProgressSnapshot,
 } from '@curiofold/db'
 
 import { getDatabase } from './database'
+import { runtimeLogger } from './observability'
 
 export type ReaderStoryRouteData =
   | Readonly<{
       progress: ReadingProgressSnapshot
+      relatedStories: readonly RelatedStorySuggestion[]
       status: 'found'
       story: ReaderStory
       storyId: string
@@ -44,16 +51,38 @@ export async function getReaderStoryRoute(
     return resolution
   }
 
-  const progress = await findReadingProgress(database, {
-    currentStory: resolution.story,
-    currentVersionId: resolution.versionId,
-    locale,
-    storyId: resolution.storyId,
-    userId,
-  })
+  const [progress, relatedStories] = await Promise.all([
+    findReadingProgress(database, {
+      currentStory: resolution.story,
+      currentVersionId: resolution.versionId,
+      locale,
+      storyId: resolution.storyId,
+      userId,
+    }),
+    listRelatedPublishedStories(database, {
+      categoryKeys: resolution.story.document.metadata.categoryKeys,
+      currentStoryKey: resolution.story.document.storyKey,
+      locale,
+      relatedStoryKeys: resolution.story.document.metadata.relatedStoryKeys,
+    }).catch((error: unknown) => {
+      runtimeLogger.error('story.related.failed', {
+        dependency: 'database',
+        errorKind: error instanceof Error ? error.name : 'unknown',
+        route: '/[locale]/stories/[slug]/read',
+      })
+      return []
+    }),
+  ])
 
   return {
     progress,
+    relatedStories: relatedStories.map(({ basis, story }) => ({
+      basis,
+      hook: story.document.metadata.hook,
+      locale: story.document.locale,
+      slug: story.document.slug,
+      title: story.document.metadata.title,
+    })),
     status: 'found',
     story: createReaderStory(resolution.story),
     storyId: resolution.storyId,

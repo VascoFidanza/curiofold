@@ -47,6 +47,10 @@ export {
   type PublishedStorySearchResult,
 } from './published-stories'
 export {
+  listRelatedPublishedStories,
+  type RelatedPublishedStory,
+} from './related-stories'
+export {
   processProviderEvent,
   ProviderEventConflictError,
   ProviderEventRetryableError,

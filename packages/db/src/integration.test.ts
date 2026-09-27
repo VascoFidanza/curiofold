@@ -53,6 +53,7 @@ import {
   recordProviderEvent,
 } from './payment-events'
 import { findReadingProgress, saveReadingProgress } from './reading-progress'
+import { listRelatedPublishedStories } from './related-stories'
 import {
   creditGrants,
   creditSpendAllocations,
@@ -1063,6 +1064,55 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           'pt-PT',
           'design-history',
         ),
+      ).resolves.toEqual([])
+
+      const relatedFallback = await listRelatedPublishedStories(
+        database.client,
+        {
+          categoryKeys: ['design-history'],
+          currentStoryKey: 'clockwork-gardens',
+          locale: 'en',
+          relatedStoryKeys: [],
+        },
+      )
+      expect(relatedFallback).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            basis: 'shared_category',
+            story: expect.objectContaining({
+              document: expect.objectContaining({
+                storyKey: 'development-seed-garden',
+              }),
+            }),
+          }),
+        ]),
+      )
+      expect(
+        relatedFallback.some(
+          ({ story: candidate }) =>
+            candidate.document.storyKey === 'clockwork-gardens',
+        ),
+      ).toBe(false)
+      const editorialRelated = await listRelatedPublishedStories(
+        database.client,
+        {
+          categoryKeys: ['design-history'],
+          currentStoryKey: 'clockwork-gardens',
+          locale: 'en',
+          relatedStoryKeys: ['missing-story', 'development-seed-garden'],
+        },
+      )
+      expect(editorialRelated[0]).toMatchObject({
+        basis: 'editorial',
+        story: { document: { storyKey: 'development-seed-garden' } },
+      })
+      await expect(
+        listRelatedPublishedStories(database.client, {
+          categoryKeys: ['design-history'],
+          currentStoryKey: 'clockwork-gardens',
+          locale: 'pt-PT',
+          relatedStoryKeys: ['development-seed-garden'],
+        }),
       ).resolves.toEqual([])
       await expect(
         listPublishedStoriesByCategory(

@@ -96,6 +96,7 @@ export default async function ReaderPage({ params }: ReaderPageProps) {
   return (
     <StoryReader
       progress={route.progress}
+      relatedStories={route.relatedStories}
       story={route.story}
       storyId={route.storyId}
       versionId={route.versionId}

@@ -2,6 +2,7 @@ import type {
   ReaderStory,
   ReaderStoryBlock,
   ReaderStorySource,
+  RelatedStorySuggestion,
 } from '@curiofold/content'
 import type { ReadingProgressSnapshot } from '@curiofold/db'
 
@@ -214,11 +215,13 @@ function SourceEntry({
 
 export function StoryReader({
   progress,
+  relatedStories = [],
   story,
   storyId,
   versionId,
 }: Readonly<{
   progress: ReadingProgressSnapshot
+  relatedStories?: readonly RelatedStorySuggestion[]
   story: ReaderStory
   storyId: string
   versionId: string
@@ -300,7 +303,7 @@ export function StoryReader({
               </ol>
             </section>
             <div aria-hidden="true" id="story-end-marker" />
-            <ReaderCompletionActions />
+            <ReaderCompletionActions relatedStories={relatedStories} />
           </article>
         </main>
       </ReaderFrame>

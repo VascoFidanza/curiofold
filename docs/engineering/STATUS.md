@@ -6,7 +6,7 @@
 
 ## In progress
 
-- CRFD-57 adds published-only, locale-scoped category browsing and links from Discover/Story Detail. Local tests and build pass; isolated PostgreSQL and Preview acceptance are pending. Additional category labels must be reviewed with launch content rather than relying on the readable fallback.
+- CRFD-59 adds editorial-first, same-category-fallback Story suggestions after durable Reader completion. Local validation is passing; hosted PostgreSQL and browser gates remain pending. The Reader retains Library/Discover actions if no relevant published Story exists.
 - The fixed €1.30 direct Story purchase has a Story-linked order, 130-cent server quote, provider-confirmed entitlement fulfilment, truthful owner-scoped return state and Stripe Story line-item label. Credit top-ups accept custom whole-euro amounts with an immediate canonical bonus quote. CRFD-52 is adding owner-scoped payment history and auditable review for direct-purchase reversals or duplicate ownership. These records do not themselves perform a Stripe refund or decide entitlement revocation; OD-007 remains open. Protected Preview Checkout, webhook and Library acceptance remain outstanding under CRFD-56 and CRFD-50. CRFD-37 remains held behind OD-010.
 
 ## In review
@@ -20,6 +20,7 @@
 
 ## Recently completed
 
+- CRFD-57 / Milestone 4.1 — PR #44 merged published-only, locale-scoped category browsing and Discover/Story Detail category links into `development`. Local and hosted PostgreSQL 18, responsive browser, security, and CodeQL checks passed. New launch categories still require reviewed localized labels rather than the readable fallback.
 - CRFD-49 / Milestone 4.2 — PR #37 preserved validated Story and payment-order context across Credits sign-in, including session expiry on Checkout return. All seven hosted gates passed and the change is merged into `development`.
 - CRFD-48 / Milestone 4.2 — PR #36 connected Story Detail to server-verified ownership, locale-aware reading state, wallet balance and the atomic one-credit unlock API. Anonymous sign-in and zero-credit recovery retain Story context; Reader navigation waits for confirmed entitlement. Local unit, build and browser checks plus all seven hosted gates passed; live development-provider acceptance remains pending.
 - CRFD-46 / Milestone 4.2 — PR #34 merged the Add Credits surface, canonical top-up quotes, Stripe test Checkout handoff and owner-scoped order status on return. The UI never treats a redirect as payment fulfilment. All hosted checks passed; live test payment/webhook acceptance remains pending.
