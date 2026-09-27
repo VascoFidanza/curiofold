@@ -1,6 +1,7 @@
 import { PageFrame } from '@curiofold/ui'
 
 import { getPublicStoryCards } from '@/server/public-story'
+import { categoryLabel } from '@curiofold/content'
 
 import styles from './page.module.css'
 import Link from 'next/link'
@@ -9,6 +10,9 @@ export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
   const stories = await getPublicStoryCards('en')
+  const categories = [
+    ...new Set(stories.flatMap((story) => story.categoryKeys)),
+  ]
 
   return (
     <PageFrame>
@@ -29,11 +33,21 @@ export default async function HomePage() {
               <p className={styles.eyebrow}>Start exploring</p>
               <h2 id="featured-stories">Stories worth following</h2>
             </div>
+            <nav
+              aria-label="Browse by category"
+              className={styles.categoryLinks}
+            >
+              {categories.map((category) => (
+                <Link href={`/en/categories/${category}`} key={category}>
+                  {categoryLabel(category, 'en')}
+                </Link>
+              ))}
+            </nav>
             <div className={styles.storyGrid}>
               {stories.map((story) => (
                 <article className={styles.storyCard} key={story.storyKey}>
                   <p className={styles.cardCategory}>
-                    {story.categoryKeys[0] ?? 'Curiosity'}
+                    {categoryLabel(story.categoryKeys[0] ?? 'curiosity', 'en')}
                   </p>
                   <h3>{story.title}</h3>
                   <p>{story.hook}</p>

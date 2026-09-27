@@ -28,6 +28,7 @@ import {
   findPublishedStory,
   findPublishedStoryBySlug,
   listPublishedStories,
+  listPublishedStoriesByCategory,
   searchPublishedStories,
 } from './published-stories'
 import {
@@ -1042,6 +1043,34 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           state: 'published',
         })
         .where(eq(storyLocalizations.id, localization.id))
+
+      const categoryStories = await listPublishedStoriesByCategory(
+        database.client,
+        'en',
+        'design-history',
+      )
+      expect(categoryStories.map(({ document }) => document.storyKey)).toEqual(
+        expect.arrayContaining(['clockwork-gardens']),
+      )
+      expect(
+        categoryStories.filter(
+          ({ document }) => document.storyKey === 'clockwork-gardens',
+        ),
+      ).toHaveLength(1)
+      await expect(
+        listPublishedStoriesByCategory(
+          database.client,
+          'pt-PT',
+          'design-history',
+        ),
+      ).resolves.toEqual([])
+      await expect(
+        listPublishedStoriesByCategory(
+          database.client,
+          'en',
+          'unpublished-topic',
+        ),
+      ).resolves.toEqual([])
 
       const directReader = await ensureIdentityAccount(
         database.client,

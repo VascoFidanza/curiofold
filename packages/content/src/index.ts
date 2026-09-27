@@ -17,6 +17,7 @@ export {
   type PublicStoryDetail,
   type PublicStoryPreviewBlock,
 } from './public-story'
+export { categoryLabel } from './category-label'
 export {
   createReaderStory,
   type ReaderStory,
