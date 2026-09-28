@@ -147,11 +147,43 @@ export async function listPublishedStoriesByCategory(
   categoryKey: string,
   limit = 24,
 ): Promise<readonly CompiledStoryDocument[]> {
-  if (!locale.trim() || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(categoryKey)) {
-    throw new TypeError('Category and locale are required.')
+  return listPublishedStoriesByMetadataKey(
+    database,
+    locale,
+    'categoryKeys',
+    categoryKey,
+    limit,
+  )
+}
+
+/** Filters current published revisions only; draft and archived members stay private. */
+export async function listPublishedStoriesByCollection(
+  database: CuriofoldDatabase,
+  locale: string,
+  collectionKey: string,
+  limit = 24,
+): Promise<readonly CompiledStoryDocument[]> {
+  return listPublishedStoriesByMetadataKey(
+    database,
+    locale,
+    'collectionKeys',
+    collectionKey,
+    limit,
+  )
+}
+
+async function listPublishedStoriesByMetadataKey(
+  database: CuriofoldDatabase,
+  locale: string,
+  field: 'categoryKeys' | 'collectionKeys',
+  key: string,
+  limit: number,
+): Promise<readonly CompiledStoryDocument[]> {
+  if (!locale.trim() || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(key)) {
+    throw new TypeError('Listing key and locale are required.')
   }
   if (!Number.isInteger(limit) || limit < 1 || limit > 24) {
-    throw new RangeError('Category listing limit must be from 1 to 24.')
+    throw new RangeError('Story listing limit must be from 1 to 24.')
   }
 
   const rows = await database
@@ -168,7 +200,7 @@ export async function listPublishedStoriesByCategory(
       and(
         eq(schema.storyLocalizations.locale, locale),
         eq(schema.storyLocalizations.state, 'published'),
-        sql`${schema.storyVersions.document} @> ${JSON.stringify({ metadata: { categoryKeys: [categoryKey] } })}::jsonb`,
+        sql`${schema.storyVersions.document} @> ${JSON.stringify({ metadata: { [field]: [key] } })}::jsonb`,
       ),
     )
     .orderBy(
@@ -182,9 +214,9 @@ export async function listPublishedStoriesByCategory(
     if (
       story.document.locale !== locale ||
       story.document.publication.state !== 'published' ||
-      !story.document.metadata.categoryKeys.includes(categoryKey)
+      !story.document.metadata[field].includes(key)
     ) {
-      throw new Error('Category listing returned an invalid projection.')
+      throw new Error('Story listing returned an invalid projection.')
     }
     return story
   })

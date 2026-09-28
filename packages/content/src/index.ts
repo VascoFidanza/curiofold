@@ -19,6 +19,11 @@ export {
 } from './public-story'
 export { categoryLabel } from './category-label'
 export {
+  findCollectionDefinition,
+  listCollectionDefinitions,
+  type CollectionDefinition,
+} from './collection-catalog'
+export {
   createReaderStory,
   type ReaderStory,
   type RelatedStorySuggestion,
