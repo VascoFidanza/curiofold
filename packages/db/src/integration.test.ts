@@ -2180,6 +2180,74 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       await expect(
         findPublishedStory(database.client, 'lantern-atlas', 'en'),
       ).resolves.toMatchObject({ status: 'found' })
+
+      // Completion is Story-wide even when the reader opens another locale.
+      const crossLocaleReader = await ensureIdentityAccount(
+        database.client,
+        'user_cross_locale_fixture',
+        new Date('2026-09-28T12:00:00.000Z'),
+      )
+      await grantStoryEntitlement(database.client, {
+        reason: 'Cross-locale completion fixture.',
+        source: 'seed',
+        storyId: story.id,
+        userId: crossLocaleReader.userId,
+      })
+      await saveReadingProgress(database.client, {
+        clientSequence: 1,
+        endMarkerReached: false,
+        locale: 'en',
+        now: new Date('2026-09-28T12:00:15.000Z'),
+        resumeBlockId: 'opening',
+        resumeOffset: correction.readingUnits.opening ?? 0,
+        storyId: story.id,
+        userId: crossLocaleReader.userId,
+        versionId: correctedVersion.id,
+      })
+      await expect(
+        saveReadingProgress(database.client, {
+          clientSequence: 2,
+          endMarkerReached: true,
+          locale: 'en',
+          now: new Date('2026-09-28T12:00:30.000Z'),
+          resumeBlockId: 'story-end',
+          resumeOffset: correction.readingUnits['story-end'] ?? 0,
+          storyId: story.id,
+          userId: crossLocaleReader.userId,
+          versionId: correctedVersion.id,
+        }),
+      ).resolves.toMatchObject({
+        status: 'found',
+        progress: { completedAt: '2026-09-28T12:00:30.000Z' },
+      })
+      const reviewedPortuguese = compileStoryDocument({
+        ...portugueseDraft.document,
+        editorial: {
+          ...portugueseDraft.document.editorial,
+          reviewedAt: '2026-09-28T12:00:00.000Z',
+          reviewedBy: 'Curiofold Engineering',
+        },
+        publication: {
+          ...portugueseDraft.document.publication,
+          publishedAt: '2026-09-28T12:01:00.000Z',
+          state: 'published',
+        },
+      })
+      await seedDevelopmentCatalog(database.client, [
+        { gitCommitSha: 'd'.repeat(40), story: reviewedPortuguese },
+      ])
+      await expect(
+        listLibraryStories(database.client, crossLocaleReader.userId, 'pt-PT'),
+      ).resolves.toEqual([
+        expect.objectContaining({
+          completedAt: '2026-09-28T12:00:30.000Z',
+          highWaterPercent: 0,
+          locale: 'pt-PT',
+          slug: 'jardins-de-relogio',
+          state: 'completed',
+          storyId: story.id,
+        }),
+      ])
     } finally {
       await client.end()
       await database.pool.end()

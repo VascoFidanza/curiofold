@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { ErrorState, PageFrame } from '@curiofold/ui'
 
 import { getPublicCollections } from '@/server/public-collections'
+import { getCollectionReaderState } from '@/server/collection-reader-state'
+import { summarizeCollectionReading } from './collection-progress'
 
 import styles from './collections.module.css'
 
@@ -27,6 +29,7 @@ export default async function CollectionsPage() {
       </PageFrame>
     )
   }
+  const reader = await getCollectionReaderState('en')
 
   return (
     <PageFrame>
@@ -43,21 +46,30 @@ export default async function CollectionsPage() {
           </p>
         ) : (
           <div className={styles.grid}>
-            {collections.map((collection) => (
-              <article className={styles.card} key={collection.key}>
-                <p>
-                  {collection.stories.length}{' '}
-                  {collection.stories.length === 1 ? 'Story' : 'Stories'}
-                </p>
-                <h2>{collection.title}</h2>
-                <p>{collection.description}</p>
-                <Link
-                  href={`/${collection.locale}/collections/${collection.key}`}
-                >
-                  Explore Collection <span aria-hidden="true">→</span>
-                </Link>
-              </article>
-            ))}
+            {collections.map((collection) => {
+              const progress = summarizeCollectionReading(collection, reader)
+              return (
+                <article className={styles.card} key={collection.key}>
+                  <p>
+                    {collection.stories.length}{' '}
+                    {collection.stories.length === 1 ? 'Story' : 'Stories'}
+                  </p>
+                  <h2>{collection.title}</h2>
+                  <p>{collection.description}</p>
+                  {progress && progress.ownedCount > 0 ? (
+                    <p>
+                      {progress.completedCount} of {collection.stories.length}{' '}
+                      completed · {progress.ownedCount} owned
+                    </p>
+                  ) : null}
+                  <Link
+                    href={`/${collection.locale}/collections/${collection.key}`}
+                  >
+                    Explore Collection <span aria-hidden="true">→</span>
+                  </Link>
+                </article>
+              )
+            })}
           </div>
         )}
       </section>

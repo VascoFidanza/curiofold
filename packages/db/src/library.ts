@@ -115,15 +115,39 @@ export async function listLibraryStories(
       desc(schema.readingProgress.updatedAt),
       desc(schema.storyEntitlements.updatedAt),
     )
+  if (rows.length === 0) return []
+
+  // Completion belongs to the Story, while the resume position belongs to a locale.
+  // Read completed Stories once for this user rather than querying each Library row.
+  const completedRows = await database
+    .select({
+      completedAt: min(schema.readingProgress.completedAt),
+      storyId: schema.readingProgress.storyId,
+    })
+    .from(schema.readingProgress)
+    .where(
+      and(
+        eq(schema.readingProgress.userId, userId),
+        inArray(
+          schema.readingProgress.storyId,
+          rows.map((row) => row.storyId),
+        ),
+        isNotNull(schema.readingProgress.completedAt),
+      ),
+    )
+    .groupBy(schema.readingProgress.storyId)
+  const completedByStory = new Map(
+    completedRows.map((row) => [row.storyId, row.completedAt] as const),
+  )
 
   return rows.map((row) => ({
-    completedAt: row.completedAt?.toISOString() ?? null,
+    completedAt: completedByStory.get(row.storyId)?.toISOString() ?? null,
     highWaterPercent: row.highWaterPercent ?? 0,
     hook: row.hook,
     locale: row.locale,
     readingMinutes: row.readingMinutes,
     slug: row.slug,
-    state: row.completedAt
+    state: completedByStory.has(row.storyId)
       ? 'completed'
       : row.highWaterPercent && row.highWaterPercent > 0
         ? 'in_progress'
