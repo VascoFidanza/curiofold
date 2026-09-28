@@ -2180,6 +2180,36 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       await expect(
         findPublishedStory(database.client, 'lantern-atlas', 'en'),
       ).resolves.toMatchObject({ status: 'found' })
+
+      // Completion is Story-wide even when the reader opens another locale.
+      const reviewedPortuguese = compileStoryDocument({
+        ...portugueseDraft.document,
+        editorial: {
+          ...portugueseDraft.document.editorial,
+          reviewedAt: '2026-09-28T12:00:00.000Z',
+          reviewedBy: 'Curiofold Engineering',
+        },
+        publication: {
+          ...portugueseDraft.document.publication,
+          publishedAt: '2026-09-28T12:01:00.000Z',
+          state: 'published',
+        },
+      })
+      await seedDevelopmentCatalog(database.client, [
+        { gitCommitSha: 'd'.repeat(40), story: reviewedPortuguese },
+      ])
+      await expect(
+        listLibraryStories(database.client, linkedAccount.userId, 'pt-PT'),
+      ).resolves.toEqual([
+        expect.objectContaining({
+          completedAt: '2026-09-20T11:01:40.000Z',
+          highWaterPercent: 0,
+          locale: 'pt-PT',
+          slug: 'jardins-de-relogio',
+          state: 'completed',
+          storyId: story.id,
+        }),
+      ])
     } finally {
       await client.end()
       await database.pool.end()

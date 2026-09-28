@@ -5,6 +5,8 @@ import { notFound } from 'next/navigation'
 import { ErrorState, PageFrame } from '@curiofold/ui'
 
 import { getPublicCollection } from '@/server/public-collections'
+import { getCollectionReaderState } from '@/server/collection-reader-state'
+import { summarizeCollectionReading } from '../../../collections/collection-progress'
 
 import styles from '../../../collections/collections.module.css'
 
@@ -44,6 +46,8 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
   }
 
   const { collection } = result
+  const reader = await getCollectionReaderState(locale)
+  const progress = summarizeCollectionReading(collection, reader)
   return (
     <PageFrame>
       <section aria-labelledby="collection-title" className={styles.layout}>
@@ -55,19 +59,53 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
             {collection.stories.length}{' '}
             {collection.stories.length === 1 ? 'Story' : 'Stories'}
           </p>
+          {progress && progress.ownedCount > 0 ? (
+            <p>
+              {progress.completedCount} of {collection.stories.length} completed
+              · {progress.ownedCount} owned
+            </p>
+          ) : null}
+          {reader.status === 'unavailable' ? (
+            <p>Your reading progress is temporarily unavailable.</p>
+          ) : null}
           <Link href="/collections">All Collections</Link>
         </header>
         <div className={styles.grid}>
-          {collection.stories.map((story) => (
-            <article className={styles.card} key={story.storyKey}>
-              <p>{story.readingMinutes} min read</p>
-              <h2>{story.title}</h2>
-              <p>{story.hook}</p>
-              <Link href={`/${locale}/stories/${story.slug}`}>
-                Read the preview <span aria-hidden="true">→</span>
-              </Link>
-            </article>
-          ))}
+          {collection.stories.map((story) => {
+            const state = progress?.stateBySlug.get(story.slug)
+            return (
+              <article className={styles.card} key={story.storyKey}>
+                <p>{story.readingMinutes} min read</p>
+                {state ? (
+                  <p>
+                    {state === 'completed'
+                      ? 'Completed'
+                      : state === 'in_progress'
+                        ? 'In progress'
+                        : 'Owned'}
+                  </p>
+                ) : null}
+                <h2>{story.title}</h2>
+                <p>{story.hook}</p>
+                <Link
+                  href={
+                    state
+                      ? `/${locale}/stories/${story.slug}/read`
+                      : `/${locale}/stories/${story.slug}`
+                  }
+                >
+                  {state === 'completed'
+                    ? 'Read again'
+                    : state === 'in_progress'
+                      ? 'Continue reading'
+                      : state === 'unread'
+                        ? 'Start reading'
+                        : 'Read the preview'}{' '}
+                  <span aria-hidden="true">→</span>
+                </Link>
+              </article>
+            )
+          })}
         </div>
       </section>
     </PageFrame>
