@@ -24,6 +24,7 @@ connection strings, tokens, or other secret values.
 - Initial role: `curiofold`
 - Plan limitation: the organization is currently on Neon Free; history retention is 21,600 seconds and the account does not permit changing the suspend interval.
 - On 2026-09-26, all 15 repository migrations were applied through the direct connection. The guarded development seed created one synthetic Story, two immutable versions and one published English localization. A read-only database check confirmed 15 migration records, one Story and one published locale.
+- On 2026-09-28, after PR #49 passed all hosted gates and merged into `development`, the guarded seed added `lantern-atlas` to the same nonproduction project using an ephemeral project-scoped connection; no credential file was created. An immediate rerun reported zero changes. Read-only verification found two published English Stories: Clockwork Gardens retained its two immutable versions and The Lantern Atlas has one. The canonical protected Preview returned HTTP 200 for the new public Story and redirected an anonymous Reader request with HTTP 307.
 - The project contains synthetic data only; no personal or production data was introduced by this bootstrap.
 
 The privileged connection string is intentionally not recorded here. It belongs
