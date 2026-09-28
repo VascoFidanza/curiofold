@@ -46,6 +46,9 @@ describe('ApplicationShell', () => {
     for (const link of screen.getAllByRole('link', { name: 'Discover' })) {
       expect(link.getAttribute('aria-current')).toBe('page')
     }
+    expect(
+      screen.getByRole('link', { name: 'Progress' }).getAttribute('href'),
+    ).toBe('/library#reading-progress')
   })
 
   it('preserves long localized labels without changing the semantic structure', () => {
