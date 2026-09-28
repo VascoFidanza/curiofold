@@ -6,7 +6,7 @@
 
 ## In progress
 
-- The fixed €1.30 direct Story purchase has a Story-linked order, 130-cent server quote, provider-confirmed entitlement fulfilment, truthful owner-scoped return state and Stripe Story line-item label. Credit top-ups accept custom whole-euro amounts with an immediate canonical bonus quote. CRFD-52 is adding owner-scoped payment history and auditable review for direct-purchase reversals or duplicate ownership. These records do not themselves perform a Stripe refund or decide entitlement revocation; OD-007 remains open. Protected Preview Checkout, webhook and Library acceptance remain outstanding under CRFD-56 and CRFD-50. CRFD-37 remains held behind OD-010.
+- The fixed €1.30 direct Story purchase and flexible whole-euro credit top-ups are merged. The Product Owner reports successful development-mode Apple Pay/MB Way payments. A 2026-09-28 read-only Neon check found one fulfilled 130-cent direct order with an active payment entitlement, two fulfilled top-ups with grants, no stale orders, and no wallet/ledger balance mismatch. CRFD-50 remains open: one-credit unlock, Reader resume, replay/failure and protected Preview access still need acceptance evidence. CRFD-52 has merged owner-scoped payment history and auditable reversal review, but its final legal/provider behavior waits for OD-007. CRFD-37 remains held behind OD-010.
 
 ## In review
 
@@ -57,7 +57,7 @@
 
 ## Blocked
 
-- Direct Story purchase cannot be declared complete until the provider-confirmed entitlement path, refund/reversal behavior, and two-option UI pass protected Preview money and access-control tests. Isolated PostgreSQL CI exposed the direct-button root cause: the server's 130-cent order omitted required zero-valued pricing fields, so order validation threw before persistence or Stripe. The quote contract now includes them. The Vercel connector still returns 403 for historical runtime logs; the nonproduction database has all 18 migrations and no direct Story orders as of 2026-09-27. Live checkout must be retried after this fix. Direct reversal evidence is review-only until OD-007 defines the legal/provider and entitlement policy. Live production commerce still waits for OD-007.
+- Complete money-flow acceptance still requires the one-credit path, duplicate/replayed provider events and failure cases on protected Preview. The earlier 130-cent order-contract defect and stale schema are fixed; the 2026-09-28 successful test-mode direct order and Neon reconciliation supersede the earlier no-order observation. Direct reversal evidence remains review-only until OD-007 defines legal/provider and entitlement policy. Live production commerce still waits for OD-007.
 - Linear cycle creation is subject to the workspace exposing cycle-management capability.
 - Visual acceptance remains dependent on renewed structured access to the Curiofold Figma file.
 - Final spent-credit behavior for refunds and chargebacks is gated by OD-010. CRFD-35 and the unspent-credit portion of CRFD-36 can proceed independently.
@@ -75,8 +75,8 @@
 
 ## Next
 
-1. Verify the protected Preview Story Detail route with an authenticated Vercel session and confirm that its database variables point to the bootstrapped nonproduction project.
-2. Exercise both payment paths on the protected Preview: direct €1.30 purchase and credit top-up → one-credit unlock, each ending in Reader ownership and durable progress. Record evidence and fix integration defects.
+1. Complete CRFD-50 acceptance on protected Preview: use one purchased credit to unlock a Story exactly once, resume reading after refresh/sign-in, and confirm unauthorized access remains denied. Record failure/retry evidence without exposing customer data.
+2. Keep the successful direct €1.30 and credit top-up test-mode evidence linked to the same reconciled nonproduction order/entitlement/ledger state; do not infer live-payment readiness from it.
 3. Close Milestone 4.2 and the walking-skeleton gate only after live development-provider, authorization and progress acceptance, not merely green provider-free tests.
 4. Obtain the OD-010 product/legal decision before starting CRFD-37; options remain negative balance, spending suspension, entitlement revocation or manual review.
 5. Complete S1-10 visual acceptance when structured Figma access returns.

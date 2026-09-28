@@ -10,6 +10,7 @@ import {
 import { getLibraryStories } from '@/server/library'
 
 import styles from './library.module.css'
+import { LibraryProgress } from './library-progress'
 
 export const dynamic = 'force-dynamic'
 
@@ -119,6 +120,8 @@ export default async function LibraryPage() {
             finished Story.
           </p>
         </header>
+
+        <LibraryProgress stories={library.stories} />
 
         {library.stories.length === 0 ? (
           <div className={styles.emptyState}>

@@ -40,6 +40,46 @@
   line-height: var(--cf-line-height-body-large);
 }
 
+.summary {
+  display: grid;
+  gap: var(--cf-space-4);
+  padding: var(--cf-space-5);
+  background: var(--cf-color-bg-surface);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: var(--cf-radius-lg);
+}
+
+.summary h2,
+.summary p,
+.summaryCounts,
+.summaryCounts dd {
+  margin: 0;
+}
+
+.summary p {
+  color: var(--cf-color-text-secondary);
+}
+
+.summaryCounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-5);
+}
+
+.summaryCounts div {
+  display: grid;
+  gap: var(--cf-space-2);
+}
+
+.summaryCounts dt {
+  color: var(--cf-color-text-secondary);
+}
+
+.summaryCounts dd {
+  font-size: var(--cf-font-size-heading-medium);
+  font-weight: 700;
+}
+
 .storyGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

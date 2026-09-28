@@ -38,7 +38,7 @@ const mobileItems: readonly { href: string; id: NavigationId }[] = [
   { href: '/', id: 'discover' },
   { href: '/search', id: 'search' },
   { href: '/library', id: 'library' },
-  { href: '/progress', id: 'progress' },
+  { href: '/library#reading-progress', id: 'progress' },
 ]
 
 export function ApplicationShell({
