@@ -29,6 +29,7 @@ import {
   findPublishedStoryBySlug,
   listPublishedStories,
   listPublishedStoriesByCategory,
+  listPublishedStoriesByCollection,
   searchPublishedStories,
 } from './published-stories'
 import {
@@ -1058,6 +1059,28 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           ({ document }) => document.storyKey === 'clockwork-gardens',
         ),
       ).toHaveLength(1)
+      const collectionStories = await listPublishedStoriesByCollection(
+        database.client,
+        'en',
+        'synthetic-fixtures',
+      )
+      expect(
+        collectionStories.filter(
+          ({ document }) => document.storyKey === 'clockwork-gardens',
+        ),
+      ).toHaveLength(1)
+      expect(
+        collectionStories.find(
+          ({ document }) => document.storyKey === 'clockwork-gardens',
+        )?.document.revision,
+      ).toBe(correction.document.revision)
+      await expect(
+        listPublishedStoriesByCollection(
+          database.client,
+          'pt-PT',
+          'synthetic-fixtures',
+        ),
+      ).resolves.toEqual([])
       await expect(
         listPublishedStoriesByCategory(
           database.client,

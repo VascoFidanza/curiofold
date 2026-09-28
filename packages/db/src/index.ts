@@ -41,6 +41,7 @@ export {
   isPublishedStory,
   listPublishedStories,
   listPublishedStoriesByCategory,
+  listPublishedStoriesByCollection,
   searchPublishedStories,
   type PublishedStoryLocalization,
   type PublishedStoryRouteResolution,

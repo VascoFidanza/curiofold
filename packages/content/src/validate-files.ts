@@ -2,6 +2,7 @@ import { readFile, readdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
 import { compileStoryDocument } from './story-contract'
+import { findCollectionDefinition } from './collection-catalog'
 
 const repositoryRoot = resolve(import.meta.dirname, '../../..')
 const storyDirectory = resolve(repositoryRoot, 'content/stories')
@@ -68,6 +69,17 @@ async function main(): Promise<void> {
 
   for (const { compiled: story, file } of compiled) {
     const { document } = story
+    for (const collectionKey of document.metadata.collectionKeys) {
+      const collection = findCollectionDefinition(
+        document.locale,
+        collectionKey,
+      )
+      if (!collection || !collection.storyOrder.includes(document.storyKey)) {
+        throw new Error(
+          `${file} references uncurated Collection ${document.locale}:${collectionKey}.`,
+        )
+      }
+    }
     if (document.previousRevision === null) {
       continue
     }
