@@ -19,6 +19,8 @@
 
 ## Recently completed
 
+- CRFD-62 / Milestone 1.2 — PR #49 merged a second explicitly fictional Story and an allowlisted, idempotent nonproduction seed. Hosted quality/security, PostgreSQL 18, browser and CodeQL gates passed. The named Neon project now has two published English Stories; the seed rerun made zero changes. The development Preview serves `/en/stories/lantern-atlas` (200) and redirects anonymous Reader access (307), giving CRFD-50 a distinct Story for the one-credit unlock test.
+- CRFD-61 / Milestone 4.4 — PR #48 merged an entitlement-backed Library progress summary and repaired the mobile Progress destination. Local and hosted quality, PostgreSQL 18, browser and CodeQL checks passed. No new ownership state or database schema was introduced.
 - CRFD-59 / Milestone 4.4 — PR #45 merged editorial-first, same-category-fallback Story suggestions after durable Reader completion into `development`. Unpublished, wrong-locale, duplicate and current Stories are excluded; Library/Discover actions remain. Local checks and hosted PostgreSQL 18, responsive browser, security and CodeQL gates passed. Live authenticated Preview acceptance remains outstanding.
 - CRFD-57 / Milestone 4.1 — PR #44 merged published-only, locale-scoped category browsing and Discover/Story Detail category links into `development`. Local and hosted PostgreSQL 18, responsive browser, security, and CodeQL checks passed. New launch categories still require reviewed localized labels rather than the readable fallback.
 - CRFD-49 / Milestone 4.2 — PR #37 preserved validated Story and payment-order context across Credits sign-in, including session expiry on Checkout return. All seven hosted gates passed and the change is merged into `development`.
@@ -65,7 +67,7 @@
 
 ## Environment state
 
-- Vercel Preview has development Clerk, Stripe test-mode and Neon nonproduction variables configured. The named Neon project now has 18 applied migrations, including the direct Story purchase schema, and one seeded synthetic Story; protected-Preview route acceptance remains unverified.
+- Vercel Preview has development Clerk, Stripe test-mode and Neon nonproduction variables configured. The named Neon project has 18 applied migrations, including the direct Story purchase schema, and two seeded synthetic Stories. Anonymous public and Reader boundary smoke tests passed; authenticated credit-unlock and progress acceptance remains unverified.
 - The stable nonproduction integration branch is `development`; `main` remains the production/release branch.
 - No production Neon project, live Stripe configuration or production release has been created.
 
@@ -75,7 +77,7 @@
 
 ## Next
 
-1. Complete CRFD-50 acceptance on protected Preview: use one purchased credit to unlock a Story exactly once, resume reading after refresh/sign-in, and confirm unauthorized access remains denied. Record failure/retry evidence without exposing customer data.
+1. Complete CRFD-50 acceptance on protected Preview: use one purchased credit to unlock the new `lantern-atlas` Story exactly once, resume reading after refresh/sign-in, and confirm unauthorized access remains denied. Record failure/retry evidence without exposing customer data.
 2. Keep the successful direct €1.30 and credit top-up test-mode evidence linked to the same reconciled nonproduction order/entitlement/ledger state; do not infer live-payment readiness from it.
 3. Close Milestone 4.2 and the walking-skeleton gate only after live development-provider, authorization and progress acceptance, not merely green provider-free tests.
 4. Obtain the OD-010 product/legal decision before starting CRFD-37; options remain negative balance, spending suspension, entitlement revocation or manual review.
@@ -87,4 +89,4 @@
 
 See `docs/project/OPEN_DECISIONS.md`. No open product decision blocks the foundation stage.
 
-**Last updated:** 2026-09-27
+**Last updated:** 2026-09-28
