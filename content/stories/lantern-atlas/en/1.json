@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "story-document/v1",
+  "storyKey": "lantern-atlas",
+  "locale": "en",
+  "slug": "lantern-atlas",
+  "revision": 1,
+  "previousRevision": null,
+  "publication": {
+    "state": "published",
+    "publishedAt": "2026-09-27T09:00:00+00:00",
+    "archivedAt": null,
+    "withdrawalReason": null
+  },
+  "metadata": {
+    "title": "The Lantern Atlas",
+    "deck": "A second fictional Story fixture for testing credit unlocks and reading progress.",
+    "hook": "What if a map were drawn in beams of light?",
+    "preview": "This imagined atlas exists only to exercise Curiofold's nonproduction purchase and Reader flows.",
+    "readingMinutes": 1,
+    "categoryKeys": ["design-history"],
+    "collectionKeys": ["synthetic-fixtures"],
+    "relatedStoryKeys": ["clockwork-gardens"],
+    "previewBlockIds": ["opening"]
+  },
+  "editorial": {
+    "sourceLocale": "en",
+    "reviewedBy": "Synthetic Fixture Reviewer",
+    "reviewedAt": "2026-09-27T08:00:00+00:00",
+    "aiAssisted": false,
+    "methodologyNote": "This is fictional test content. Its reference uses the reserved .test domain and it makes no historical or scientific claim.",
+    "updateNote": null
+  },
+  "sources": [
+    {
+      "id": "fixture-source",
+      "title": "Synthetic lantern atlas fixture reference",
+      "authors": ["Curiofold Engineering"],
+      "publisher": "Curiofold",
+      "publishedAt": "2026-09-26",
+      "url": "https://research.example.test/lantern-atlas",
+      "doi": null,
+      "isbn": null,
+      "accessedAt": "2026-09-27"
+    }
+  ],
+  "media": [],
+  "blocks": [
+    {
+      "id": "opening",
+      "kind": "paragraph",
+      "text": "In a fictional workshop, an atlas showed its first route only when a lantern crossed the paper.",
+      "sourceIds": ["fixture-source"]
+    },
+    {
+      "id": "the-imagined-map",
+      "kind": "section_heading",
+      "level": 2,
+      "text": "The imagined map"
+    },
+    {
+      "id": "route",
+      "kind": "paragraph",
+      "text": "Moving the lantern revealed a second invented path. This passage gives the Reader a distinct progress anchor after purchase.",
+      "sourceIds": ["fixture-source"]
+    },
+    {
+      "id": "source-context",
+      "kind": "source_note",
+      "text": "The linked reference is deliberately synthetic; it is not evidence for a real-world claim.",
+      "sourceIds": ["fixture-source"]
+    },
+    {
+      "id": "story-end",
+      "kind": "end_matter",
+      "title": "Continue exploring",
+      "text": "This marks the end of the fictional lantern atlas fixture.",
+      "links": []
+    }
+  ]
+}

@@ -92,13 +92,13 @@ import {
 
 const integrationEnabled = process.env.RUN_DB_INTEGRATION === '1'
 
-async function loadStoryFixture(path: string) {
+async function loadStoryFixture(path: string, storyKey = 'clockwork-gardens') {
   return compileStoryDocument(
     JSON.parse(
       await readFile(
         fileURLToPath(
           new URL(
-            `../../../content/stories/clockwork-gardens/${path}`,
+            `../../../content/stories/${storyKey}/${path}`,
             import.meta.url,
           ),
         ),
@@ -2133,6 +2133,30 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           userId: corruptReader.userId,
         }),
       ).rejects.toBeInstanceOf(WalletReconciliationError)
+
+      const secondFixture = await loadStoryFixture('en/1.json', 'lantern-atlas')
+      const secondSeed = [
+        { gitCommitSha: 'c'.repeat(40), story: secondFixture },
+      ]
+      await expect(
+        seedDevelopmentCatalog(database.client, secondSeed),
+      ).resolves.toEqual({
+        createdLocalizations: 1,
+        createdStories: 1,
+        createdVersions: 1,
+        publishedLocalizations: 1,
+      })
+      await expect(
+        seedDevelopmentCatalog(database.client, secondSeed),
+      ).resolves.toEqual({
+        createdLocalizations: 0,
+        createdStories: 0,
+        createdVersions: 0,
+        publishedLocalizations: 0,
+      })
+      await expect(
+        findPublishedStory(database.client, 'lantern-atlas', 'en'),
+      ).resolves.toMatchObject({ status: 'found' })
     } finally {
       await client.end()
       await database.pool.end()
