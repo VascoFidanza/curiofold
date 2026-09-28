@@ -20,7 +20,7 @@ Run `pnpm content:validate` from the repository root before opening a content pu
 
 Use `content/stories/<story-key>/<locale>/<revision>.json`. A correction creates a new revision file; never edit or delete a version that has been published. Locales are reviewed and released independently. A draft locale must not appear on public surfaces as a fallback.
 
-The current `clockwork-gardens` files are explicitly synthetic engineering fixtures. They are not launch catalogue content and make no factual product claim.
+The `clockwork-gardens` and `lantern-atlas` files are explicitly synthetic engineering fixtures. They are not launch catalogue content and make no factual product claim. The second fixture allows a development reader who already owns Clockwork Gardens to test the one-credit unlock path on a different Story.
 
 ## Public preview boundary
 
