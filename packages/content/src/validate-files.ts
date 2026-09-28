@@ -74,7 +74,7 @@ async function main(): Promise<void> {
         document.locale,
         collectionKey,
       )
-      if (!collection || !collection.storyOrder.includes(document.storyKey)) {
+      if (!collection?.storyOrder.includes(document.storyKey)) {
         throw new Error(
           `${file} references uncurated Collection ${document.locale}:${collectionKey}.`,
         )
