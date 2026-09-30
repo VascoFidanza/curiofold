@@ -159,7 +159,7 @@ describe('Reader progress client', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('queues a failed save and retries the same user-scoped payload online', async () => {
+  it('preserves newer queued progress when an older save fails and retries online', async () => {
     vi.useFakeTimers()
     Object.defineProperty(window, 'innerHeight', {
       configurable: true,
@@ -186,9 +186,17 @@ describe('Reader progress client', () => {
     })
 
     let attempts = 0
+    let rejectFirstSave: (reason: Error) => void = () => {
+      throw new Error('The first save has not started.')
+    }
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => {
       attempts += 1
       if (attempts === 1) {
+        return new Promise<Response>((_resolve, reject) => {
+          rejectFirstSave = reject
+        })
+      }
+      if (attempts === 2) {
         return Promise.reject(new TypeError('offline'))
       }
       return Promise.resolve(
@@ -197,7 +205,7 @@ describe('Reader progress client', () => {
           progress: {
             completedAt: null,
             highWaterPercent: 40,
-            lastClientSequence: 1,
+            lastClientSequence: 2,
             resumeBlockId: 'opening',
             resumeOffset: 4,
           },
@@ -231,6 +239,25 @@ describe('Reader progress client', () => {
       'curiofold.reader.progress.v1.11111111-1111-4111-8111-111111111111.en'
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(window.localStorage.getItem(key)).toContain('"clientSequence":1')
+
+    await act(async () => {
+      window.dispatchEvent(new Event('scroll'))
+      await vi.advanceTimersByTimeAsync(1)
+    })
+    expect(window.localStorage.getItem(key)).toContain('"clientSequence":2')
+
+    const storageWrites = vi.spyOn(Storage.prototype, 'setItem')
+    await act(async () => {
+      rejectFirstSave(new TypeError('offline'))
+      await vi.advanceTimersByTimeAsync(1)
+    })
+    expect(
+      storageWrites.mock.calls.every(([, value]) => {
+        const payload = JSON.parse(value) as { clientSequence: number }
+        return payload.clientSequence >= 2
+      }),
+    ).toBe(true)
+    expect(window.localStorage.getItem(key)).toContain('"clientSequence":2')
     expect(
       screen.getByText('Progress will be saved when the connection returns.'),
     ).toBeTruthy()
@@ -249,7 +276,7 @@ describe('Reader progress client', () => {
         return JSON.parse(options.body) as unknown
       }),
     ).toEqual(
-      expect.arrayContaining([expect.objectContaining({ clientSequence: 1 })]),
+      expect.arrayContaining([expect.objectContaining({ clientSequence: 2 })]),
     )
     expect(window.localStorage.getItem(key)).toBeNull()
     expect(screen.getByText('Progress saved.')).toBeTruthy()
