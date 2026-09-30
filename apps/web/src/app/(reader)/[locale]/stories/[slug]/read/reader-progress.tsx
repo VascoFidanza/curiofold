@@ -162,6 +162,10 @@ function readQueuedProgress(key: string): ProgressPayload | null {
 
 function storeQueuedProgress(key: string, payload: ProgressPayload): void {
   try {
+    const stored = readQueuedProgress(key)
+    if (stored && stored.clientSequence > payload.clientSequence) {
+      return
+    }
     window.localStorage.setItem(key, JSON.stringify(payload))
   } catch {
     // Progress still attempts a network save when storage is unavailable.
