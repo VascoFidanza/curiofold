@@ -205,6 +205,83 @@ describe('Reader progress client', () => {
     expect(screen.getByText('0% read.')).toBeTruthy()
   })
 
+  it.each([
+    { status: 500, recover: true, unmount: false, attempts: 2 },
+    { status: 429, recover: false, unmount: false, attempts: 4 },
+    { status: 503, recover: false, unmount: false, attempts: 4 },
+    { status: 401, recover: false, unmount: false, attempts: 1 },
+    { status: 403, recover: false, unmount: false, attempts: 1 },
+    { status: 400, recover: false, unmount: false, attempts: 1 },
+    { status: 500, recover: false, unmount: true, attempts: 1 },
+  ])(
+    'bounds retries and respects permanent failures/cleanup: %j',
+    async (testCase) => {
+      vi.useFakeTimers()
+      vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 1)
+      const key =
+        'curiofold.reader.progress.v2.reader-one.11111111-1111-4111-8111-111111111111.en'
+      const payload = {
+        clientSequence: 1,
+        endMarkerReached: false,
+        resumeBlockId: 'opening',
+        resumeOffset: 4,
+        versionId: '22222222-2222-4222-8222-222222222222',
+      }
+      window.localStorage.setItem(key, JSON.stringify(payload))
+      const fetchMock = vi
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(new Response(null, { status: testCase.status }))
+      if (testCase.recover) {
+        fetchMock.mockResolvedValueOnce(new Response(null, { status: 500 }))
+        fetchMock.mockResolvedValue(
+          Response.json({
+            accepted: true,
+            progress: {
+              completedAt: null,
+              highWaterPercent: 40,
+              lastClientSequence: 1,
+              resumeBlockId: 'opening',
+              resumeOffset: 4,
+            },
+          }),
+        )
+      }
+      const view = render(
+        <ReaderProgressProvider
+          userId="reader-one"
+          blocks={[{ id: 'opening', readingUnits: 10 }]}
+          initialProgress={{
+            completedAt: null,
+            highWaterPercent: 0,
+            lastClientSequence: 0,
+            resumeBlockId: null,
+            resumeOffset: 0,
+          }}
+          locale="en"
+          storyId="11111111-1111-4111-8111-111111111111"
+          versionId="22222222-2222-4222-8222-222222222222"
+        >
+          <ReaderProgressIndicator />
+        </ReaderProgressProvider>,
+      )
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(3_999)
+      })
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      if (testCase.unmount) view.unmount()
+      await act(async () => {
+        await vi.runAllTimersAsync()
+      })
+      expect(fetchMock).toHaveBeenCalledTimes(testCase.attempts)
+      expect(window.localStorage.getItem(key)).toBe(
+        testCase.recover ? null : JSON.stringify(payload),
+      )
+      if (testCase.recover) {
+        expect(screen.getByText('Progress saved.')).toBeTruthy()
+      }
+    },
+  )
+
   it('preserves newer queued progress when an older save fails and retries online', async () => {
     vi.useFakeTimers()
     Object.defineProperty(window, 'innerHeight', {

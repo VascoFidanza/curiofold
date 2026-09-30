@@ -253,13 +253,23 @@ export function ReaderProgressProvider({
 
   useEffect(() => {
     const abortController = new AbortController()
+    let retryTimer: number | null = null
+    let retryAttempts = 0
+    const clearRetry = () => {
+      if (retryTimer !== null) {
+        window.clearTimeout(retryTimer)
+        retryTimer = null
+      }
+    }
 
     const save = async (payload: ProgressPayload) => {
       if (saveInFlight.current || !isActive(abortController.signal)) {
         return
       }
       saveInFlight.current = true
+      clearRetry()
       setSaveState('saving')
+      let retryable = true
 
       try {
         const response = await fetch(endpoint, {
@@ -270,6 +280,7 @@ export function ReaderProgressProvider({
           signal: abortController.signal,
         })
         if (!response.ok) {
+          retryable = response.status === 429 || response.status >= 500
           throw new Error(
             `Progress save failed with ${String(response.status)}.`,
           )
@@ -291,10 +302,23 @@ export function ReaderProgressProvider({
           setSaveState('saved')
         }
         removeQueuedProgress(queueKey, payload.clientSequence)
+        retryAttempts = 0
       } catch {
         if (isActive(abortController.signal)) {
           setSaveState('retrying')
           storeQueuedProgress(queueKey, payload)
+          if (retryable && retryAttempts < 3) {
+            const delay = saveDelayMilliseconds * 2 ** retryAttempts
+            retryAttempts += 1
+            retryTimer = window.setTimeout(() => {
+              retryTimer = null
+              const pending =
+                readQueuedProgress(queueKey) ?? latestPayload.current
+              if (pending) {
+                void save(pending)
+              }
+            }, delay)
+          }
         }
       } finally {
         saveInFlight.current = false
@@ -389,6 +413,7 @@ export function ReaderProgressProvider({
     const retry = () => {
       const pending = readQueuedProgress(queueKey)
       if (pending) {
+        retryAttempts = 0
         latestPayload.current = pending
         sequence.current = Math.max(sequence.current, pending.clientSequence)
         void save(pending)
@@ -410,6 +435,7 @@ export function ReaderProgressProvider({
 
     return () => {
       abortController.abort()
+      clearRetry()
       if (animationFrame !== null) {
         window.cancelAnimationFrame(animationFrame)
       }
