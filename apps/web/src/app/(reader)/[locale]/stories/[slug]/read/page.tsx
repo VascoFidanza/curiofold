@@ -99,6 +99,7 @@ export default async function ReaderPage({ params }: ReaderPageProps) {
       relatedStories={route.relatedStories}
       story={route.story}
       storyId={route.storyId}
+      userId={route.userId}
       versionId={route.versionId}
     />
   )

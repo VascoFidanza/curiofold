@@ -218,12 +218,14 @@ export function StoryReader({
   relatedStories = [],
   story,
   storyId,
+  userId,
   versionId,
 }: Readonly<{
   progress: ReadingProgressSnapshot
   relatedStories?: readonly RelatedStorySuggestion[]
   story: ReaderStory
   storyId: string
+  userId: string
   versionId: string
 }>) {
   const sourceNumbers = new Map(
@@ -240,10 +242,12 @@ export function StoryReader({
 
   return (
     <ReaderProgressProvider
+      key={`${userId}.${storyId}.${story.locale}`}
       blocks={progressBlocks}
       initialProgress={progress}
       locale={story.locale}
       storyId={storyId}
+      userId={userId}
       versionId={versionId}
     >
       <ReaderFrame

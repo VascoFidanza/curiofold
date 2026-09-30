@@ -21,6 +21,7 @@ export type ReaderStoryRouteData =
       status: 'found'
       story: ReaderStory
       storyId: string
+      userId: string
       versionId: string
     }>
   | Readonly<{
@@ -86,6 +87,7 @@ export async function getReaderStoryRoute(
     status: 'found',
     story: createReaderStory(resolution.story),
     storyId: resolution.storyId,
+    userId,
     versionId: resolution.versionId,
   }
 }

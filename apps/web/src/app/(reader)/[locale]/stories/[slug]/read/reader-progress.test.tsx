@@ -34,6 +34,7 @@ describe('Reader progress client', () => {
     vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 1)
     render(
       <ReaderProgressProvider
+        userId="reader-one"
         blocks={[{ id: 'opening', readingUnits: 10 }]}
         initialProgress={{
           completedAt: null,
@@ -59,6 +60,7 @@ describe('Reader progress client', () => {
   it('offers safe next actions only after a Story is complete', () => {
     const { unmount } = render(
       <ReaderProgressProvider
+        userId="reader-one"
         blocks={[{ id: 'opening', readingUnits: 10 }]}
         initialProgress={{
           completedAt: null,
@@ -85,6 +87,7 @@ describe('Reader progress client', () => {
 
     render(
       <ReaderProgressProvider
+        userId="reader-one"
         blocks={[{ id: 'opening', readingUnits: 10 }]}
         initialProgress={{
           completedAt: '2026-09-26T12:00:00.000Z',
@@ -134,11 +137,12 @@ describe('Reader progress client', () => {
     vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 1)
     const fetchMock = vi.spyOn(globalThis, 'fetch')
     const key =
-      'curiofold.reader.progress.v1.11111111-1111-4111-8111-111111111111.en'
+      'curiofold.reader.progress.v2.reader-one.11111111-1111-4111-8111-111111111111.en'
     window.localStorage.setItem(key, '{"clientSequence":"corrupt"}')
 
     render(
       <ReaderProgressProvider
+        userId="reader-one"
         blocks={[{ id: 'opening', readingUnits: 10 }]}
         initialProgress={{
           completedAt: null,
@@ -157,6 +161,48 @@ describe('Reader progress client', () => {
 
     expect(window.localStorage.getItem(key)).toBeNull()
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    'curiofold.reader.progress.v1.11111111-1111-4111-8111-111111111111.en',
+    'curiofold.reader.progress.v2.reader-two.11111111-1111-4111-8111-111111111111.en',
+  ])('never replays an unowned retry queue: %s', (key) => {
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 1)
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+    const payload = JSON.stringify({
+      clientSequence: 50,
+      endMarkerReached: true,
+      resumeBlockId: 'opening',
+      resumeOffset: 10,
+      versionId: '22222222-2222-4222-8222-222222222222',
+    })
+    window.localStorage.setItem(key, payload)
+
+    render(
+      <ReaderProgressProvider
+        blocks={[{ id: 'opening', readingUnits: 10 }]}
+        initialProgress={{
+          completedAt: null,
+          highWaterPercent: 0,
+          lastClientSequence: 0,
+          resumeBlockId: null,
+          resumeOffset: 0,
+        }}
+        locale="en"
+        storyId="11111111-1111-4111-8111-111111111111"
+        userId="reader-one"
+        versionId="22222222-2222-4222-8222-222222222222"
+      >
+        <ReaderProgressIndicator />
+      </ReaderProgressProvider>,
+    )
+
+    act(() => {
+      window.dispatchEvent(new Event('online'))
+    })
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(window.localStorage.getItem(key)).toBe(payload)
+    expect(screen.getByText('0% read.')).toBeTruthy()
   })
 
   it('preserves newer queued progress when an older save fails and retries online', async () => {
@@ -215,6 +261,7 @@ describe('Reader progress client', () => {
 
     render(
       <ReaderProgressProvider
+        userId="reader-one"
         blocks={[{ id: 'opening', readingUnits: 10 }]}
         initialProgress={{
           completedAt: null,
@@ -236,7 +283,7 @@ describe('Reader progress client', () => {
       await vi.advanceTimersByTimeAsync(4_100)
     })
     const key =
-      'curiofold.reader.progress.v1.11111111-1111-4111-8111-111111111111.en'
+      'curiofold.reader.progress.v2.reader-one.11111111-1111-4111-8111-111111111111.en'
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(window.localStorage.getItem(key)).toContain('"clientSequence":1')
 
