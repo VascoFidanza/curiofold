@@ -114,6 +114,7 @@ describe('Story Reader', () => {
   it('renders semantic Story blocks and accessible source navigation', () => {
     render(
       <StoryReader
+        userId="reader-one"
         progress={progress}
         story={story}
         storyId={storyId}
@@ -146,6 +147,7 @@ describe('Story Reader', () => {
   it('applies and persists the simple Reader preferences', () => {
     const { container } = render(
       <StoryReader
+        userId="reader-one"
         progress={progress}
         story={story}
         storyId={storyId}
@@ -168,6 +170,7 @@ describe('Story Reader', () => {
   it('has no detectable automated accessibility violations', async () => {
     const { container } = render(
       <StoryReader
+        userId="reader-one"
         progress={progress}
         story={story}
         storyId={storyId}

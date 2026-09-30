@@ -16,6 +16,7 @@ export default function ReaderFixturePage() {
 
   return (
     <StoryReader
+      userId="fixture-reader"
       progress={e2eProgress}
       story={e2eReaderStory}
       storyId={e2eProgress.storyId}

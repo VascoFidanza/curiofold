@@ -86,8 +86,12 @@ export function readingPositionAtViewportLine(
   }
 }
 
-function queuedProgressKey(storyId: string, locale: string): string {
-  return `curiofold.reader.progress.v1.${storyId}.${locale}`
+function queuedProgressKey(
+  userId: string,
+  storyId: string,
+  locale: string,
+): string {
+  return `curiofold.reader.progress.v2.${userId}.${storyId}.${locale}`
 }
 
 function parseProgressPayload(value: unknown): ProgressPayload | null {
@@ -189,6 +193,7 @@ export function ReaderProgressProvider({
   initialProgress,
   locale,
   storyId,
+  userId,
   versionId,
 }: Readonly<{
   blocks: readonly ProgressBlock[]
@@ -196,6 +201,7 @@ export function ReaderProgressProvider({
   initialProgress: InitialProgress
   locale: string
   storyId: string
+  userId: string
   versionId: string
 }>) {
   const [highWaterPercent, setHighWaterPercent] = useState(
@@ -210,7 +216,7 @@ export function ReaderProgressProvider({
   const latestPayload = useRef<ProgressPayload | null>(null)
   const saveTimer = useRef<number | null>(null)
   const saveInFlight = useRef(false)
-  const queueKey = queuedProgressKey(storyId, locale)
+  const queueKey = queuedProgressKey(userId, storyId, locale)
   const endpoint = `/api/v1/reading-progress/${storyId}/${locale}`
 
   useEffect(() => {

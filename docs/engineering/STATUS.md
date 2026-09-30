@@ -19,6 +19,7 @@
 
 ## Recently completed
 
+- CRFD-66 — Reader offline retry queues are scoped to the authenticated internal account, Story and locale. Switching accounts cannot replay another reader's stored progress; legacy unscoped queues are ignored because their owner cannot be verified. Persisted server progress is unaffected.
 - CRFD-65 — Reader retry storage preserves the newer queued position when an older in-flight save fails. The overlapping failure/reconnect regression test verifies that a stale request never overwrites a newer sequence. Required CI also exposed GHSA-vcvr-r3jv-pc5j; Next.js and its lint configuration were patched to 16.3.6 to restore the security gate.
 - CRFD-64 / Milestone 4.4 — Collection cards and detail now derive owned/completed counts and Reader actions from the authoritative Library, while anonymous visitors retain public previews. Library failures do not invent zero progress. Completion is projected across Story locales without creating a second entitlement or progress table. Authenticated Preview acceptance remains part of CRFD-50.
 - CRFD-63 / Milestone 4.4 — The previously broken Collections navigation now leads to a public index and locale-specific Collection detail. The initial explicitly synthetic Collection contains only currently published Story revisions; editorial ordering and known-key validation keep future membership reviewable. No paid Story body, new database table, or production content was introduced. The launch catalogue remains later work.
