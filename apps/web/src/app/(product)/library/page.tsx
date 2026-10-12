@@ -11,6 +11,11 @@ import { getLibraryStories } from '@/server/library'
 
 import styles from './library.module.css'
 import { LibraryProgress } from './library-progress'
+import {
+  filterLibraryStories,
+  LibraryFilters,
+  parseLibraryFilter,
+} from './library-filters'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,7 +54,11 @@ function authenticatedUserId(access: LibraryAccess): string {
   throw new Error('Library data was requested without an authenticated user.')
 }
 
-export default async function LibraryPage() {
+export default async function LibraryPage({
+  searchParams,
+}: Readonly<{
+  searchParams: Promise<{ state?: string | string[] }>
+}>) {
   if (!isClerkSessionConfigured()) {
     return (
       <PageFrame>
@@ -109,6 +118,9 @@ export default async function LibraryPage() {
     )
   }
 
+  const activeFilter = parseLibraryFilter((await searchParams).state)
+  const visibleStories = filterLibraryStories(library.stories, activeFilter)
+
   return (
     <PageFrame>
       <section className={styles.layout}>
@@ -122,6 +134,7 @@ export default async function LibraryPage() {
         </header>
 
         <LibraryProgress stories={library.stories} />
+        <LibraryFilters activeFilter={activeFilter} stories={library.stories} />
 
         {library.stories.length === 0 ? (
           <div className={styles.emptyState}>
@@ -132,9 +145,15 @@ export default async function LibraryPage() {
             </p>
             <Link href="/">Discover Stories</Link>
           </div>
+        ) : visibleStories.length === 0 ? (
+          <div className={styles.emptyState}>
+            <h2>No Stories match this filter yet.</h2>
+            <p>Your other owned Stories are still on your shelf.</p>
+            <Link href="/library">Show all owned Stories</Link>
+          </div>
         ) : (
           <div className={styles.storyGrid}>
-            {library.stories.map((story) => (
+            {visibleStories.map((story) => (
               <article className={styles.storyCard} key={story.storyId}>
                 <p className={styles.state}>{stateLabel(story.state)}</p>
                 <h2>{story.title}</h2>
