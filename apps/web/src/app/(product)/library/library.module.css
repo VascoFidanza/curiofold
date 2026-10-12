@@ -175,3 +175,31 @@
     min-height: auto;
   }
 }
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-2);
+}
+
+.filters a {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  padding: var(--cf-space-2) var(--cf-space-4);
+  border: 1px solid currentColor;
+  border-radius: var(--cf-radius-md);
+  color: var(--cf-color-action-primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.filters a[aria-current='page'] {
+  color: var(--cf-color-action-on-primary);
+  background: var(--cf-color-action-primary);
+}
+
+.filters a:focus-visible {
+  outline: 3px solid var(--cf-color-accent-curiosity);
+  outline-offset: 3px;
+}
