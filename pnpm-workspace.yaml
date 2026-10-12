@@ -2,6 +2,15 @@ packages:
   - apps/*
   - packages/*
 
+overrides:
+  source-map-js@1.2.1: 1.2.2
+
+auditConfig:
+  # ESLint-only fast-glob dependency; accepts repository-controlled patterns.
+  # No patched braces release exists. Revisit when upstream removes/fixes it.
+  ignoreGhsas:
+    - GHSA-vfj7-8cjw-p6xm
+
 allowBuilds:
   cpu-features: true
   esbuild: true

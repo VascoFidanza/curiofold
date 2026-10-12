@@ -79,6 +79,7 @@
 
 ## Known non-blocking risk
 
+- GHSA-vfj7-8cjw-p6xm (High, unpatched `braces` stack exhaustion) is narrowly excluded from the dependency audit. Its only dependency path is the development-only Next.js ESLint plugin → fast-glob → micromatch. It processes repository-controlled glob patterns, not customer input, and is absent from the application runtime. Review this exception when an upstream patch/removal becomes available and before production release. Next.js, sharp and source-map-js advisories detected on 2026-10-12 were patched; no other High/Critical audit finding is excluded.
 - The dependency audit reports GHSA-67mh-4wv8-2f99 at Moderate severity in a development-only `esbuild` copy nested under the latest available `drizzle-kit`. It is not shipped with the application or exposed as a development server. The High/Critical CI gate passes; update when Drizzle Kit removes the transitive loader rather than forcing an unverified override.
 
 ## Next
