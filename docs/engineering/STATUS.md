@@ -1,10 +1,13 @@
 # Curiofold Engineering Status
 
-**Current phase:** Production-shaped walking skeleton and reader purchase journey
+**Current phase:** V1 convergence — complete journeys, real content and release readiness
 **Current milestone:** 4.2 — Contextual auth, top-up and unlock preserve momentum
 **Health:** At Risk — the credit-backed Story journey and fixed €1.30 direct purchase path are implemented but not live-Preview accepted. Milestone 3.3 separately waits for OD-010 on already-spent credits.
 
 ## In progress
+
+- CRFD-69 — Secure Account JSON export implemented with session-owned, verified-email authorization, explicit safe fields, private/no-store attachment headers and a repeatable-read snapshot of profile, wallet, ownership, progress, orders and reversals. Validation and integration into `development` are in progress. No migration or provider configuration is required. This does not complete account deletion/retention or provider-held data export.
+- V1 priorities now follow the convergence sequence in `EXECUTION_PLAN.md`: certify CRFD-50 → reviewed-content release workflow and launch catalogue → minimum account/privacy/support operations → staging security/accessibility/recovery gate → owner-approved production launch. AI editorial automation and nonessential polish are post-V1. Current fictional fixtures must not be presented as real launch content.
 
 - The fixed €1.30 direct Story purchase and flexible whole-euro credit top-ups are merged. The Product Owner reports successful development-mode Apple Pay/MB Way payments. A 2026-09-28 read-only Neon check found one fulfilled 130-cent direct order with an active payment entitlement, two fulfilled top-ups with grants, no stale orders, and no wallet/ledger balance mismatch. CRFD-50 remains open: one-credit unlock, Reader resume, replay/failure and protected Preview access still need acceptance evidence. CRFD-52 has merged owner-scoped payment history and auditable reversal review, but its final legal/provider behavior waits for OD-007. CRFD-37 remains held behind OD-010.
 

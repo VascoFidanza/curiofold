@@ -102,6 +102,14 @@ export default async function AccountPage() {
             </p>
           )}
           {account.emailVerified ? (
+            <p>
+              <a href="/api/v1/account/export">Download your Curiofold data</a>
+              {' — '}Your profile, ownership, reading progress and transaction
+              history. Identity and payment-card details are managed separately
+              by Clerk and Stripe.
+            </p>
+          ) : null}
+          {account.emailVerified ? (
             <Link className={styles.signInLink} href="/credits">
               Add credits
             </Link>
