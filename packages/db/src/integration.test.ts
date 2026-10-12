@@ -8,6 +8,7 @@ import { Client } from 'pg'
 import { describe, expect, it } from 'vitest'
 
 import { createDatabase } from './client'
+import { exportAccountData } from './account-export'
 import {
   assertNonProductionSeedEnvironment,
   seedDevelopmentCatalog,
@@ -2248,6 +2249,23 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           storyId: story.id,
         }),
       ])
+      const accountExport = await exportAccountData(
+        database.client,
+        crossLocaleReader.userId,
+      )
+      expect(accountExport.profile.id).toBe(crossLocaleReader.userId)
+      expect(accountExport.ownership).toEqual([
+        expect.objectContaining({ storyId: story.id, status: 'active' }),
+      ])
+      expect(accountExport.readingProgress.length).toBeGreaterThan(0)
+      expect(accountExport.purchases).toEqual([])
+      expect(accountExport.walletTransactions).toEqual([])
+      expect(accountExport.reversals).toEqual([])
+      expect(JSON.stringify(accountExport)).not.toContain('clerkSubject')
+      expect(JSON.stringify(accountExport)).not.toContain('providerPaymentId')
+      await expect(exportAccountData(database.client, ' ')).rejects.toThrow(
+        'Account user id is required.',
+      )
     } finally {
       await client.end()
       await database.pool.end()

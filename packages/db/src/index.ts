@@ -4,6 +4,7 @@ export interface TransactionScope {
 }
 
 export { createDatabase } from './client'
+export { exportAccountData } from './account-export'
 export {
   assertNonProductionSeedEnvironment,
   DevelopmentSeedConflictError,

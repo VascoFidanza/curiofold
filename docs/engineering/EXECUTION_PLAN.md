@@ -14,6 +14,20 @@ Production-ready means the platform is secure, accessible, observable, recoverab
 
 ## 2. Architecture
 
+### V1 convergence sequence — 2026-10-12
+
+The architecture and five outcome Projects remain unchanged. Sequence remaining work by launch necessity, not ticket count:
+
+1. **Certify the existing customer loop (CRFD-50):** development Clerk sign-in, both paid paths, minimum/custom top-ups, ownership, Library, Reader refresh/resume and retry/replay evidence. The Product Owner has successfully tested direct purchase and top-ups; do not redo provider setup or equate that evidence with complete journey certification.
+2. **Make reviewed content publishable:** replace reliance on the two fictional, allowlisted development fixtures with a reviewed-content release workflow using the existing immutable Story contract. Validate publication, correction, archive/withdrawal and rollback; require exact Git provenance and human approval. Real launch catalogue/reviewer/locales/media approval remain OD-002/008/009 gates. Synthetic content is not a release catalogue.
+3. **Complete minimum account/privacy and support operations:** secure account data export (CRFD-69), deletion/session revocation and documented retention, actionable support/refund paths. Do not invent spent-credit/refund/tax policy; OD-007/010/011 require owner/legal decisions.
+4. **Certify a staging release candidate:** configuration and scheduler verification, financial reconciliation, backup/restore and deployment rollback drills, critical authorization/security checks, browser and manual accessibility acceptance. Verify deployed behavior, not only green unit tests. Production resources/spend remain explicitly gated.
+5. **Approve and launch:** close brand/domain, legal/privacy/tax, pricing presentation, content and locale decisions; verify production secrets/webhooks/monitoring; obtain explicit initial-release approval; deploy with controlled real-payment/refund smoke and reconciliation.
+
+Defer nonessential visual polish, information-architecture redesign, optional onboarding/topic requests, new infrastructure, and the AI research/editorial agent until these V1 gates are met. Accessibility, truthful purchase states and usable layouts are not optional polish. Existing code-level capabilities do not need replacement simply to satisfy this sequencing.
+
+Account export is a synchronous, authenticated JSON download of explicitly selected Curiofold-held records, read in a repeatable-read database snapshot. It is not a claim of complete privacy compliance: provider data access, retention, deletion and legal documentation remain separate release requirements.
+
 Curiofold is a TypeScript modular monolith:
 
 - Next.js 16.3 App Router on Node.js 24 LTS;
