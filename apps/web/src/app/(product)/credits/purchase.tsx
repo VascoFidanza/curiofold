@@ -28,13 +28,22 @@ function trustedCheckoutUrl(value: unknown): string | null {
 }
 
 function PaymentReturn({
+  checkoutCanceled,
   orderId,
   returnPath,
-}: Readonly<{ orderId: string; returnPath: string }>) {
-  const [state, setState] = useState<OrderState>({ status: 'checking' })
+}: Readonly<{
+  checkoutCanceled: boolean
+  orderId: string
+  returnPath: string
+}>) {
+  const [state, setState] = useState<OrderState>({
+    status: checkoutCanceled ? 'canceled' : 'checking',
+  })
   const [retry, setRetry] = useState(0)
 
   useEffect(() => {
+    if (checkoutCanceled) return
+
     const controller = new AbortController()
     let timer: ReturnType<typeof setTimeout> | null = null
     let attempts = 0
@@ -78,7 +87,7 @@ function PaymentReturn({
       controller.abort()
       if (timer) clearTimeout(timer)
     }
-  }, [orderId, retry])
+  }, [checkoutCanceled, orderId, retry])
 
   return (
     <section aria-live="polite" className={styles.returnCard}>
@@ -129,9 +138,14 @@ function PaymentReturn({
 }
 
 export function CreditsPurchase({
+  checkoutCanceled = false,
   orderId,
   returnPath,
-}: Readonly<{ orderId: string | null; returnPath: string }>) {
+}: Readonly<{
+  checkoutCanceled?: boolean
+  orderId: string | null
+  returnPath: string
+}>) {
   const [amountInput, setAmountInput] = useState('5')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -198,7 +212,11 @@ export function CreditsPurchase({
       </header>
 
       {orderId ? (
-        <PaymentReturn orderId={orderId} returnPath={returnPath} />
+        <PaymentReturn
+          checkoutCanceled={checkoutCanceled}
+          orderId={orderId}
+          returnPath={returnPath}
+        />
       ) : (
         <section aria-labelledby="amount-heading" className={styles.purchase}>
           <h2 id="amount-heading">Choose your top-up</h2>

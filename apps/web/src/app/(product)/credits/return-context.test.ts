@@ -8,6 +8,7 @@ const orderId = '11111111-1111-4111-8111-111111111111'
 describe('Credits sign-in return context', () => {
   it('preserves the originating Story through sign-in', () => {
     const context = resolveCreditsReturnContext({ return: storyPath })
+    expect(context.checkoutCanceled).toBe(false)
     expect(context.returnPath).toBe(storyPath)
     expect(
       new URL(context.signInPath, 'https://curiofold.invalid').searchParams.get(
@@ -22,6 +23,7 @@ describe('Credits sign-in return context', () => {
       return: storyPath,
     })
     expect(context.orderId).toBe(orderId)
+    expect(context.checkoutCanceled).toBe(false)
     const creditsPath = new URL(
       context.signInPath,
       'https://curiofold.invalid',
@@ -37,9 +39,24 @@ describe('Credits sign-in return context', () => {
       return: 'https://attacker.example',
     })
     expect(context).toEqual({
+      checkoutCanceled: false,
       orderId: null,
       returnPath: '/account',
       signInPath: '/sign-in?redirect_url=%2Fcredits',
     })
+  })
+
+  it('recognizes an explicit Stripe checkout cancellation', () => {
+    const context = resolveCreditsReturnContext({
+      payment: 'canceled',
+      payment_order: orderId,
+    })
+
+    expect(context.checkoutCanceled).toBe(true)
+    expect(
+      new URL(context.signInPath, 'https://curiofold.invalid').searchParams.get(
+        'redirect_url',
+      ),
+    ).toBe(`/credits?payment_order=${orderId}&payment=canceled`)
   })
 })

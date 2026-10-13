@@ -72,6 +72,23 @@ describe('credit purchase', () => {
     ).toBe('/account')
   })
 
+  it('shows a canceled checkout immediately without polling the order', () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+    const orderId = '11111111-1111-4111-8111-111111111111'
+
+    render(
+      <CreditsPurchase
+        checkoutCanceled
+        orderId={orderId}
+        returnPath="/account"
+      />,
+    )
+
+    expect(screen.getByText('Checkout was canceled')).toBeTruthy()
+    expect(screen.getByText('This order did not add credits.')).toBeTruthy()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   it('quotes a custom whole-euro top-up and sends only the intended amount', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
