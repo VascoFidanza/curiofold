@@ -1,6 +1,9 @@
 import { execFileSync } from 'node:child_process'
 
-import { publicationManifestSchema } from '@curiofold/content'
+import {
+  compileStoryDocument,
+  publicationManifestSchema,
+} from '@curiofold/content'
 import {
   assertNonProductionSeedEnvironment,
   createDatabase,
@@ -40,6 +43,14 @@ async function main() {
     readCommittedJson(manifestPath),
   )
   const document = readCommittedJson(manifest.storyPath)
+  const compiled = compileStoryDocument(document)
+  const [, , storyKey, locale] = manifest.storyPath.split('/')
+  if (
+    compiled.document.storyKey !== storyKey ||
+    compiled.document.locale !== locale
+  ) {
+    throw new Error('Story path and document identity disagree.')
+  }
   if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required.')
   const database = createDatabase(process.env.DATABASE_URL)
   try {
