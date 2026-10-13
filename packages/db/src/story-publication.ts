@@ -79,9 +79,8 @@ export async function releaseReviewedStory(
     }
     if (
       (current
-        ? !input.expectedCurrent ||
-          current.revision !== input.expectedCurrent.revision ||
-          current.state !== input.expectedCurrent.state
+        ? current.revision !== input.expectedCurrent?.revision ||
+          current.state !== input.expectedCurrent?.state
         : input.expectedCurrent !== null) ||
       (current && current.slug !== document.slug) ||
       current?.state === 'withdrawn' ||
