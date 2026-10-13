@@ -19,9 +19,8 @@ interface CreditsPageProps {
 }
 
 export default async function CreditsPage({ searchParams }: CreditsPageProps) {
-  const { orderId, returnPath, signInPath } = resolveCreditsReturnContext(
-    await searchParams,
-  )
+  const { checkoutCanceled, orderId, returnPath, signInPath } =
+    resolveCreditsReturnContext(await searchParams)
   if (!isClerkSessionConfigured()) {
     return (
       <PageFrame>
@@ -70,7 +69,11 @@ export default async function CreditsPage({ searchParams }: CreditsPageProps) {
 
   return (
     <PageFrame>
-      <CreditsPurchase orderId={orderId} returnPath={returnPath} />
+      <CreditsPurchase
+        checkoutCanceled={checkoutCanceled}
+        orderId={orderId}
+        returnPath={returnPath}
+      />
     </PageFrame>
   )
 }

@@ -6,6 +6,7 @@ const uuidPattern =
 export function resolveCreditsReturnContext(
   query: Record<string, string | string[] | undefined>,
 ) {
+  const checkoutCanceled = query.payment === 'canceled'
   const returnValue = query.return
   const safePath = safeReturnPath(
     typeof returnValue === 'string' ? returnValue : null,
@@ -20,10 +21,12 @@ export function resolveCreditsReturnContext(
 
   const redirectQuery = new URLSearchParams()
   if (orderId) redirectQuery.set('payment_order', orderId)
+  if (checkoutCanceled) redirectQuery.set('payment', 'canceled')
   if (returnPath !== '/account') redirectQuery.set('return', returnPath)
   const creditsPath = `/credits${redirectQuery.size ? `?${redirectQuery.toString()}` : ''}`
 
   return {
+    checkoutCanceled,
     orderId,
     returnPath,
     signInPath: `/sign-in?redirect_url=${encodeURIComponent(creditsPath)}`,
