@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "content-release/v1",
+  "action": "publish",
+  "storyPath": "content/stories/clockwork-gardens/en/2.json",
+  "expectedCurrent": { "revision": 2, "state": "published" },
+  "operator": "Curiofold Engineering — synthetic rehearsal only",
+  "reason": "Rehearse the nonproduction operator CLI against an already-seeded fictional Story. Not a launch-content approval."
+}

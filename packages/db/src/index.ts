@@ -6,6 +6,11 @@ export interface TransactionScope {
 export { createDatabase } from './client'
 export { exportAccountData } from './account-export'
 export {
+  releaseReviewedStory,
+  StoryPublicationConflictError,
+  type StoryPublicationInput,
+} from './story-publication'
+export {
   assertNonProductionSeedEnvironment,
   DevelopmentSeedConflictError,
   seedDevelopmentCatalog,
