@@ -86,6 +86,24 @@ export function readingPositionAtViewportLine(
   }
 }
 
+export function readingPositionInViewport(
+  blocks: readonly BlockMeasurement[],
+  viewportHeight: number,
+  endMarkerTop: number | null,
+) {
+  const endMarkerReached =
+    endMarkerTop !== null && endMarkerTop <= viewportHeight
+  // Once the end marker is visible, all preceding Story text is visible too.
+  // A fixed reading line otherwise strands short Stories below 95% at page bottom.
+  return {
+    endMarkerReached,
+    position: readingPositionAtViewportLine(
+      blocks,
+      endMarkerReached ? viewportHeight : viewportHeight * 0.35,
+    ),
+  }
+}
+
 function queuedProgressKey(
   userId: string,
   storyId: string,
@@ -365,9 +383,11 @@ export function ReaderProgressProvider({
           },
         ]
       })
-      const position = readingPositionAtViewportLine(
+      const endMarker = document.getElementById('story-end-marker')
+      const { position, endMarkerReached } = readingPositionInViewport(
         measurements,
-        window.innerHeight * 0.35,
+        window.innerHeight,
+        endMarker?.getBoundingClientRect().top ?? null,
       )
       if (!position) {
         return
@@ -375,11 +395,6 @@ export function ReaderProgressProvider({
 
       const currentPercent = readingPercentAtAnchor(blocks, position)
       setHighWaterPercent((previous) => Math.max(previous, currentPercent))
-      const endMarker = document.getElementById('story-end-marker')
-      const endMarkerReached = Boolean(
-        endMarker &&
-        endMarker.getBoundingClientRect().top <= window.innerHeight,
-      )
       sequence.current += 1
       scheduleSave({
         clientSequence: sequence.current,
