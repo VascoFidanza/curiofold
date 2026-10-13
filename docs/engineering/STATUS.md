@@ -18,6 +18,8 @@
 
 ## Recently completed
 
+- CRFD-50 acceptance follow-up — PR #60 (`f0f4571`) fixes canceled credit Checkout returns stuck on confirmation. All hosted gates passed and the deployed canonical Preview now shows cancellation and retry immediately. Stripe Sandbox decline card produced the expected decline; wallet remained 4 with no new grant. The subsequent signed-in session restored completed Lantern Atlas in Library and Reader; CRFD-16 is Done. Real fulfilled top-up/direct orders each have one processed provider event with one attempt. Automated PostgreSQL concurrent replay tests pass; an actual Stripe resend against Preview remains unverified and must not be inferred from record inspection. Test account remains signed in.
+
 - CRFD-70 — PR #59 merged the guarded nonproduction reviewed-content operator path (`054fac5`). Exact committed manifest/source, serialized expected-state changes, immutable versions, correction/rollback/archive and audit evidence are implemented. All hosted quality/security, PostgreSQL 18 CLI/release rehearsals, cross-browser and CodeQL checks passed. The clean-runner test caught and fixed undeclared CLI dependencies. See `CONTENT_PUBLICATION.md`; production execution is blocked until separately approved controls exist. No production resources or real launch content were introduced.
 - CRFD-11/13/15/19 — Story contract, identity/session boundary, public detail and entitlement-gated Reader thin slices marked Done after their existing automated/merge evidence was completed by live Preview acceptance. Broader release gates remain separate.
 
