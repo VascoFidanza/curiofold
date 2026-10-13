@@ -2,30 +2,28 @@
 
 **Current phase:** V1 convergence — complete journeys, real content and release readiness
 **Current milestone:** 4.2 — Contextual auth, top-up and unlock preserve momentum
-**Health:** At Risk — the credit-backed Story journey and fixed €1.30 direct purchase path are implemented but not live-Preview accepted. Milestone 3.3 separately waits for OD-010 on already-spent credits.
+**Health:** At Risk — normal Sandbox purchase, ownership and Reader journeys are live-verified. Failure/replay acceptance, real launch content, legal/privacy and operational recovery gates remain. Milestone 3.3 separately waits for OD-010 on already-spent credits.
 
 ## In progress
 
-- CRFD-50 live acceptance (2026-10-13): verified account, two-Story discovery, zero-credit recovery, €4 rejection, €5 Sandbox payment → 5 confirmed credits, preserved Story return, one-credit Lantern Atlas unlock → 4 credits, direct Clockwork Gardens purchase → exactly 130 EUR cents and no credits minted, both Stories in Library. Read-only Neon confirms both orders fulfilled, one payment grant, one credit debit, two active entitlements and wallet/ledger balance 4. CRFD-71 fixed the discovered 90%-at-page-bottom bug; deployed Preview now completes at 100%, persists across refresh, shows related Story actions and Library 1/2 completed. Live unauthorized/session-revocation and provider failure/replay evidence remain to close acceptance; successful payments alone are not release certification.
-- CRFD-70 — Nonproduction reviewed publication/rollback/archive operator path implemented, under validation. See `CONTENT_PUBLICATION.md`. It loads manifest and Story from the exact Git SHA, serializes and audits releases, rejects stale/conflicting state and blocks production execution. Human review is a privileged operator responsibility, not proven by a metadata string. Real catalogue approval and protected production publication remain owner/release gates.
 - V1 priorities now follow the convergence sequence in `EXECUTION_PLAN.md`: certify CRFD-50 → reviewed-content release workflow and launch catalogue → minimum account/privacy/support operations → staging security/accessibility/recovery gate → owner-approved production launch. AI editorial automation and nonessential polish are post-V1. Current fictional fixtures must not be presented as real launch content.
 
-- The fixed €1.30 direct Story purchase and flexible whole-euro credit top-ups are merged. The Product Owner reports successful development-mode Apple Pay/MB Way payments. A 2026-09-28 read-only Neon check found one fulfilled 130-cent direct order with an active payment entitlement, two fulfilled top-ups with grants, no stale orders, and no wallet/ledger balance mismatch. CRFD-50 remains open: one-credit unlock, Reader resume, replay/failure and protected Preview access still need acceptance evidence. CRFD-52 has merged owner-scoped payment history and auditable reversal review, but its final legal/provider behavior waits for OD-007. CRFD-37 remains held behind OD-010.
+- CRFD-52 has merged owner-scoped payment history and auditable reversal review, but its final legal/provider behavior waits for OD-007. CRFD-37 remains held behind OD-010.
 
 ## In review
 
-- S1-09 — The structured Story, locale, revision and source contract is merged; final closure waits for the public/Reader vertical slice to consume it.
+- CRFD-50 — Normal live journeys accepted on 2026-10-13: verified account, catalogue/public preview, zero-credit recovery, €4 rejection, €5 Sandbox payment → 5 confirmed credits, preserved Story return, one-credit unlock → 4 credits, direct Story purchase → exactly 130 EUR cents and no credits minted, both Stories in Library. Neon confirms both orders fulfilled, one payment grant/debit, two active entitlements and wallet/ledger balance 4. Reader progress and completion persist across refresh; related actions and Library 1/2 completed work. Account export matches these records. Controlled Clerk sign-out leaves Account unauthenticated after reload and redirects direct Reader access to sign-in with preserved return context; anonymous public detail works and PT-PT draft remains unavailable. Remaining: live decline/cancel/provider replay and subsequent new-session resume evidence. Test account was left signed out; sign in again before continuing authenticated tests. Browser blocked direct JSON wallet navigation, so no live API-denial claim is made; automated authorization tests pass.
 - S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
-- S1-11 — PR #9 merged the public Story Detail route, safe preview projection, missing-locale handling and SEO/share metadata. The nonproduction database is now seeded; authenticated acceptance of the protected Preview route remains unverified.
-- S1-08 — PR #10 merged the provider-independent identity/session boundary, database-owned roles, allowlisted force redirects and signed/idempotent lifecycle projection. Local, CI and protected-preview provider-free validation pass; live Clerk session/revocation validation remains externally blocked.
-- S1-12 — PR #11 merged the provider-independent entitlement and Reader boundary: unique/auditable Story ownership, owner-only retrieval, private response policy, structured semantic rendering, accessible sources and simple reading controls. Local, CI, PostgreSQL 18 and protected-preview provider-free gates pass; live entitled preview evidence remains externally blocked.
-- S1-13 — PR #12 merged weighted progress, stable resume anchors, monotonic sequence handling, durable completion, correction fallback and offline retry. Local, CI, protected-preview and PostgreSQL 18 provider-free gates pass; live refresh/session/reconnect evidence remains externally blocked.
+- S1-13 — Weighted progress, resume, completion, sequence, correction fallback and retries are merged and pass automated gates; live refresh/completion now pass. New-session/reconnect acceptance remains with CRFD-50.
 
 ## Recently completed
 
+- CRFD-70 — PR #59 merged the guarded nonproduction reviewed-content operator path (`054fac5`). Exact committed manifest/source, serialized expected-state changes, immutable versions, correction/rollback/archive and audit evidence are implemented. All hosted quality/security, PostgreSQL 18 CLI/release rehearsals, cross-browser and CodeQL checks passed. The clean-runner test caught and fixed undeclared CLI dependencies. See `CONTENT_PUBLICATION.md`; production execution is blocked until separately approved controls exist. No production resources or real launch content were introduced.
+- CRFD-11/13/15/19 — Story contract, identity/session boundary, public detail and entitlement-gated Reader thin slices marked Done after their existing automated/merge evidence was completed by live Preview acceptance. Broader release gates remain separate.
+
 - CRFD-71 — PR #58 merged the short-Story completion fix (`3f24e8d`) after all hosted checks passed. The canonical Preview deployment was verified through GitHub's successful Vercel status and browser acceptance: Lantern Atlas reaches 100%, saves durable completion, offers related Stories and remains completed after reload.
 
-- CRFD-69 — PR #57 merged secure Account JSON export into `development` (`c3c7f31`). Verified active users can download explicit safe profile, wallet, ownership, progress, order and reversal data from one repeatable-read snapshot. Six route tests, typecheck, lint, formatting and build passed locally; all hosted quality/security, PostgreSQL 18, cross-browser and CodeQL checks passed. No migration/provider configuration was needed. Live Preview acceptance remains unverified; account deletion/retention and provider-held data access are not completed by this feature.
+- CRFD-69 — PR #57 merged secure Account JSON export into `development` (`c3c7f31`). Verified active users can download explicit safe profile, wallet, ownership, progress, order and reversal data from one repeatable-read snapshot. Automated and hosted checks passed. Live download on 2026-10-13 matched two orders, two owned Stories, one completion and 4 credits. No migration/provider configuration was needed. Account deletion/retention and provider-held data access are not completed by this feature.
 
 - CRFD-68 — The Library has URL-based All, Unread, In progress and Completed filters with authoritative counts and accessible selection. Filtered-empty shelves offer a route back to all owned Stories; the full Library progress summary remains independent of the selected filter.
 - CRFD-67 — Reader progress automatically retries temporary network, rate-limit and server failures up to three times with exponential backoff. Retries use the latest queued position, stop on authorization/validation rejection, and are canceled on success or unmount. Exhausted failures retain the account-scoped queue for later reconnect.
@@ -73,7 +71,7 @@
 
 ## Blocked
 
-- Complete money-flow acceptance still requires the one-credit path, duplicate/replayed provider events and failure cases on protected Preview. The earlier 130-cent order-contract defect and stale schema are fixed; the 2026-09-28 successful test-mode direct order and Neon reconciliation supersede the earlier no-order observation. Direct reversal evidence remains review-only until OD-007 defines legal/provider and entitlement policy. Live production commerce still waits for OD-007.
+- Remaining live money-flow acceptance covers decline/cancel/provider replay and failure cases, not the already-verified normal one-credit/direct/top-up paths. Direct reversal evidence remains review-only until OD-007 defines legal/provider and entitlement policy. Live production commerce still waits for OD-007.
 - Linear cycle creation is subject to the workspace exposing cycle-management capability.
 - Visual acceptance remains dependent on renewed structured access to the Curiofold Figma file.
 - Final spent-credit behavior for refunds and chargebacks is gated by OD-010. CRFD-35 and the unspent-credit portion of CRFD-36 can proceed independently.
@@ -81,7 +79,7 @@
 
 ## Environment state
 
-- Vercel Preview has development Clerk, Stripe test-mode and Neon nonproduction variables configured. The named Neon project has 18 applied migrations, including the direct Story purchase schema, and two seeded synthetic Stories. Anonymous public and Reader boundary smoke tests passed; authenticated credit-unlock and progress acceptance remains unverified.
+- Vercel Preview has development Clerk, Stripe Sandbox and Neon nonproduction configured, with 18 migrations and two synthetic Stories. Signed-in purchase/unlock/Reader/progress and controlled signed-out boundaries were live-verified on 2026-10-13; remaining acceptance is listed above.
 - The stable nonproduction integration branch is `development`; `main` remains the production/release branch.
 - No production Neon project, live Stripe configuration or production release has been created.
 
@@ -92,16 +90,16 @@
 
 ## Next
 
-1. Complete CRFD-50 acceptance on protected Preview: use one purchased credit to unlock the new `lantern-atlas` Story exactly once, resume reading after refresh/sign-in, and confirm unauthorized access remains denied. Record failure/retry evidence without exposing customer data.
+1. Sign back into the canonical Preview test account for the remaining CRFD-50 decline/cancel/replay and new-session/reconnect cases. Do not repeat successful purchases/unlocks unnecessarily; both existing synthetic Stories are already owned by this account.
 2. Keep the successful direct €1.30 and credit top-up test-mode evidence linked to the same reconciled nonproduction order/entitlement/ledger state; do not infer live-payment readiness from it.
 3. Close Milestone 4.2 and the walking-skeleton gate only after live development-provider, authorization and progress acceptance, not merely green provider-free tests.
 4. Obtain the OD-010 product/legal decision before starting CRFD-37; options remain negative balance, spending suspension, entitlement revocation or manual review.
 5. Complete S1-10 visual acceptance when structured Figma access returns.
-6. Retain live Clerk, Stripe and entitled-preview acceptance gates until their development integrations are available.
+6. Prepare real reviewed content using the committed manifest/operator path; obtain launch catalogue/reviewer/language/media decisions. Production publication remains disabled until protected approval controls are explicitly authorized and verified.
 7. Do not provision production infrastructure or enable live payments without explicit product-owner approval.
 
 ## Open decisions
 
 See `docs/project/OPEN_DECISIONS.md`. No open product decision blocks the foundation stage.
 
-**Last updated:** 2026-10-12
+**Last updated:** 2026-10-13
