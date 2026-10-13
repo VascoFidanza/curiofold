@@ -33,6 +33,8 @@
     "validate": "pnpm format:check && pnpm lint && node --check scripts/assert-no-client-secrets.mjs && pnpm boundaries && pnpm typecheck && pnpm test:unit && pnpm content:validate && pnpm build && pnpm security:bundle"
   },
   "devDependencies": {
+    "@curiofold/content": "workspace:*",
+    "@curiofold/db": "workspace:*",
     "@axe-core/playwright": "4.13.0",
     "@eslint/js": "9.39.5",
     "@playwright/test": "1.63.0",
@@ -41,6 +43,7 @@
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.8",
     "prettier": "3.9.8",
+    "tsx": "4.23.13",
     "typescript": "5.9.3",
     "typescript-eslint": "8.70.0",
     "vitest": "5.0.1"
