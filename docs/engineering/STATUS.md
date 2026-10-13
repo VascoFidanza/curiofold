@@ -6,7 +6,7 @@
 
 ## In progress
 
-- CRFD-50 is Todo/Blocked, not actively executing: the Vercel connector still returns 403 for the explicit project/team, no Vercel CLI is installed, and the controlled browsers have no signed-in Preview tab. To resume live acceptance, open the canonical development Preview in the Codex in-app browser, pass Vercel protection and sign into Curiofold with a development test account; leave the tab open. No new Stripe object or secret is required for CRFD-69. Deployment protection remains enabled.
+- CRFD-50 resumed on 2026-10-13 using the Product Owner's signed-in canonical Preview. Verified email/account, catalogue, zero-credit recovery, €4 rejection, €5 Sandbox payment → exactly 5 confirmed credits, preserved Story return and one-credit Lantern Atlas unlock into the entitled Reader. Live testing exposed CRFD-71: at the actual short-Story page bottom, the visible end marker still leaves progress at 90% because of the fixed 35% reading line. Fix and revalidate completion before closing acceptance or proceeding to CRFD-70. No provider configuration or protection changes were made.
 - Next independent implementation: CRFD-70 — reviewed Story publication and rollback beyond synthetic fixtures (Milestone 2.2). Existing fixtures remain development-only; real catalogue approval is still an owner/editorial gate.
 - V1 priorities now follow the convergence sequence in `EXECUTION_PLAN.md`: certify CRFD-50 → reviewed-content release workflow and launch catalogue → minimum account/privacy/support operations → staging security/accessibility/recovery gate → owner-approved production launch. AI editorial automation and nonessential polish are post-V1. Current fictional fixtures must not be presented as real launch content.
 

@@ -8,6 +8,7 @@ import {
   ReaderCompletionActions,
   ReaderProgressProvider,
   readingPositionAtViewportLine,
+  readingPositionInViewport,
 } from './reader-progress'
 
 afterEach(() => {
@@ -18,6 +19,31 @@ afterEach(() => {
 })
 
 describe('Reader progress client', () => {
+  it('counts the final visible block when the end marker is reached on a short Story', () => {
+    const blocks = [
+      { id: 'story-end', readingUnits: 20, top: 220, bottom: 359 },
+    ]
+    expect(readingPositionInViewport(blocks, 827, 763)).toEqual({
+      endMarkerReached: true,
+      position: { blockId: 'story-end', offset: 20 },
+    })
+  })
+
+  it.each([null, 828])(
+    'keeps the normal reading line before reaching the end marker (%s)',
+    (markerTop) => {
+      const result = readingPositionInViewport(
+        [{ id: 'opening', readingUnits: 100, top: 0, bottom: 827 }],
+        827,
+        markerTop,
+      )
+      expect(result).toEqual({
+        endMarkerReached: false,
+        position: { blockId: 'opening', offset: 35 },
+      })
+    },
+  )
+
   it('maps a viewport reading line to a block-relative offset', () => {
     expect(
       readingPositionAtViewportLine(
