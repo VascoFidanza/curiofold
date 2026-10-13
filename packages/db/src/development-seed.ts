@@ -1,5 +1,5 @@
 import type { CompiledStoryDocument } from '@curiofold/content'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 
 import * as schema from './schema'
@@ -96,6 +96,7 @@ export async function seedDevelopmentCatalog(
   }
 
   return database.transaction(async (transaction) => {
+    await transaction.execute(sql`SELECT pg_advisory_xact_lock(913741, 1)`)
     const result: MutableDevelopmentSeedResult = {
       createdLocalizations: 0,
       createdStories: 0,
@@ -196,11 +197,28 @@ export async function seedDevelopmentCatalog(
           }
           continue
         }
+        const [predecessor] =
+          document.previousRevision === null
+            ? []
+            : await transaction
+                .select({ id: schema.storyVersions.id })
+                .from(schema.storyVersions)
+                .where(
+                  and(
+                    eq(schema.storyVersions.localizationId, localization.id),
+                    eq(
+                      schema.storyVersions.revision,
+                      document.previousRevision,
+                    ),
+                  ),
+                )
+                .limit(1)
         await transaction.insert(schema.storyVersions).values({
           contentHash: seedDocument.story.contentHash,
           document,
           gitCommitSha: seedDocument.gitCommitSha,
           localizationId: localization.id,
+          previousVersionId: predecessor?.id ?? null,
           publishedAt: new Date(publishedAt),
           revision: document.revision,
           reviewedAt: new Date(reviewedAt),

@@ -1,4 +1,5 @@
 import { readdir, readFile } from 'node:fs/promises'
+import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
 import { compileStoryDocument } from '@curiofold/content'
@@ -9,6 +10,10 @@ import { describe, expect, it } from 'vitest'
 
 import { createDatabase } from './client'
 import { exportAccountData } from './account-export'
+import {
+  releaseReviewedStory,
+  StoryPublicationConflictError,
+} from './story-publication'
 import {
   assertNonProductionSeedEnvironment,
   seedDevelopmentCatalog,
@@ -2266,6 +2271,192 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       await expect(exportAccountData(database.client, ' ')).rejects.toThrow(
         'Account user id is required.',
       )
+      // Rehearse reviewed release/correction/rollback/archive independently of fixture seeding.
+      const releaseDocument = {
+        ...original.document,
+        storyKey: 'release-rehearsal',
+        slug: 'release-rehearsal',
+      }
+      const releaseInput = {
+        action: 'publish' as const,
+        document: releaseDocument,
+        expectedCurrent: null,
+        gitCommitSha: 'e'.repeat(40),
+        operator: 'Test human reviewer',
+        reason: 'Isolated publication rehearsal.',
+      }
+      await expect(
+        releaseReviewedStory(database.client, releaseInput),
+      ).resolves.toMatchObject({ outcome: 'released', revision: 1 })
+      await expect(
+        releaseReviewedStory(database.client, releaseInput),
+      ).resolves.toMatchObject({ outcome: 'unchanged' })
+      const correctedRelease = {
+        ...correction.document,
+        storyKey: 'release-rehearsal',
+        slug: 'release-rehearsal',
+      }
+      await releaseReviewedStory(database.client, {
+        ...releaseInput,
+        document: correctedRelease,
+        expectedCurrent: { revision: 1, state: 'published' },
+      })
+      await expect(
+        findPublishedStory(database.client, 'release-rehearsal', 'en'),
+      ).resolves.toMatchObject({
+        status: 'found',
+        story: { document: { revision: 2 } },
+      })
+      await expect(
+        releaseReviewedStory(database.client, {
+          ...releaseInput,
+          document: {
+            ...correctedRelease,
+            metadata: {
+              ...correctedRelease.metadata,
+              title: 'Immutable conflict',
+            },
+          },
+          expectedCurrent: { revision: 2, state: 'published' },
+        }),
+      ).rejects.toThrow('conflicts with immutable history')
+      await expect(
+        findPublishedStory(database.client, 'release-rehearsal', 'en'),
+      ).resolves.toMatchObject({
+        story: {
+          document: { metadata: { title: correction.document.metadata.title } },
+        },
+      })
+      const revisionThree = {
+        ...correctedRelease,
+        revision: 3,
+        previousRevision: 2,
+      }
+      const competing = await Promise.allSettled([
+        releaseReviewedStory(database.client, {
+          ...releaseInput,
+          document: revisionThree,
+          expectedCurrent: { revision: 2, state: 'published' },
+        }),
+        releaseReviewedStory(database.client, {
+          ...releaseInput,
+          document: {
+            ...revisionThree,
+            metadata: {
+              ...revisionThree.metadata,
+              preview: 'A competing reviewed release.',
+            },
+          },
+          expectedCurrent: { revision: 2, state: 'published' },
+        }),
+      ])
+      expect(
+        competing.filter((result) => result.status === 'fulfilled'),
+      ).toHaveLength(1)
+      expect(
+        competing.filter((result) => result.status === 'rejected'),
+      ).toHaveLength(1)
+      await releaseReviewedStory(database.client, {
+        ...releaseInput,
+        expectedCurrent: { revision: 3, state: 'published' },
+        reason: 'Rollback to reviewed revision one.',
+      })
+      await expect(
+        findPublishedStory(database.client, 'release-rehearsal', 'en'),
+      ).resolves.toMatchObject({ story: { document: { revision: 1 } } })
+      await expect(
+        releaseReviewedStory(database.client, {
+          ...releaseInput,
+          action: 'archive',
+          expectedCurrent: { revision: 2, state: 'published' },
+        }),
+      ).rejects.toBeInstanceOf(StoryPublicationConflictError)
+      const [releaseStory] = await database.client
+        .select({ id: stories.id })
+        .from(stories)
+        .where(eq(stories.stableKey, 'release-rehearsal'))
+      if (!releaseStory) throw new Error('Rehearsal Story missing.')
+      await grantStoryEntitlement(database.client, {
+        userId: crossLocaleReader.userId,
+        storyId: releaseStory.id,
+        source: 'seed',
+        reason: 'Archive ownership rehearsal.',
+      })
+      await releaseReviewedStory(database.client, {
+        ...releaseInput,
+        action: 'archive',
+        expectedCurrent: { revision: 1, state: 'published' },
+      })
+      await expect(
+        findPublishedStory(database.client, 'release-rehearsal', 'en'),
+      ).resolves.toMatchObject({ status: 'not_found' })
+      await expect(
+        findEntitledStoryBySlug(
+          database.client,
+          crossLocaleReader.userId,
+          'en',
+          'release-rehearsal',
+        ),
+      ).resolves.toMatchObject({ status: 'found' })
+      const [releaseVersions] = await client
+        .query<{ count: string }>(
+          'SELECT count(*) FROM story_versions v JOIN story_localizations l ON l.id=v.localization_id WHERE l.story_id=$1',
+          [releaseStory.id],
+        )
+        .then((result) => result.rows)
+      expect(releaseVersions?.count).toBe('3')
+      const [releaseAudit] = await client
+        .query<{ count: string }>(
+          "SELECT count(*) FROM audit_events WHERE action IN ('story.publish','story.archive') AND metadata->>'operator'='Test human reviewer'",
+        )
+        .then((result) => result.rows)
+      expect(releaseAudit?.count).toBe('5')
+      await expect(
+        releaseReviewedStory(database.client, {
+          ...releaseInput,
+          document: portugueseDraft.document,
+        }),
+      ).rejects.toThrow('reviewed published document')
+      const repositoryRoot = fileURLToPath(
+        new URL('../../../', import.meta.url),
+      )
+      const commitSha = execFileSync('git', ['rev-parse', 'HEAD'], {
+        cwd: repositoryRoot,
+        encoding: 'utf8',
+      }).trim()
+      const cliEnvironment = {
+        ...process.env,
+        DATABASE_URL: connectionString,
+        NEXT_PUBLIC_ENVIRONMENT: 'test',
+        CURIOFOLD_CONTENT_CONFIRMATION: 'nonproduction',
+        CURIOFOLD_CONTENT_REVIEW: `approved:${commitSha}`,
+      }
+      const cliArgs = [
+        'content:release',
+        commitSha,
+        'content/releases/rehearsal-clockwork.json',
+      ]
+      expect(
+        execFileSync('pnpm', cliArgs, {
+          cwd: repositoryRoot,
+          env: cliEnvironment,
+          encoding: 'utf8',
+        }),
+      ).toContain('"outcome":"unchanged"')
+      expect(() =>
+        execFileSync('pnpm', cliArgs, {
+          cwd: repositoryRoot,
+          env: { ...cliEnvironment, NEXT_PUBLIC_ENVIRONMENT: 'production' },
+          stdio: 'pipe',
+        }),
+      ).toThrow()
+      expect(() =>
+        execFileSync('pnpm', cliArgs, {
+          cwd: repositoryRoot,
+          env: { ...cliEnvironment, CURIOFOLD_CONTENT_REVIEW: '' },
+          stdio: 'pipe',
+        }),
+      ).toThrow()
     } finally {
       await client.end()
       await database.pool.end()

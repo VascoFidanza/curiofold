@@ -18,6 +18,7 @@ export {
   type PublicStoryPreviewBlock,
 } from './public-story'
 export { categoryLabel } from './category-label'
+export { publicationManifestSchema } from './publication-manifest'
 export {
   findCollectionDefinition,
   listCollectionDefinitions,
