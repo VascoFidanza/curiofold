@@ -239,6 +239,13 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       ).resolves.toEqual({ completed: 0, failed: 1 })
       await expect(
         processAccountDeletions(database.client, () => Promise.resolve()),
+      ).resolves.toEqual({ completed: 0, failed: 0 })
+      await expect(
+        processAccountDeletions(
+          database.client,
+          () => Promise.resolve(),
+          new Date(Date.now() + 120_000),
+        ),
       ).resolves.toEqual({ completed: 1, failed: 0 })
       await expect(
         processAccountDeletions(database.client, () =>

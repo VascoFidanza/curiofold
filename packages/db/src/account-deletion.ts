@@ -42,6 +42,7 @@ export async function requestAccountDeletion(
 export async function processAccountDeletions(
   database: NodePgDatabase<typeof schema>,
   deactivate: (subject: string) => Promise<void>,
+  now = new Date(),
 ): Promise<{ completed: number; failed: number }> {
   const result = { completed: 0, failed: 0 }
   for (let index = 0; index < 10; index += 1) {
@@ -54,6 +55,12 @@ export async function processAccountDeletions(
             eq(schema.outboxEvents.eventType, 'account.deletion_requested'),
             isNull(schema.outboxEvents.publishedAt),
             sql`${schema.outboxEvents.attemptCount} < 10`,
+            sql`NOT EXISTS (
+              SELECT 1 FROM audit_events attempt
+              WHERE attempt.target_id = ${schema.outboxEvents.id}
+                AND attempt.action = 'account.deactivation_attempt'
+                AND attempt.created_at > ${now}::timestamptz - make_interval(secs => least(3600, 30 * power(2, ${schema.outboxEvents.attemptCount}))::int)
+            )`,
           ),
         )
         .orderBy(schema.outboxEvents.createdAt)
@@ -71,10 +78,27 @@ export async function processAccountDeletions(
         .update(schema.outboxEvents)
         .set({ attemptCount: job.attemptCount + 1 })
         .where(eq(schema.outboxEvents.id, job.id))
+      await transaction.insert(schema.auditEvents).values({
+        action: 'account.deactivation_attempt',
+        createdAt: now,
+        targetId: job.id,
+        targetType: 'account_deletion_job',
+        metadata: { attempt: job.attemptCount + 1 },
+      })
+      let timeout: ReturnType<typeof setTimeout> | undefined
       try {
-        await deactivate(user.clerkSubject)
+        await Promise.race([
+          deactivate(user.clerkSubject),
+          new Promise<never>((_, reject) => {
+            timeout = setTimeout(() => {
+              reject(new Error('Identity operation timed out'))
+            }, 15_000)
+          }),
+        ])
       } catch {
         return 'failed'
+      } finally {
+        if (timeout) clearTimeout(timeout)
       }
       // Reading history has no accounting purpose. Financial and ownership evidence stays intact.
       await transaction
@@ -101,15 +125,13 @@ export async function processAccountDeletions(
         .update(schema.outboxEvents)
         .set({ publishedAt: new Date() })
         .where(eq(schema.outboxEvents.id, job.id))
-      await transaction
-        .insert(schema.auditEvents)
-        .values({
-          action: 'account.deactivation_completed',
-          targetId: user.id,
-          targetType: 'account',
-          reason:
-            'Identity access revoked and reading history removed; retained records await policy review.',
-        })
+      await transaction.insert(schema.auditEvents).values({
+        action: 'account.deactivation_completed',
+        targetId: user.id,
+        targetType: 'account',
+        reason:
+          'Identity access revoked and reading history removed; retained records await policy review.',
+      })
       return 'completed'
     })
     if (outcome === 'empty') break
