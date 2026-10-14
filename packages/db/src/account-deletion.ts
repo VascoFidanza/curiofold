@@ -143,3 +143,48 @@ export async function processAccountDeletions(
   }
   return result
 }
+
+/** Opaque receipt exposes processing state only, never account or financial data. */
+export async function findAccountDeletionReceipt(
+  database: NodePgDatabase<typeof schema>,
+  receiptId: string,
+) {
+  const [job] = await database
+    .select({
+      completedAt: schema.outboxEvents.publishedAt,
+      attempts: schema.outboxEvents.attemptCount,
+    })
+    .from(schema.outboxEvents)
+    .where(
+      and(
+        eq(schema.outboxEvents.id, receiptId),
+        eq(schema.outboxEvents.eventType, 'account.deletion_requested'),
+      ),
+    )
+    .limit(1)
+  if (!job) return null
+  return {
+    status: job.completedAt
+      ? 'retention_review'
+      : job.attempts >= 10
+        ? 'operator_review'
+        : 'processing',
+  }
+}
+
+export async function findAccountDeletionReceiptId(
+  database: NodePgDatabase<typeof schema>,
+  userId: string,
+) {
+  const [job] = await database
+    .select({ id: schema.outboxEvents.id })
+    .from(schema.outboxEvents)
+    .where(
+      and(
+        eq(schema.outboxEvents.aggregateId, userId),
+        eq(schema.outboxEvents.eventType, 'account.deletion_requested'),
+      ),
+    )
+    .limit(1)
+  return job?.id ?? null
+}

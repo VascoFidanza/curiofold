@@ -7,6 +7,8 @@ export { createDatabase } from './client'
 export {
   requestAccountDeletion,
   processAccountDeletions,
+  findAccountDeletionReceipt,
+  findAccountDeletionReceiptId,
 } from './account-deletion'
 export { exportAccountData } from './account-export'
 export {

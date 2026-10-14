@@ -6,6 +6,26 @@ export function DeleteAccount() {
   const [confirmation, setConfirmation] = useState('')
   const [status, setStatus] = useState('')
   const [pending, setPending] = useState(false)
+  async function checkStatus() {
+    try {
+      const response = await fetch('/api/v1/account/deletion', {
+        cache: 'no-store',
+      })
+      if (!response.ok) throw new Error('Status unavailable')
+      const result = (await response.json()) as { status: string }
+      setStatus(
+        result.status === 'retention_review'
+          ? 'Account access has been revoked and reading history removed. Financial records and unused paid credits remain protected pending retention and financial review.'
+          : result.status === 'operator_review'
+            ? 'Your account remains blocked. Cleanup needs operator attention; your request has not been lost.'
+            : 'Your account is blocked. Cleanup is pending or retrying. Financial records and unused paid credits remain protected.',
+      )
+    } catch {
+      setStatus(
+        'Status is temporarily unavailable. Your accepted deletion request remains recorded.',
+      )
+    }
+  }
   async function submit() {
     if (pending || confirmation !== 'DELETE') return
     setPending(true)
@@ -65,6 +85,11 @@ export function DeleteAccount() {
         {pending ? 'Submitting…' : 'Request account deletion'}
       </button>
       <p role="status">{status}</p>
+      {status ? (
+        <button type="button" onClick={() => void checkStatus()}>
+          Check deletion status
+        </button>
+      ) : null}
     </section>
   )
 }

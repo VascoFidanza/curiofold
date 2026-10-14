@@ -1,4 +1,8 @@
-import { requestAccountDeletion } from '@curiofold/db'
+import {
+  requestAccountDeletion,
+  findAccountDeletionReceipt,
+  findAccountDeletionReceiptId,
+} from '@curiofold/db'
 
 import { getDatabase } from '@/server/database'
 import {
@@ -48,10 +52,42 @@ export async function POST(request: Request) {
     if (!account.emailVerified || age < -5000 || age > 15 * 60_000)
       return reply(403, 'recent_sign_in_required')
     await requestAccountDeletion(getDatabase().client, account.userId)
-    return reply(202, 'deletion_accepted')
+    const receiptId = await findAccountDeletionReceiptId(
+      getDatabase().client,
+      account.userId,
+    )
+    if (!receiptId) throw new Error('Deletion receipt unavailable')
+    const response = reply(202, 'deletion_accepted')
+    response.headers.set(
+      'Set-Cookie',
+      `curiofold_deletion=${receiptId}; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/account/deletion; Max-Age=604800`,
+    )
+    return response
   } catch (error) {
     if (error instanceof IdentitySessionError)
       return reply(error.code === 'unauthenticated' ? 401 : 403, error.code)
     return reply(503, 'deletion_unavailable')
   }
+}
+
+export async function GET(request: Request) {
+  const receipt = request.headers
+    .get('cookie')
+    ?.split(';')
+    .map((value) => value.trim())
+    .find((value) => value.startsWith('curiofold_deletion='))
+    ?.slice('curiofold_deletion='.length)
+  const headers = { 'Cache-Control': 'private, no-store' }
+  if (
+    !receipt ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu.test(
+      receipt,
+    )
+  )
+    return Response.json({ status: 'unavailable' }, { status: 404, headers })
+  const status = await findAccountDeletionReceipt(getDatabase().client, receipt)
+  return Response.json(status ?? { status: 'unavailable' }, {
+    status: status ? 200 : 404,
+    headers,
+  })
 }
