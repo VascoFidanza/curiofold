@@ -4,6 +4,7 @@ export interface TransactionScope {
 }
 
 export { createDatabase } from './client'
+export { requestAccountDeletion } from './account-deletion'
 export { exportAccountData } from './account-export'
 export {
   releaseReviewedStory,
