@@ -202,7 +202,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       )
 
       const authenticatedAt = new Date('2026-09-20T10:00:00.000Z')
-      const linkedAccount = await ensureIdentityAccount(
+      let linkedAccount = await ensureIdentityAccount(
         database.client,
         'user_identity_fixture',
         authenticatedAt,
@@ -310,6 +310,13 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         emailVerified: false,
       })
 
+      // Lifecycle tests deliberately disabled the first identity. Commerce must
+      // exercise an active account, matching the real authorization boundary.
+      linkedAccount = await ensureIdentityAccount(
+        database.client,
+        'user_commerce_active_fixture',
+        new Date(),
+      )
       const paymentOrderInput = {
         createdAt: new Date('2026-09-20T10:03:30.000Z'),
         operationKey: 'checkout:user_identity_fixture:request-1',
