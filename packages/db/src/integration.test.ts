@@ -9,6 +9,7 @@ import { Client } from 'pg'
 import { describe, expect, it } from 'vitest'
 
 import { createDatabase } from './client'
+import { lockActiveAccount } from './active-account'
 import {
   requestAccountDeletion,
   processAccountDeletions,
@@ -229,6 +230,11 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         requestAccountDeletion(database.client, deletionAccount.userId),
       ])
       expect(deletionResults.sort()).toEqual(['accepted', 'existing'])
+      await expect(
+        database.client.transaction((transaction) =>
+          lockActiveAccount(transaction, deletionAccount.userId),
+        ),
+      ).rejects.toThrow('Account is not active')
       await expect(
         findIdentityAccount(database.client, 'user_deletion_fixture'),
       ).resolves.toMatchObject({ accountState: 'pending_deletion' })
