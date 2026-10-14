@@ -14,6 +14,7 @@ import {
 import styles from './account.module.css'
 import { PurchaseHistory } from './purchase-history'
 import { WalletSummary } from './wallet-summary'
+import { DeleteAccount } from './delete-account'
 
 export const dynamic = 'force-dynamic'
 
@@ -73,6 +74,7 @@ export default async function AccountPage() {
         <section className={styles.account}>
           <p className={styles.eyebrow}>Account</p>
           <h1>Your Curiofold account</h1>
+          <DeleteAccount />
           <p>
             Your identity session is active. Curiofold keeps authorization and
             ownership decisions in its own audited data model.

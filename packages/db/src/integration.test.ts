@@ -9,6 +9,10 @@ import { Client } from 'pg'
 import { describe, expect, it } from 'vitest'
 
 import { createDatabase } from './client'
+import {
+  requestAccountDeletion,
+  processAccountDeletions,
+} from './account-deletion'
 import { exportAccountData } from './account-export'
 import {
   releaseReviewedStory,
@@ -215,6 +219,39 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         subject: 'user_identity_fixture',
         type: 'user.created' as const,
       }
+      const deletionAccount = await ensureIdentityAccount(
+        database.client,
+        'user_deletion_fixture',
+        new Date(),
+      )
+      const deletionResults = await Promise.all([
+        requestAccountDeletion(database.client, deletionAccount.userId),
+        requestAccountDeletion(database.client, deletionAccount.userId),
+      ])
+      expect(deletionResults.sort()).toEqual(['accepted', 'existing'])
+      await expect(
+        findIdentityAccount(database.client, 'user_deletion_fixture'),
+      ).resolves.toMatchObject({ accountState: 'pending_deletion' })
+      await expect(
+        processAccountDeletions(database.client, () =>
+          Promise.reject(new Error('offline')),
+        ),
+      ).resolves.toEqual({ completed: 0, failed: 1 })
+      await expect(
+        processAccountDeletions(database.client, () => Promise.resolve()),
+      ).resolves.toEqual({ completed: 1, failed: 0 })
+      await expect(
+        processAccountDeletions(database.client, () =>
+          Promise.reject(new Error('must not run twice')),
+        ),
+      ).resolves.toEqual({ completed: 0, failed: 0 })
+      await expect(
+        ensureIdentityAccount(
+          database.client,
+          'user_deletion_fixture',
+          new Date(),
+        ),
+      ).resolves.toMatchObject({ accountState: 'pending_deletion' })
       await expect(
         applyIdentityLifecycleEvent(database.client, createdEvent),
       ).resolves.toBe('applied')
