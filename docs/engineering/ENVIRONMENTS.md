@@ -5,13 +5,13 @@ connection strings, tokens, or other secret values.
 
 ## Current state
 
-| Environment | Application                                                                                                                                 | Database                                                                                                                                  | Provider state                                                                                          | Data policy                                           |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| Local       | Run from `apps/web` with Node 24 and pnpm 11                                                                                                | Testcontainers PostgreSQL 18 when Docker is available                                                                                     | Synthetic Clerk/Stripe fixtures only                                                                    | No shared or production data                          |
-| CI          | GitHub Actions quality and database jobs                                                                                                    | Fresh PostgreSQL 18 container per job                                                                                                     | Signed fixtures/mocks only                                                                              | Destroyed after each job                              |
-| Preview     | Vercel `curiofold` project (`prj_qOjqibHnZATdR84vrDtAlEhOb8Qc`) linked to GitHub in `vascofidanzas-projects`; deployment protection enabled | Neon `curiofold-nonproduction` project, default `main` branch in `aws-eu-central-1`; 18 migrations applied and synthetic catalogue seeded | Development provider variables are configured in Vercel; authenticated route smoke test remains pending | Synthetic data only; no production branch ancestry    |
-| Staging     | Not provisioned                                                                                                                             | Not provisioned                                                                                                                           | Not configured                                                                                          | Must be created separately from production            |
-| Production  | Not provisioned                                                                                                                             | Not provisioned                                                                                                                           | Not configured                                                                                          | Requires product-owner authorization and launch gates |
+| Environment | Application                                                                                                                                 | Database                                                                                                                                       | Provider state                                                                               | Data policy                                                |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Local       | Run from `apps/web` with Node 24 and pnpm 11                                                                                                | Testcontainers PostgreSQL 18 when Docker is available                                                                                          | Synthetic Clerk/Stripe fixtures only                                                         | No shared or production data                               |
+| CI          | GitHub Actions quality and database jobs                                                                                                    | Fresh PostgreSQL 18 container per job                                                                                                          | Signed fixtures/mocks only                                                                   | Destroyed after each job                                   |
+| Preview     | Vercel `curiofold` project (`prj_qOjqibHnZATdR84vrDtAlEhOb8Qc`) linked to GitHub in `vascofidanzas-projects`; deployment protection enabled | Neon `curiofold-nonproduction` project, default `main` branch in `aws-eu-central-1`; tracked migrations applied and synthetic catalogue seeded | Development Clerk and Stripe Sandbox; authenticated core journeys and deletion live-verified | Test accounts/Sandbox transactions; no production ancestry |
+| Staging     | Not provisioned                                                                                                                             | Not provisioned                                                                                                                                | Not configured                                                                               | Must be created separately from production                 |
+| Production  | Not provisioned                                                                                                                             | Not provisioned                                                                                                                                | Not configured                                                                               | Requires product-owner authorization and launch gates      |
 
 ## Neon nonproduction resource
 
@@ -46,12 +46,13 @@ only in provider-scoped environment storage and local ignored files.
 
 ## Required next actions
 
-1. Run an authenticated Story Detail smoke test against the protected Preview.
-   An unauthenticated request reaches Vercel's login page; the connected Vercel
-   account currently returns 403 for deployment listing, so the route itself
-   has not been independently verified after the database bootstrap.
-2. Create preview branch lifecycle and cleanup automation after the Vercel
-   project is linked.
+1. Authenticated discovery, purchases, wallet, Library, Reader/progress and
+   account export passed live Preview acceptance on 2026-10-13/14. CRFD-72
+   deletion/session/cleanup acceptance passed on 2026-10-15; PR #61 is merged.
+2. Neon `accountcleanup` is enabled every five minutes on the existing
+   nonproduction branch. Credentials are stored in Function environment
+   management. See `ACCOUNT_DELETION.md` and `RECOVERY.md` for actual execution,
+   restoration and rollback evidence. Preview branch lifecycle remains separate.
 3. Upgrade/secure the production Neon organization only at the production gate:
    MFA enabled, paid plan approved, separate project, protected branch, roles and
    backup policy verified.
@@ -64,8 +65,8 @@ commit it.
 
 ## Secret-handling rules
 
-- `.env.local`, Vercel environment values, and CI secrets are the only locations
-  for credentials.
+- Credentials belong only in ignored local configuration or provider secret
+  management (Vercel, Neon Function environments and CI secrets).
 - `.env.example` contains placeholders only.
 - Logs and status documents must contain names, IDs and states, never secret
   values or connection strings.
