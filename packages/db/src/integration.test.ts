@@ -2533,6 +2533,10 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       expect(afterDeletion.wallet).toEqual(beforeDeletion.wallet)
       expect(afterDeletion.ownership).toEqual(beforeDeletion.ownership)
       expect(afterDeletion.purchases).toEqual(beforeDeletion.purchases)
+      expect(afterDeletion.walletTransactions).toEqual(
+        beforeDeletion.walletTransactions,
+      )
+      expect(afterDeletion.reversals).toEqual(beforeDeletion.reversals)
       expect(afterDeletion.readingProgress).toEqual([])
       expect(
         await findWalletBalance(database.client, linkedAccount.userId),
