@@ -125,8 +125,10 @@ value, then verify neither appears in logs or the response.
 - CRFD-19 applies the request boundary to paid Reader access and content-leak
   tests.
 - Commerce now exposes a read-only classified reconciliation result and a
-  stable failure signal. The operations milestone schedules it, routes alerts
-  and records run evidence; no automated repair is permitted.
+  stable failure signal. Nonproduction scheduled payment/consistent wallet
+  auditing, durable heartbeat and minimal HTTP health diagnostics are deployed
+  and live-verified; see `PAYMENT_OPERATIONS.md`. External paging delivery remains
+  a launch gate. No automated financial repair is permitted.
 - Publication milestones add their domain-specific audit writers and failure
   alerts.
 - Sentry EU, alert routing, synthetic checks and launch dashboards are not

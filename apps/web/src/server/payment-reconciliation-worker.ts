@@ -24,6 +24,8 @@ interface PaymentReconciliationWorkerDependencies {
   readonly database?: ReturnType<typeof getDatabase>['client']
   readonly now?: Date
   readonly provider?: PaymentProvider
+  readonly limit?: number
+  readonly leaseForMs?: number
 }
 
 export interface PaymentReconciliationBatchResult {
@@ -87,6 +89,17 @@ async function reconcileJob(
       snapshot,
     })
 
+    // A replay may describe an already-fulfilled order, or a previously
+    // processed pending event after an interrupted lease. Only terminal order
+    // state permits closing the job; "duplicate" alone is not enough.
+    if (result.outcome === 'duplicate') {
+      const current = await findPaymentOrderById(database, job.orderId)
+      if (current?.status === 'fulfilled' || current?.status === 'canceled') {
+        await completePaymentReconciliationJob(database, job.id, { now })
+        return 'completed'
+      }
+    }
+
     if (result.outcome === 'fulfilled' || result.outcome === 'canceled') {
       await completePaymentReconciliationJob(database, job.id, { now })
       return 'completed'
@@ -120,7 +133,11 @@ export async function runPaymentReconciliationBatch(
   const database = dependencies.database ?? getDatabase().client
   const now = dependencies.now ?? new Date()
   const provider = dependencies.provider ?? defaultProvider()
-  const jobs = await claimPaymentReconciliationJobs(database, { now })
+  const jobs = await claimPaymentReconciliationJobs(database, {
+    now,
+    ...(dependencies.limit ? { limit: dependencies.limit } : {}),
+    ...(dependencies.leaseForMs ? { leaseForMs: dependencies.leaseForMs } : {}),
+  })
   let completed = 0
   let exhausted = 0
   let failed = 0

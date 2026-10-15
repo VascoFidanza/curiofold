@@ -22,6 +22,8 @@ interface StripePaymentProviderOptions {
   readonly appUrl: string
   readonly client?: StripeCheckoutClient
   readonly secretKey?: string
+  readonly requestTimeoutMs?: number
+  readonly maxNetworkRetries?: number
 }
 
 export class PaymentProviderError extends Error {
@@ -88,7 +90,8 @@ export function createStripePaymentProvider(
       client = new Stripe(secretKey, {
         apiVersion: '2026-08-26.dahlia',
         appInfo: { name: 'Curiofold', version: '1.0.0' },
-        maxNetworkRetries: 2,
+        maxNetworkRetries: options.maxNetworkRetries ?? 2,
+        timeout: options.requestTimeoutMs ?? 80_000,
       })
     }
     return client
