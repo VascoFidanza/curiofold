@@ -8,6 +8,7 @@ import { and, eq } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 
 import * as schema from './schema'
+import { lockActiveAccount } from './active-account'
 
 type CuriofoldDatabase = NodePgDatabase<typeof schema>
 
@@ -165,6 +166,7 @@ export async function createPaymentOrder(
   const createdAt = input.createdAt ?? new Date()
 
   return database.transaction(async (transaction) => {
+    await lockActiveAccount(transaction, input.userId)
     const [created] = await transaction
       .insert(schema.paymentOrders)
       .values({

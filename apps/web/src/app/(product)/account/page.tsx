@@ -14,6 +14,7 @@ import {
 import styles from './account.module.css'
 import { PurchaseHistory } from './purchase-history'
 import { WalletSummary } from './wallet-summary'
+import { DeleteAccount } from './delete-account'
 
 export const dynamic = 'force-dynamic'
 
@@ -73,6 +74,7 @@ export default async function AccountPage() {
         <section className={styles.account}>
           <p className={styles.eyebrow}>Account</p>
           <h1>Your Curiofold account</h1>
+          <DeleteAccount />
           <p>
             Your identity session is active. Curiofold keeps authorization and
             ownership decisions in its own audited data model.
@@ -125,6 +127,7 @@ export default async function AccountPage() {
         <section className={styles.account}>
           <p className={styles.eyebrow}>Account</p>
           <h1>Sign in to continue</h1>
+          <DeleteAccount statusOnly />
           <p>Your Library and reading progress will appear here.</p>
           <Link
             className={styles.signInLink}
@@ -144,6 +147,7 @@ export default async function AccountPage() {
         eyebrow="Access denied"
         title="Account access is disabled."
       />
+      <DeleteAccount statusOnly />
     </PageFrame>
   )
 }

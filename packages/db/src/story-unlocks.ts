@@ -3,6 +3,7 @@ import { and, asc, eq, gt } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 
 import * as schema from './schema'
+import { lockActiveAccount } from './active-account'
 
 type CuriofoldDatabase = NodePgDatabase<typeof schema>
 type UnlockOutcome = 'already_owned' | 'unlocked'
@@ -75,6 +76,7 @@ export async function unlockStoryWithCredit(
 
   try {
     return await database.transaction(async (transaction) => {
+      await lockActiveAccount(transaction, input.userId)
       const findOperation = async () => {
         const [operation] = await transaction
           .select({

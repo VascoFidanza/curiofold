@@ -9,6 +9,11 @@ import { Client } from 'pg'
 import { describe, expect, it } from 'vitest'
 
 import { createDatabase } from './client'
+import { lockActiveAccount } from './active-account'
+import {
+  requestAccountDeletion,
+  processAccountDeletions,
+} from './account-deletion'
 import { exportAccountData } from './account-export'
 import {
   releaseReviewedStory,
@@ -197,7 +202,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       )
 
       const authenticatedAt = new Date('2026-09-20T10:00:00.000Z')
-      const linkedAccount = await ensureIdentityAccount(
+      let linkedAccount = await ensureIdentityAccount(
         database.client,
         'user_identity_fixture',
         authenticatedAt,
@@ -215,6 +220,51 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         subject: 'user_identity_fixture',
         type: 'user.created' as const,
       }
+      const deletionAccount = await ensureIdentityAccount(
+        database.client,
+        'user_deletion_fixture',
+        new Date(),
+      )
+      const deletionResults = await Promise.all([
+        requestAccountDeletion(database.client, deletionAccount.userId),
+        requestAccountDeletion(database.client, deletionAccount.userId),
+      ])
+      expect(deletionResults.sort()).toEqual(['accepted', 'existing'])
+      await expect(
+        database.client.transaction((transaction) =>
+          lockActiveAccount(transaction, deletionAccount.userId),
+        ),
+      ).rejects.toThrow('Account is not active')
+      await expect(
+        findIdentityAccount(database.client, 'user_deletion_fixture'),
+      ).resolves.toMatchObject({ accountState: 'pending_deletion' })
+      await expect(
+        processAccountDeletions(database.client, () =>
+          Promise.reject(new Error('offline')),
+        ),
+      ).resolves.toEqual({ completed: 0, failed: 1 })
+      await expect(
+        processAccountDeletions(database.client, () => Promise.resolve()),
+      ).resolves.toEqual({ completed: 0, failed: 0 })
+      await expect(
+        processAccountDeletions(
+          database.client,
+          () => Promise.resolve(),
+          new Date(Date.now() + 120_000),
+        ),
+      ).resolves.toEqual({ completed: 1, failed: 0 })
+      await expect(
+        processAccountDeletions(database.client, () =>
+          Promise.reject(new Error('must not run twice')),
+        ),
+      ).resolves.toEqual({ completed: 0, failed: 0 })
+      await expect(
+        ensureIdentityAccount(
+          database.client,
+          'user_deletion_fixture',
+          new Date(),
+        ),
+      ).resolves.toMatchObject({ accountState: 'pending_deletion' })
       await expect(
         applyIdentityLifecycleEvent(database.client, createdEvent),
       ).resolves.toBe('applied')
@@ -260,6 +310,13 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         emailVerified: false,
       })
 
+      // Lifecycle tests deliberately disabled the first identity. Commerce must
+      // exercise an active account, matching the real authorization boundary.
+      linkedAccount = await ensureIdentityAccount(
+        database.client,
+        'user_commerce_active_fixture',
+        new Date(),
+      )
       const paymentOrderInput = {
         createdAt: new Date('2026-09-20T10:03:30.000Z'),
         operationKey: 'checkout:user_identity_fixture:request-1',
@@ -2457,6 +2514,34 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           stdio: 'pipe',
         }),
       ).toThrow()
+      const beforeDeletion = await exportAccountData(
+        database.client,
+        linkedAccount.userId,
+      )
+      const beforeBalance = await findWalletBalance(
+        database.client,
+        linkedAccount.userId,
+      )
+      await requestAccountDeletion(database.client, linkedAccount.userId)
+      await expect(
+        processAccountDeletions(database.client, () => Promise.resolve()),
+      ).resolves.toEqual({ completed: 1, failed: 0 })
+      const afterDeletion = await exportAccountData(
+        database.client,
+        linkedAccount.userId,
+      )
+      expect(afterDeletion.wallet).toEqual(beforeDeletion.wallet)
+      expect(afterDeletion.ownership).toEqual(beforeDeletion.ownership)
+      expect(afterDeletion.purchases).toEqual(beforeDeletion.purchases)
+      expect(afterDeletion.walletTransactions).toEqual(
+        beforeDeletion.walletTransactions,
+      )
+      expect(afterDeletion.reversals).toEqual(beforeDeletion.reversals)
+      expect(afterDeletion.readingProgress).toEqual([])
+      expect(
+        await findWalletBalance(database.client, linkedAccount.userId),
+      ).toEqual(beforeBalance)
+      await expect(reconcileWallets(database.client)).resolves.toBeDefined()
     } finally {
       await client.end()
       await database.pool.end()

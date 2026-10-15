@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import axe from 'axe-core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -40,7 +40,7 @@ const detail: PublicStoryDetail = {
 const storyId = '00000000-0000-4000-8000-000000000001'
 
 afterEach(() => {
-  document.body.innerHTML = ''
+  cleanup()
 })
 
 describe('public Story Detail', () => {

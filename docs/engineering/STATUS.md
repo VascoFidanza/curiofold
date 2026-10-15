@@ -6,9 +6,11 @@
 
 ## In progress
 
+- CRFD-72 — 2026-10-15 live disposable-account acceptance passed on the feature Preview: confirmed deletion, immediate account denial, actual Neon scheduled cleanup at 08:52 UTC, Clerk ban and both sessions revoked, progress removed, five synthetic credits/one ledger entry/one entitlement preserved, and receipt status available after reload. Five-minute nonproduction schedule is enabled. Final PR #61 CI/merge gate pending; irreversible financial/identity cleanup remains retention-gated. CRFD-73 is next.
 - Final live payment acceptance passed on 2026-10-14. The Product Owner resent Sandbox event `evt_1UQBdxA6QiD7eFrPnQOmomAf` at 06:52:23 and confirmed Delivered / HTTP 200 / `{"received":true,"result":"duplicate"}`. Independent Neon comparison retained exactly one payment grant, one corresponding ledger entry, two active entitlements, wallet balance 4, fulfilled order and one processed event (attempt count 1, expected for the duplicate short-circuit). CRFD-50 and CRFD-56 are Done. Earlier pending replay/session notes below are superseded by this evidence.
 
 The next release work is minimum account lifecycle/privacy operations and recovery validation. Real launch catalogue/reviewer/language/media and legal decisions remain Product Owner gates; the reviewed publication mechanism is already merged. Production publishing and initial launch remain approval-gated.
+
 - V1 priorities now follow the convergence sequence in `EXECUTION_PLAN.md`: certify CRFD-50 → reviewed-content release workflow and launch catalogue → minimum account/privacy/support operations → staging security/accessibility/recovery gate → owner-approved production launch. AI editorial automation and nonessential polish are post-V1. Current fictional fixtures must not be presented as real launch content.
 
 - CRFD-52 has merged owner-scoped payment history and auditable reversal review, but its final legal/provider behavior waits for OD-007. CRFD-37 remains held behind OD-010.
