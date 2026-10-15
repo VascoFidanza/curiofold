@@ -5,6 +5,11 @@ export interface TransactionScope {
 
 export { createDatabase } from './client'
 export {
+  readPaymentOperationsHealth,
+  recordPaymentOperationsRun,
+  type PaymentOperationsCode,
+} from './payment-operations'
+export {
   requestAccountDeletion,
   processAccountDeletions,
   findAccountDeletionReceipt,

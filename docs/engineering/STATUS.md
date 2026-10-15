@@ -7,10 +7,11 @@
 ## In progress
 
 - CRFD-73 — Actual Neon snapshot restore, financial fingerprint comparison, repository reads/reconciliation and protected Preview rollback/return passed on 2026-10-15. See `RECOVERY.md` for exact resources, restore-routing correction and limits. Independent encrypted backup/production recovery and older-snapshot deletion replay are not certified by this rehearsal.
-- Linear synchronization is blocked by connector reauthentication. CRFD-72 is merged/validated and should be moved to Done with PR #61 evidence when access returns. CRFD-73 needs its recovery evidence attached and acceptance criteria reconciled; do not silently declare production recovery complete.
+- Linear access is restored; CRFD-72 and CRFD-73 are Done for their delivered scope. Their explicit production recovery limitations remain launch gates.
+- CRFD-74 — Scheduled nonproduction payment operations are implemented and live-verified: authenticated 11:22/11:25 UTC batches re-read 10 existing Stripe Sandbox sessions and completed their jobs. Ledger/grant/entitlement counts and total credits remained unchanged. A nonfinancial alarm drill returned 503, then the next real schedule recovered health. Five-minute schedule enabled. See `PAYMENT_OPERATIONS.md` and Linear for delivery/quality-gate evidence.
 - Final live payment acceptance passed on 2026-10-14. The Product Owner resent Sandbox event `evt_1UQBdxA6QiD7eFrPnQOmomAf` at 06:52:23 and confirmed Delivered / HTTP 200 / `{"received":true,"result":"duplicate"}`. Independent Neon comparison retained exactly one payment grant, one corresponding ledger entry, two active entitlements, wallet balance 4, fulfilled order and one processed event (attempt count 1, expected for the duplicate short-circuit). CRFD-50 and CRFD-56 are Done. Earlier pending replay/session notes below are superseded by this evidence.
 
-The next independent operational gap is scheduled payment/ledger reconciliation and actionable alerts. The payment worker and protected endpoint already exist, but payment scheduling is not enabled. The existing Stripe Sandbox key is not available locally; it cannot be read back from sensitive Vercel storage. Securely supplying that existing key (not creating a new key/endpoint/product) is needed for a Neon payment worker. Real launch content, legal/fiscal approval and production preparation remain separate gates. No speculative AI-agent work belongs in V1.
+Payment reconciliation and consistent read-only wallet auditing now run beside the nonproduction database. Durable heartbeat, exhausted/overdue/provider-failure diagnostics and a minimal health probe provide actionable failure signals. External alert delivery and a named operator remain launch configuration gates, not claimed as complete. Real launch content, legal/fiscal approval and production preparation remain separate gates. No speculative AI-agent work belongs in V1.
 
 - V1 priorities now follow the convergence sequence in `EXECUTION_PLAN.md`: certify CRFD-50 → reviewed-content release workflow and launch catalogue → minimum account/privacy/support operations → staging security/accessibility/recovery gate → owner-approved production launch. AI editorial automation and nonessential polish are post-V1. Current fictional fixtures must not be presented as real launch content.
 
@@ -83,7 +84,7 @@ The next independent operational gap is scheduled payment/ledger reconciliation 
 ## Blocked
 
 - Direct reversal policy remains review-only until OD-007/010 defines legal/provider and spent-credit treatment. Live production commerce still waits for fiscal/legal approval and explicit launch authorization.
-- Linear connector requires reconnection; no issue state/update success is claimed for 2026-10-15 completion reporting.
+- External operational paging/channel and responding operator must be configured and verified before launch; health probes and redacted logs alone are not delivery evidence.
 - Linear cycle creation is subject to the workspace exposing cycle-management capability.
 - Visual acceptance remains dependent on renewed structured access to the Curiofold Figma file.
 - Final spent-credit behavior for refunds and chargebacks is gated by OD-010. CRFD-35 and the unspent-credit portion of CRFD-36 can proceed independently.
@@ -102,8 +103,8 @@ The next independent operational gap is scheduled payment/ledger reconciliation 
 
 ## Next
 
-1. Reconnect Linear; synchronize CRFD-72 merged/live evidence and CRFD-73 rehearsal results. Do not repeat completed purchases or deletion acceptance.
-2. Enable and verify scheduled payment/ledger reconciliation with failure alerts. Reuse the existing worker and existing Sandbox key; preserve Preview protection and fail closed outside nonproduction.
+1. Retain CRFD-74 scheduled reconciliation evidence; do not repeat completed payments or deletion acceptance.
+2. Connect the deployed operational probe to an approved external monitoring/paging channel and verify human delivery. No additional Stripe keys, products or webhook endpoints are required.
 3. Finish the bounded release-assurance evidence: manual assistive-technology/accessibility, representative performance/security, actionable monitoring/support and recovery suppression for older backups. Add independent encrypted backup/restore verification; a provider snapshot alone does not satisfy that requirement.
 4. Prepare a small genuinely reviewed English launch catalogue through the merged publication workflow. Fictional fixtures must not be purchasable in production. AI editorial automation is post-V1.
 5. Obtain accountant/legal approval for invoicing/VAT/jurisdictions, digital-content consent/refunds, category-specific retention and unused-value/dispute handling. Preserve financial evidence and paid value meanwhile; finalize approved policy/support/business information without fabricated placeholders.

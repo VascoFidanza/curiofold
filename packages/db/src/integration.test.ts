@@ -16,6 +16,10 @@ import {
 } from './account-deletion'
 import { exportAccountData } from './account-export'
 import {
+  recordPaymentOperationsRun,
+  readPaymentOperationsHealth,
+} from './payment-operations'
+import {
   releaseReviewedStory,
   StoryPublicationConflictError,
 } from './story-publication'
@@ -168,6 +172,30 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           }
         }
       }
+
+      const operationsNow = new Date('2026-10-15T10:00:00Z')
+      expect(
+        await readPaymentOperationsHealth(database.client, operationsNow),
+      ).toEqual({ healthy: false, codes: ['heartbeat_stale'] })
+      await recordPaymentOperationsRun(
+        database.client,
+        ['worker_failed'],
+        operationsNow,
+      )
+      expect(
+        await readPaymentOperationsHealth(database.client, operationsNow),
+      ).toEqual({ healthy: false, codes: ['worker_failed'] })
+      const recoveredAt = new Date(operationsNow.getTime() + 1000)
+      await recordPaymentOperationsRun(database.client, [], recoveredAt)
+      expect(
+        await readPaymentOperationsHealth(database.client, recoveredAt),
+      ).toEqual({ healthy: true, codes: [] })
+      expect(
+        await readPaymentOperationsHealth(
+          database.client,
+          new Date(recoveredAt.getTime() + 900_001),
+        ),
+      ).toEqual({ healthy: false, codes: ['heartbeat_stale'] })
 
       const tables = await client.query<{ table_name: string }>(
         `SELECT table_name
@@ -691,6 +719,25 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         lastErrorCode: 'provider_timeout',
         status: 'pending',
       })
+      const operationsHealth = await readPaymentOperationsHealth(
+        database.client,
+        recoveredAt,
+      )
+      expect(operationsHealth.codes).toContain('jobs_overdue')
+      await client.query(
+        "UPDATE payment_reconciliation_jobs SET status='exhausted' WHERE id=$1",
+        [claimedJob.id],
+      )
+      expect(
+        (await readPaymentOperationsHealth(database.client, recoveredAt)).codes,
+      ).toContain('jobs_exhausted')
+      await client.query(
+        "UPDATE payment_reconciliation_jobs SET status='pending', last_error_code='provider_unavailable' WHERE id=$1",
+        [claimedJob.id],
+      )
+      expect(
+        (await readPaymentOperationsHealth(database.client, recoveredAt)).codes,
+      ).toContain('worker_failed')
       const reclaimedJobs = await claimPaymentReconciliationJobs(
         database.client,
         { now: new Date('2026-09-20T10:04:02.000Z') },

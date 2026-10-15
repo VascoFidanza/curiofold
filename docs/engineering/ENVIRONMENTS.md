@@ -57,11 +57,11 @@ only in provider-scoped environment storage and local ignored files.
    MFA enabled, paid plan approved, separate project, protected branch, roles and
    backup policy verified.
 
-The protected `POST /api/internal/payment-reconciliation` endpoint is implemented
-but intentionally inactive until a scheduler is configured. When enabled, set a
-Preview-only `CRON_SECRET` (32+ random characters) in Vercel and invoke it with
-`Authorization: Bearer <CRON_SECRET>`. Never expose this value to the browser or
-commit it.
+Payment scheduling now uses the Neon `paymentoperations` Function and its
+authenticated five-minute trigger, rather than bypassing Vercel Preview
+protection. See `PAYMENT_OPERATIONS.md` for secret names, live evidence and health
+signals. The existing Vercel internal endpoint remains bearer-protected and is
+not used by this scheduler; no Vercel bypass/CRON_SECRET was created.
 
 ## Secret-handling rules
 
