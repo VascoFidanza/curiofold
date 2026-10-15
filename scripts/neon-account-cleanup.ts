@@ -20,6 +20,7 @@ export default {
       return new Response(null, { status: 400 })
     }
     if (
+      !body ||
       body.version !== 1 ||
       body.invocation_id !== invocationId ||
       body.trigger?.type !== 'schedule' ||
@@ -28,18 +29,32 @@ export default {
       return new Response(null, { status: 401 })
     const secretKey = process.env.CLERK_SECRET_KEY
     const connection = process.env.CURIOFOLD_DATABASE_URL
+    let validDatabase = false
+    try {
+      validDatabase =
+        !!connection && new URL(connection).pathname === '/curiofold'
+    } catch {
+      // Invalid configuration must not expose a credential-bearing URL in logs.
+    }
     if (
       process.env.CURIOFOLD_ENVIRONMENT !== 'nonproduction' ||
       !secretKey?.startsWith('sk_test_') ||
       !connection ||
-      new URL(connection).pathname !== '/curiofold'
+      !validDatabase
     )
       return Response.json(
         { code: 'nonproduction_configuration_required' },
         { status: 503 },
       )
-    database ??= createDatabase(connection)
     try {
+      if (!database) {
+        database = createDatabase(connection)
+        // A restored/restarted compute can disconnect idle clients. pg requires
+        // a listener to avoid terminating the worker; never log the raw error.
+        database.pool.on('error', () => {
+          console.error(JSON.stringify({ event: 'account_cleanup_pool_error' }))
+        })
+      }
       const result = await processAccountDeletions(
         database.client,
         async (subject) => {

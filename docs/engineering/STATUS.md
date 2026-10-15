@@ -1,15 +1,16 @@
 # Curiofold Engineering Status
 
 **Current phase:** V1 convergence — complete journeys, real content and release readiness
-**Current milestone:** 4.2 — Contextual auth, top-up and unlock preserve momentum
-**Health:** At Risk — normal Sandbox purchase, ownership and Reader journeys are live-verified. Failure/replay acceptance, real launch content, legal/privacy and operational recovery gates remain. Milestone 3.3 separately waits for OD-010 on already-spent credits.
+**Current milestone:** V1 operational/release readiness — account lifecycle and recovery
+**Health:** At Risk — core Sandbox journeys, payment failure/replay, account deletion and nonproduction restore/rollback now have live evidence. Scheduled financial reconciliation/alerts, production backup/configuration, release assurance, real content and legal/fiscal approvals remain. Engineering-complete V1 is not yet certified; public launch is not authorized.
 
 ## In progress
 
-- CRFD-72 — 2026-10-15 live disposable-account acceptance passed on the feature Preview: confirmed deletion, immediate account denial, actual Neon scheduled cleanup at 08:52 UTC, Clerk ban and both sessions revoked, progress removed, five synthetic credits/one ledger entry/one entitlement preserved, and receipt status available after reload. Five-minute nonproduction schedule is enabled. Final PR #61 CI/merge gate pending; irreversible financial/identity cleanup remains retention-gated. CRFD-73 is next.
+- CRFD-73 — Actual Neon snapshot restore, financial fingerprint comparison, repository reads/reconciliation and protected Preview rollback/return passed on 2026-10-15. See `RECOVERY.md` for exact resources, restore-routing correction and limits. Independent encrypted backup/production recovery and older-snapshot deletion replay are not certified by this rehearsal.
+- Linear synchronization is blocked by connector reauthentication. CRFD-72 is merged/validated and should be moved to Done with PR #61 evidence when access returns. CRFD-73 needs its recovery evidence attached and acceptance criteria reconciled; do not silently declare production recovery complete.
 - Final live payment acceptance passed on 2026-10-14. The Product Owner resent Sandbox event `evt_1UQBdxA6QiD7eFrPnQOmomAf` at 06:52:23 and confirmed Delivered / HTTP 200 / `{"received":true,"result":"duplicate"}`. Independent Neon comparison retained exactly one payment grant, one corresponding ledger entry, two active entitlements, wallet balance 4, fulfilled order and one processed event (attempt count 1, expected for the duplicate short-circuit). CRFD-50 and CRFD-56 are Done. Earlier pending replay/session notes below are superseded by this evidence.
 
-The next release work is minimum account lifecycle/privacy operations and recovery validation. Real launch catalogue/reviewer/language/media and legal decisions remain Product Owner gates; the reviewed publication mechanism is already merged. Production publishing and initial launch remain approval-gated.
+The next independent operational gap is scheduled payment/ledger reconciliation and actionable alerts. The payment worker and protected endpoint already exist, but payment scheduling is not enabled. The existing Stripe Sandbox key is not available locally; it cannot be read back from sensitive Vercel storage. Securely supplying that existing key (not creating a new key/endpoint/product) is needed for a Neon payment worker. Real launch content, legal/fiscal approval and production preparation remain separate gates. No speculative AI-agent work belongs in V1.
 
 - V1 priorities now follow the convergence sequence in `EXECUTION_PLAN.md`: certify CRFD-50 → reviewed-content release workflow and launch catalogue → minimum account/privacy/support operations → staging security/accessibility/recovery gate → owner-approved production launch. AI editorial automation and nonessential polish are post-V1. Current fictional fixtures must not be presented as real launch content.
 
@@ -17,11 +18,14 @@ The next release work is minimum account lifecycle/privacy operations and recove
 
 ## In review
 
-- CRFD-50 — Normal live journeys accepted on 2026-10-13: verified account, catalogue/public preview, zero-credit recovery, €4 rejection, €5 Sandbox payment → 5 confirmed credits, preserved Story return, one-credit unlock → 4 credits, direct Story purchase → exactly 130 EUR cents and no credits minted, both Stories in Library. Neon confirms both orders fulfilled, one payment grant/debit, two active entitlements and wallet/ledger balance 4. Reader progress and completion persist across refresh; related actions and Library 1/2 completed work. Account export matches these records. Controlled Clerk sign-out leaves Account unauthenticated after reload and redirects direct Reader access to sign-in with preserved return context; anonymous public detail works and PT-PT draft remains unavailable. Remaining: live decline/cancel/provider replay and subsequent new-session resume evidence. Test account was left signed out; sign in again before continuing authenticated tests. Browser blocked direct JSON wallet navigation, so no live API-denial claim is made; automated authorization tests pass.
 - S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
-- S1-13 — Weighted progress, resume, completion, sequence, correction fallback and retries are merged and pass automated gates; live refresh/completion now pass. New-session/reconnect acceptance remains with CRFD-50.
+- S1-13 — Progress/resume/completion and later-session acceptance passed; automated retry/reconnect tests pass. Historical pending-session notes below are superseded.
 
 ## Recently completed
+
+- CRFD-72 — PR #61 merged as `319b749`; all seven hosted gates passed, including isolated PostgreSQL 18 concurrency/retry and financial-preservation scenarios. Live confirmed deletion immediately denied access; the actual Neon 08:52 UTC schedule completed cleanup, banned the disposable Clerk identity and revoked both sessions. Reading history was removed; five synthetic credits, one ledger entry and one entitlement remained intact. Receipt status survived reload. Canonical deployment `dpl_GAMCMP1Yp6U5PE2p3xCwnYdXZNK9` is READY; owner account, wallet and purchases passed browser smoke. Irreversible retention-sensitive erasure remains deliberately disabled.
+
+- CRFD-50/56 — Decline, cancellation, later-session resume and actual Stripe Sandbox event resend now pass. See the 2026-10-14 replay evidence above. Historical entries below describe their state at the time, not current blockers.
 
 - CRFD-50 acceptance follow-up — PR #60 (`f0f4571`) fixes canceled credit Checkout returns stuck on confirmation. All hosted gates passed and the deployed canonical Preview now shows cancellation and retry immediately. Stripe Sandbox decline card produced the expected decline; wallet remained 4 with no new grant. The subsequent signed-in session restored completed Lantern Atlas in Library and Reader; CRFD-16 is Done. Real fulfilled top-up/direct orders each have one processed provider event with one attempt. Automated PostgreSQL concurrent replay tests pass; an actual Stripe resend against Preview remains unverified and must not be inferred from record inspection. Test account remains signed in.
 
@@ -78,7 +82,8 @@ The next release work is minimum account lifecycle/privacy operations and recove
 
 ## Blocked
 
-- Remaining live money-flow acceptance covers decline/cancel/provider replay and failure cases, not the already-verified normal one-credit/direct/top-up paths. Direct reversal evidence remains review-only until OD-007 defines legal/provider and entitlement policy. Live production commerce still waits for OD-007.
+- Direct reversal policy remains review-only until OD-007/010 defines legal/provider and spent-credit treatment. Live production commerce still waits for fiscal/legal approval and explicit launch authorization.
+- Linear connector requires reconnection; no issue state/update success is claimed for 2026-10-15 completion reporting.
 - Linear cycle creation is subject to the workspace exposing cycle-management capability.
 - Visual acceptance remains dependent on renewed structured access to the Curiofold Figma file.
 - Final spent-credit behavior for refunds and chargebacks is gated by OD-010. CRFD-35 and the unspent-credit portion of CRFD-36 can proceed independently.
@@ -86,7 +91,7 @@ The next release work is minimum account lifecycle/privacy operations and recove
 
 ## Environment state
 
-- Vercel Preview has development Clerk, Stripe Sandbox and Neon nonproduction configured, with 18 migrations and two synthetic Stories. Signed-in purchase/unlock/Reader/progress and controlled signed-out boundaries were live-verified on 2026-10-13; remaining acceptance is listed above.
+- Vercel Preview has development Clerk, Stripe Sandbox and Neon nonproduction configured, with two synthetic Stories. Core journeys, webhook replay and deletion are live-verified. Original Neon `main` branch/compute routing is restored after the recovery rehearsal; the five-minute cleanup tick passed again at 09:05 UTC. Rehearsal snapshot/branch expire 2026-10-17. Credentials remain in provider secret management/ignored local files.
 - The stable nonproduction integration branch is `development`; `main` remains the production/release branch.
 - No production Neon project, live Stripe configuration or production release has been created.
 
@@ -97,16 +102,15 @@ The next release work is minimum account lifecycle/privacy operations and recove
 
 ## Next
 
-1. Sign back into the canonical Preview test account for the remaining CRFD-50 decline/cancel/replay and new-session/reconnect cases. Do not repeat successful purchases/unlocks unnecessarily; both existing synthetic Stories are already owned by this account.
-2. Keep the successful direct €1.30 and credit top-up test-mode evidence linked to the same reconciled nonproduction order/entitlement/ledger state; do not infer live-payment readiness from it.
-3. Close Milestone 4.2 and the walking-skeleton gate only after live development-provider, authorization and progress acceptance, not merely green provider-free tests.
-4. Obtain the OD-010 product/legal decision before starting CRFD-37; options remain negative balance, spending suspension, entitlement revocation or manual review.
-5. Complete S1-10 visual acceptance when structured Figma access returns.
-6. Prepare real reviewed content using the committed manifest/operator path; obtain launch catalogue/reviewer/language/media decisions. Production publication remains disabled until protected approval controls are explicitly authorized and verified.
-7. Do not provision production infrastructure or enable live payments without explicit product-owner approval.
+1. Reconnect Linear; synchronize CRFD-72 merged/live evidence and CRFD-73 rehearsal results. Do not repeat completed purchases or deletion acceptance.
+2. Enable and verify scheduled payment/ledger reconciliation with failure alerts. Reuse the existing worker and existing Sandbox key; preserve Preview protection and fail closed outside nonproduction.
+3. Finish the bounded release-assurance evidence: manual assistive-technology/accessibility, representative performance/security, actionable monitoring/support and recovery suppression for older backups. Add independent encrypted backup/restore verification; a provider snapshot alone does not satisfy that requirement.
+4. Prepare a small genuinely reviewed English launch catalogue through the merged publication workflow. Fictional fixtures must not be purchasable in production. AI editorial automation is post-V1.
+5. Obtain accountant/legal approval for invoicing/VAT/jurisdictions, digital-content consent/refunds, category-specific retention and unused-value/dispute handling. Preserve financial evidence and paid value meanwhile; finalize approved policy/support/business information without fabricated placeholders.
+6. With explicit authorization, provision isolated production services/secrets, backup/alerting and protected release controls. Verify production configuration and obtain separate initial real-money launch approval.
 
 ## Open decisions
 
 See `docs/project/OPEN_DECISIONS.md`. No open product decision blocks the foundation stage.
 
-**Last updated:** 2026-10-13
+**Last updated:** 2026-10-15
