@@ -2514,6 +2514,30 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           stdio: 'pipe',
         }),
       ).toThrow()
+      const beforeDeletion = await exportAccountData(
+        database.client,
+        linkedAccount.userId,
+      )
+      const beforeBalance = await findWalletBalance(
+        database.client,
+        linkedAccount.userId,
+      )
+      await requestAccountDeletion(database.client, linkedAccount.userId)
+      await expect(
+        processAccountDeletions(database.client, () => Promise.resolve()),
+      ).resolves.toEqual({ completed: 1, failed: 0 })
+      const afterDeletion = await exportAccountData(
+        database.client,
+        linkedAccount.userId,
+      )
+      expect(afterDeletion.wallet).toEqual(beforeDeletion.wallet)
+      expect(afterDeletion.ownership).toEqual(beforeDeletion.ownership)
+      expect(afterDeletion.purchases).toEqual(beforeDeletion.purchases)
+      expect(afterDeletion.readingProgress).toEqual([])
+      expect(
+        await findWalletBalance(database.client, linkedAccount.userId),
+      ).toEqual(beforeBalance)
+      await expect(reconcileWallets(database.client)).resolves.toBeDefined()
     } finally {
       await client.end()
       await database.pool.end()
