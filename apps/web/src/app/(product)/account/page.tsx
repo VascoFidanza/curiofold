@@ -127,6 +127,7 @@ export default async function AccountPage() {
         <section className={styles.account}>
           <p className={styles.eyebrow}>Account</p>
           <h1>Sign in to continue</h1>
+          <DeleteAccount statusOnly />
           <p>Your Library and reading progress will appear here.</p>
           <Link
             className={styles.signInLink}
@@ -146,6 +147,7 @@ export default async function AccountPage() {
         eyebrow="Access denied"
         title="Account access is disabled."
       />
+      <DeleteAccount statusOnly />
     </PageFrame>
   )
 }

@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 
-export function DeleteAccount() {
+export function DeleteAccount({
+  statusOnly = false,
+}: Readonly<{ statusOnly?: boolean }>) {
   const [confirmation, setConfirmation] = useState('')
   const [status, setStatus] = useState('')
   const [pending, setPending] = useState(false)
@@ -55,6 +57,15 @@ export function DeleteAccount() {
       setPending(false)
     }
   }
+  if (statusOnly)
+    return (
+      <section aria-label="Deletion request status">
+        <button type="button" onClick={() => void checkStatus()}>
+          Check deletion status
+        </button>
+        <p role="status">{status}</p>
+      </section>
+    )
   return (
     <section aria-labelledby="delete-heading">
       <h2 id="delete-heading">Delete your account</h2>
