@@ -4,6 +4,7 @@ export interface TransactionScope {
 }
 
 export { createDatabase } from './client'
+export { verifyRecoveryPrivacy } from './recovery-privacy'
 export {
   readPaymentOperationsHealth,
   recordPaymentOperationsRun,

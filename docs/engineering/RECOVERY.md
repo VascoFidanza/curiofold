@@ -84,6 +84,22 @@ deletion confirmation surface remained functional after routing restoration.
 
 ## What this does not certify
 
+### Read-only privacy acceptance gate
+
+Before reopening a restore, freeze authoritative writes and leave restored traffic
+and workers disabled. Run `verifyRecoveryPrivacy(current.client, restored.client)`
+from `@curiofold/db` using separately scoped connections. It compares repeatable-read
+snapshots and rejects missing/remapped restricted identities, revived access, and
+restored reading history or staff privileges for deletion-request accounts.
+It returns only `{ verified: true }`; errors contain no identity references.
+Never log the internal snapshots. It does not repair, erase or modify financial
+records. Failed acceptance requires operator remediation and a fresh verification.
+
+This gate is not a Clerk ban/session check, a cutover lock or a deletion replay
+mechanism. Separately verify Clerk restrictions and keep writes frozen through
+cutover. An unavailable authoritative database is a blocker, not permission to
+skip the comparison. Actual older-backup remediation remains unverified.
+
 - Independent encrypted off-provider backups or cross-region disaster recovery.
 - Production PITR retention, production RPO/RTO, or production rollback controls.
 - Reopening an older snapshot after replaying post-backup deletion restrictions.
