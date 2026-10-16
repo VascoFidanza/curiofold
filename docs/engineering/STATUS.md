@@ -6,6 +6,13 @@
 
 ## In progress
 
+- CRFD-75 — UptimeRobot genuine DOWN email confirmed by Vasco at 15:48 Lisbon on
+  2026-10-16 (incident 14:48:14 UTC). Real scheduled recovery passed at 14:51:01 UTC;
+  independent health is HTTP 200, financial fingerprints/totals are unchanged,
+  and the five-minute cadence is restored. Genuine UP email receipt remains
+  pending; do not close the issue based on endpoint recovery alone. Exact evidence
+  is in `PAYMENT_OPERATIONS.md`.
+
 - CRFD-73 — Actual Neon snapshot restore, financial fingerprint comparison, repository reads/reconciliation and protected Preview rollback/return passed on 2026-10-15. See `RECOVERY.md` for exact resources, restore-routing correction and limits. Independent encrypted backup/production recovery and older-snapshot deletion replay are not certified by this rehearsal.
 - Linear access is restored; CRFD-72 and CRFD-73 are Done for their delivered scope. Their explicit production recovery limitations remain launch gates.
 - CRFD-74 — Scheduled nonproduction payment operations are implemented and live-verified: authenticated 11:22/11:25 UTC batches re-read 10 existing Stripe Sandbox sessions and completed their jobs. Ledger/grant/entitlement counts and total credits remained unchanged. A nonfinancial alarm drill returned 503, then the next real schedule recovered health. Five-minute schedule enabled. See `PAYMENT_OPERATIONS.md` and Linear for delivery/quality-gate evidence.
