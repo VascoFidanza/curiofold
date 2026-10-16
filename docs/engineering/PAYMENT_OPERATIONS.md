@@ -35,6 +35,16 @@ never users, order identifiers, amounts, counts, provider payloads or credential
 It cannot run reconciliation or alter data. Responses are uncached; unhealthy
 state returns HTTP 503. Authenticated schedule runs also emit redacted logs.
 
+The same probe also checks unpublished account deletion jobs. It returns
+`deletion_jobs_exhausted` at ten attempts, or `deletion_jobs_overdue` when cleanup
+is more than fifteen minutes beyond its retry eligibility. This includes the
+worker's exponential backoff (capped at one hour), avoiding alerts for legitimate
+retry delays. Completed jobs awaiting legal retention review do not alarm.
+For either code, Vasco should inspect the existing `accountcleanup` trigger and
+redacted logs, Clerk availability and `account.deactivation_attempt` audit records.
+Resolve the cause before an audited retry; never reactivate the account, erase
+retained evidence or reset attempts blindly. No identities or job IDs are exposed.
+
 | Code                 | Operator action                                                                                                                                                    |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `heartbeat_stale`    | No completed run within 15 minutes. Check enabled trigger, deployment/config and Neon logs; restore scheduling before replaying work.                              |

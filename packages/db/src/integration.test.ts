@@ -258,6 +258,24 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         requestAccountDeletion(database.client, deletionAccount.userId),
       ])
       expect(deletionResults.sort()).toEqual(['accepted', 'existing'])
+      const deletionNow = new Date()
+      const deletionCodes = async (now = deletionNow) =>
+        (await readPaymentOperationsHealth(database.client, now)).codes.filter(
+          (code) => code.startsWith('deletion_'),
+        )
+      expect(await deletionCodes()).toEqual([])
+      expect(
+        await deletionCodes(new Date(deletionNow.getTime() + 901_000)),
+      ).toEqual(['deletion_jobs_overdue'])
+      await client.query(
+        "UPDATE outbox_events SET attempt_count=10 WHERE aggregate_id=$1 AND event_type='account.deletion_requested'",
+        [deletionAccount.userId],
+      )
+      expect(await deletionCodes()).toEqual(['deletion_jobs_exhausted'])
+      await client.query(
+        "UPDATE outbox_events SET attempt_count=0 WHERE aggregate_id=$1 AND event_type='account.deletion_requested'",
+        [deletionAccount.userId],
+      )
       await expect(
         database.client.transaction((transaction) =>
           lockActiveAccount(transaction, deletionAccount.userId),
@@ -271,6 +289,13 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           Promise.reject(new Error('offline')),
         ),
       ).resolves.toEqual({ completed: 0, failed: 1 })
+      // A failed attempt's legitimate backoff must not produce a stale-job alarm.
+      expect(
+        await deletionCodes(new Date(deletionNow.getTime() + 930_000)),
+      ).toEqual([])
+      expect(
+        await deletionCodes(new Date(deletionNow.getTime() + 970_000)),
+      ).toEqual(['deletion_jobs_overdue'])
       await expect(
         processAccountDeletions(database.client, () => Promise.resolve()),
       ).resolves.toEqual({ completed: 0, failed: 0 })
@@ -281,6 +306,9 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           new Date(Date.now() + 120_000),
         ),
       ).resolves.toEqual({ completed: 1, failed: 0 })
+      expect(
+        await deletionCodes(new Date(deletionNow.getTime() + 86_400_000)),
+      ).toEqual([])
       await expect(
         processAccountDeletions(database.client, () =>
           Promise.reject(new Error('must not run twice')),
