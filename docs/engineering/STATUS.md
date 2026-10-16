@@ -8,8 +8,9 @@
 
 - CRFD-76 — Existing operations probe now detects exhausted or overdue deletion
   jobs without exposing identity data or changing retry/retention policy. Local
-  typecheck, 26 unit tests, targeted lint and live read-only Neon query pass;
-  hosted PostgreSQL/release checks and nonproduction deployment are pending.
+  typecheck, 26 unit tests, targeted lint and live read-only Neon query pass.
+  PR #65 and Linear carry current hosted validation, merge and nonproduction
+  deployment evidence; the operator runbook is in `PAYMENT_OPERATIONS.md`.
 
 - CRFD-75 — Done; PR #64 merged as `dbaabcd` after hosted checks passed.
   UptimeRobot genuine DOWN email confirmed by Vasco at 15:48 Lisbon on
