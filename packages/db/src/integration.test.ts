@@ -264,19 +264,17 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           (code) => code.startsWith('deletion_'),
         )
       expect(await deletionCodes()).toEqual([])
-      await client.query(
-        "UPDATE outbox_events SET created_at=$2 WHERE aggregate_id=$1 AND event_type='account.deletion_requested'",
-        [deletionAccount.userId, new Date(deletionNow.getTime() - 900_001)],
-      )
-      expect(await deletionCodes()).toEqual(['deletion_jobs_overdue'])
+      expect(
+        await deletionCodes(new Date(deletionNow.getTime() + 901_000)),
+      ).toEqual(['deletion_jobs_overdue'])
       await client.query(
         "UPDATE outbox_events SET attempt_count=10 WHERE aggregate_id=$1 AND event_type='account.deletion_requested'",
         [deletionAccount.userId],
       )
       expect(await deletionCodes()).toEqual(['deletion_jobs_exhausted'])
       await client.query(
-        "UPDATE outbox_events SET attempt_count=0, created_at=$2 WHERE aggregate_id=$1 AND event_type='account.deletion_requested'",
-        [deletionAccount.userId, deletionNow],
+        "UPDATE outbox_events SET attempt_count=0 WHERE aggregate_id=$1 AND event_type='account.deletion_requested'",
+        [deletionAccount.userId],
       )
       await expect(
         database.client.transaction((transaction) =>
