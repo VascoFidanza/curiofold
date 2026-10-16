@@ -45,9 +45,9 @@ state returns HTTP 503. Authenticated schedule runs also emit redacted logs.
 | `audit_incomplete`   | Full bounded audit exceeded capacity. Increase/schedule cursor coverage deliberately before claiming full audit health.                                            |
 | `worker_unavailable` | Database/worker dependency failed. Check configuration and provider telemetry; no exception payload is exposed.                                                    |
 
-External polling/paging delivery and a named responding operator remain explicit
-launch gates. HTTP failure signals and logs are not a claim that a human received
-an email/page. Do not reuse a production alert credential in nonproduction.
+Nonproduction polling and actual DOWN/UP email delivery are verified below;
+Vasco is the responding recipient. Production alert routing and response coverage
+remain launch gates. Do not reuse a production alert credential in nonproduction.
 
 ## Live evidence — 2026-10-15
 
@@ -90,6 +90,8 @@ Recovery limitations in `RECOVERY.md` remain launch gates, not waived by this wo
   orders `d275ff39407a4aff13205de5d619474d`, ledger
   `65bfa62bfde279cdb6f1bc10220a76f2`, entitlements
   `c6a845a227a6a82de24d02dec0c97b57`.
-- **Pending:** recipient confirmation of the genuine UP recovery email and its
-  timestamp. CRFD-75 must not be marked Done until this is recorded. Endpoint
-  recovery alone does not prove email delivery.
+- Vasco confirmed receipt of the genuine UP email at **15:53 Portugal local time
+  (14:53 UTC)**, reporting incident resolution **14:53:18 UTC**. Both operational
+  notifications were delivered, not TEST messages. The observed incident lasted
+  5 minutes 4 seconds. This completes nonproduction alert-delivery acceptance;
+  it does not certify production routing or round-the-clock response coverage.
