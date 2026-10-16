@@ -9,6 +9,7 @@ import { Client } from 'pg'
 import { describe, expect, it } from 'vitest'
 
 import { createDatabase } from './client'
+import { verifyRecoveryPrivacy } from './recovery-privacy'
 import { lockActiveAccount } from './active-account'
 import {
   requestAccountDeletion,
@@ -306,6 +307,9 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           new Date(Date.now() + 120_000),
         ),
       ).resolves.toEqual({ completed: 1, failed: 0 })
+      await expect(
+        verifyRecoveryPrivacy(database.client, database.client),
+      ).resolves.toEqual({ verified: true })
       expect(
         await deletionCodes(new Date(deletionNow.getTime() + 86_400_000)),
       ).toEqual([])

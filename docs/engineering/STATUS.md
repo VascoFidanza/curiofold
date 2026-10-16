@@ -6,6 +6,33 @@
 
 ## In progress
 
+- CRFD-77 — Read-only restore privacy acceptance compares current restrictions
+  against recovered accounts and rejects revived access/history/privileges. This
+  is an operator gate, not automatic remediation or evidence of an older-backup
+  replay. Validation and delivery evidence live in Linear and the linked PR.
+
+## Finite engineering-completion gates
+
+Core Sandbox purchase/ownership/Reader, account export/deactivation, scheduled
+reconciliation and actual alert delivery have recorded evidence above/below.
+The following are not yet certified and prevent declaring engineering V1 complete:
+
+1. Independent encrypted off-provider backup and a successful restore; older-backup
+   deletion remediation plus Clerk restriction verification before reopening traffic.
+2. Final manual accessibility, security and representative performance acceptance.
+3. Protected production publishing approval workflow, scoped production secrets/roles,
+   deployment/migration/rollback controls and production monitoring configuration.
+4. Essential support/legal disclosure surfaces and approved finance-operation behavior
+   where refunds involve spent credits (CRFD-37 / OD-010).
+
+Public launch additionally requires real human-reviewed English Stories (not fixtures),
+accountant/legal approval of fiscal/refund/retention rules, genuine business/support
+details, production provider setup and explicit Product Owner launch authorization.
+No percentage or calendar forecast replaces these acceptance gates. Editorial working
+standards are drafted in `CONTENT_PUBLICATION.md`; AI production remains post-V1.
+
+## Current execution details
+
 - CRFD-76 — Existing operations probe now detects exhausted or overdue deletion
   jobs without exposing identity data or changing retry/retention policy. Local
   typecheck, 26 unit tests, targeted lint and live read-only Neon query pass.

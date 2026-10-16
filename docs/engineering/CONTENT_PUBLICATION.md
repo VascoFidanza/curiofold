@@ -63,6 +63,27 @@ audit history and the committed-source CLI. Manifest tests reject traversal, uns
 actions and incomplete review intent. Production and missing acknowledgment fail closed.
 
 Real launch Stories, reviewer, languages and media rights still require OD-002/008/009.
+
+## Editorial preparation — internal working standard, not launch approval
+
+V1 uses reviewed English Stories; the AI production agent remains post-V1.
+Start with a narrow reader question and a defensible scope. Build a claim/source
+matrix: factual claim, primary evidence, publication date, limitations and reviewer
+disposition. Prefer primary research and authoritative records; corroborate disputed
+or consequential claims independently. Distinguish established fact, inference and
+uncertainty. Never fabricate citations or imply that a source was read when it was not.
+
+Structure each Story around a clear hook, an explanatory narrative, useful sections,
+and a satisfying conclusion. Sources/endnotes must let a reader trace important
+claims. Check quotations, dates, figures, contradictions, attribution and media rights.
+Use the existing semantic blocks and Curiofold Reader typography; avoid decorative
+complexity that harms mobile reading or accessibility. Figures need meaningful alt text.
+
+Human approval of the exact revision remains mandatory after factual, language,
+rights and rendered mobile/desktop review. Failed checks return the draft for revision;
+AI cannot approve its own output. Record corrections through immutable revisions.
+Editorial leadership must approve this working standard before treating it as final
+policy. No agent infrastructure or automatic publication is introduced here.
 Production approval enforcement is deliberately not represented by a client-supplied
 boolean or the operator acknowledgment; configure and verify the protected human-approved
 workflow before enabling production execution. AI content generation remains post-V1.
