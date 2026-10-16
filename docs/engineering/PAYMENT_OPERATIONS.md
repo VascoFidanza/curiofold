@@ -45,9 +45,9 @@ state returns HTTP 503. Authenticated schedule runs also emit redacted logs.
 | `audit_incomplete`   | Full bounded audit exceeded capacity. Increase/schedule cursor coverage deliberately before claiming full audit health.                                            |
 | `worker_unavailable` | Database/worker dependency failed. Check configuration and provider telemetry; no exception payload is exposed.                                                    |
 
-External polling/paging delivery and a named responding operator remain explicit
-launch gates. HTTP failure signals and logs are not a claim that a human received
-an email/page. Do not reuse a production alert credential in nonproduction.
+Nonproduction polling and actual DOWN/UP email delivery are verified below;
+Vasco is the responding recipient. Production alert routing and response coverage
+remain launch gates. Do not reuse a production alert credential in nonproduction.
 
 ## Live evidence — 2026-10-15
 
@@ -69,3 +69,29 @@ CI covers duplicate terminal/nonterminal events, provider failures, safe request
 authentication/configuration, bounded/consistent audits, durable heartbeat
 failure/recovery/staleness and overdue/exhausted job diagnostics on PostgreSQL 18.
 Recovery limitations in `RECOVERY.md` remain launch gates, not waived by this work.
+
+## Alert delivery drill — 2026-10-16 (CRFD-75)
+
+- UptimeRobot monitor **Curiofold Development Payment Operations** polls the
+  existing health URL every five minutes; Vasco's verified email is the recipient.
+- At 14:45:53 UTC, a controlled nonfinancial failure heartbeat was recorded using
+  `recordPaymentOperationsRun`. The probe returned HTTP 503 / `worker_failed`.
+  No payment, financial record or production resource was changed.
+- Vasco confirmed receipt of the genuine DOWN email at **15:48 Portugal local
+  time (14:48 UTC)**, reporting incident start **14:48:14 UTC** and HTTP 503.
+  Earlier TEST emails are excluded from acceptance evidence.
+- The real scheduled worker recovered at **14:51:01 UTC**, followed by another
+  healthy run at 14:52:01. The probe independently returned HTTP 200 /
+  `{"healthy":true,"codes":[]}` at 14:53:04 UTC.
+- The temporary drill cadence was restored to enabled `*/5 * * * *`, with next
+  run 14:55 UTC. Account cleanup scheduling was unchanged.
+- Before/after: 10 payment orders, 6 ledger entries, 4 credit grants, 5 entitlements
+  and 104 aggregate credits. Ordered full-row MD5 fingerprints were identical:
+  orders `d275ff39407a4aff13205de5d619474d`, ledger
+  `65bfa62bfde279cdb6f1bc10220a76f2`, entitlements
+  `c6a845a227a6a82de24d02dec0c97b57`.
+- Vasco confirmed receipt of the genuine UP email at **15:53 Portugal local time
+  (14:53 UTC)**, reporting incident resolution **14:53:18 UTC**. Both operational
+  notifications were delivered, not TEST messages. The observed incident lasted
+  5 minutes 4 seconds. This completes nonproduction alert-delivery acceptance;
+  it does not certify production routing or round-the-clock response coverage.

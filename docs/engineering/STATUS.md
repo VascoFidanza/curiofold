@@ -6,12 +6,19 @@
 
 ## In progress
 
+- CRFD-75 — UptimeRobot genuine DOWN email confirmed by Vasco at 15:48 Lisbon on
+  2026-10-16 (incident 14:48:14 UTC). Real scheduled recovery passed at 14:51:01 UTC;
+  independent health is HTTP 200, financial fingerprints/totals are unchanged,
+  and the five-minute cadence is restored. Vasco confirmed the genuine UP email
+  at 15:53 Lisbon, with incident resolution 14:53:18 UTC. Both delivery checks pass. Exact evidence
+  is in `PAYMENT_OPERATIONS.md`.
+
 - CRFD-73 — Actual Neon snapshot restore, financial fingerprint comparison, repository reads/reconciliation and protected Preview rollback/return passed on 2026-10-15. See `RECOVERY.md` for exact resources, restore-routing correction and limits. Independent encrypted backup/production recovery and older-snapshot deletion replay are not certified by this rehearsal.
 - Linear access is restored; CRFD-72 and CRFD-73 are Done for their delivered scope. Their explicit production recovery limitations remain launch gates.
 - CRFD-74 — Scheduled nonproduction payment operations are implemented and live-verified: authenticated 11:22/11:25 UTC batches re-read 10 existing Stripe Sandbox sessions and completed their jobs. Ledger/grant/entitlement counts and total credits remained unchanged. A nonfinancial alarm drill returned 503, then the next real schedule recovered health. Five-minute schedule enabled. See `PAYMENT_OPERATIONS.md` and Linear for delivery/quality-gate evidence.
 - Final live payment acceptance passed on 2026-10-14. The Product Owner resent Sandbox event `evt_1UQBdxA6QiD7eFrPnQOmomAf` at 06:52:23 and confirmed Delivered / HTTP 200 / `{"received":true,"result":"duplicate"}`. Independent Neon comparison retained exactly one payment grant, one corresponding ledger entry, two active entitlements, wallet balance 4, fulfilled order and one processed event (attempt count 1, expected for the duplicate short-circuit). CRFD-50 and CRFD-56 are Done. Earlier pending replay/session notes below are superseded by this evidence.
 
-Payment reconciliation and consistent read-only wallet auditing now run beside the nonproduction database. Durable heartbeat, exhausted/overdue/provider-failure diagnostics and a minimal health probe provide actionable failure signals. External alert delivery and a named operator remain launch configuration gates, not claimed as complete. Real launch content, legal/fiscal approval and production preparation remain separate gates. No speculative AI-agent work belongs in V1.
+Payment reconciliation and consistent read-only wallet auditing now run beside the nonproduction database. Durable heartbeat, exhausted/overdue/provider-failure diagnostics and a minimal health probe provide actionable failure signals. Nonproduction DOWN/UP email delivery to Vasco is verified; production alert routing and response coverage remain launch gates. Real launch content, legal/fiscal approval and production preparation remain separate gates. No speculative AI-agent work belongs in V1.
 
 - V1 priorities now follow the convergence sequence in `EXECUTION_PLAN.md`: certify CRFD-50 → reviewed-content release workflow and launch catalogue → minimum account/privacy/support operations → staging security/accessibility/recovery gate → owner-approved production launch. AI editorial automation and nonessential polish are post-V1. Current fictional fixtures must not be presented as real launch content.
 
