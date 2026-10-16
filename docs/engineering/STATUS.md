@@ -2,11 +2,17 @@
 
 **Current phase:** V1 convergence — complete journeys, real content and release readiness
 **Current milestone:** V1 operational/release readiness — account lifecycle and recovery
-**Health:** At Risk — core Sandbox journeys, payment failure/replay, account deletion and nonproduction restore/rollback now have live evidence. Scheduled financial reconciliation/alerts, production backup/configuration, release assurance, real content and legal/fiscal approvals remain. Engineering-complete V1 is not yet certified; public launch is not authorized.
+**Health:** At Risk — core Sandbox journeys, payment failure/replay, account deletion, nonproduction restore/rollback and scheduled reconciliation with genuine alert delivery now have live evidence. Production backup/configuration, release assurance, real content and legal/fiscal approvals remain. Engineering-complete V1 is not yet certified; public launch is not authorized.
 
 ## In progress
 
-- CRFD-75 — UptimeRobot genuine DOWN email confirmed by Vasco at 15:48 Lisbon on
+- CRFD-76 — Existing operations probe now detects exhausted or overdue deletion
+  jobs without exposing identity data or changing retry/retention policy. Local
+  typecheck, 26 unit tests, targeted lint and live read-only Neon query pass;
+  hosted PostgreSQL/release checks and nonproduction deployment are pending.
+
+- CRFD-75 — Done; PR #64 merged as `dbaabcd` after hosted checks passed.
+  UptimeRobot genuine DOWN email confirmed by Vasco at 15:48 Lisbon on
   2026-10-16 (incident 14:48:14 UTC). Real scheduled recovery passed at 14:51:01 UTC;
   independent health is HTTP 200, financial fingerprints/totals are unchanged,
   and the five-minute cadence is restored. Vasco confirmed the genuine UP email
