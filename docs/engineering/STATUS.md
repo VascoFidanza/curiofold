@@ -6,6 +6,12 @@
 
 ## In progress
 
+- CRFD-79 — Actual nonproduction encrypted logical dump/local PostgreSQL restore
+  passed, including tamper rejection, financial fingerprints, wallet reconciliation
+  and privacy comparison. Local recovery server stopped. See `RECOVERY.md` for
+  evidence and repeat command. Durable off-provider storage, independent key custody,
+  scheduled backups and older-backup remediation remain separate launch gates.
+
 - CRFD-78 — Public Help and support entry point connects account, purchase-history,
   export/deletion and Library tools. `CURIOFOLD_SUPPORT_EMAIL` is an optional
   server-side Config value (not a secret); set a genuine monitored mailbox in
