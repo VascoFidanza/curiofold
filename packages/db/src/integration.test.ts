@@ -9,7 +9,11 @@ import { Client } from 'pg'
 import { describe, expect, it } from 'vitest'
 
 import { createDatabase } from './client'
-import { verifyRecoveryPrivacy } from './recovery-privacy'
+import {
+  verifyRecoveryPrivacy,
+  captureRecoveryRestrictions,
+  reapplyRecoveryRestrictions,
+} from './recovery-privacy'
 import { lockActiveAccount } from './active-account'
 import {
   requestAccountDeletion,
@@ -2601,6 +2605,10 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         database.client,
         linkedAccount.userId,
       )
+      const oldReading = await client.query(
+        'SELECT * FROM reading_progress WHERE user_id=$1',
+        [linkedAccount.userId],
+      )
       await requestAccountDeletion(database.client, linkedAccount.userId)
       await expect(
         processAccountDeletions(database.client, () => Promise.resolve()),
@@ -2621,6 +2629,79 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         await findWalletBalance(database.client, linkedAccount.userId),
       ).toEqual(beforeBalance)
       await expect(reconcileWallets(database.client)).resolves.toBeDefined()
+      // Reconstruct older restored state only in the isolated test database.
+      const restrictions = await captureRecoveryRestrictions(database.client)
+      await client.query(
+        "UPDATE users SET account_state='active' WHERE id=$1",
+        [linkedAccount.userId],
+      )
+      let providerCalls = 0
+      await expect(
+        reapplyRecoveryRestrictions(
+          database.client,
+          restrictions.map((r) =>
+            r.id === linkedAccount.userId
+              ? { ...r, subject: 'wrong-identity' }
+              : r,
+          ),
+          () => {
+            providerCalls++
+            return Promise.resolve()
+          },
+        ),
+      ).rejects.toThrow('Recovery identity mapping')
+      expect(providerCalls).toBe(0)
+      expect(
+        (
+          await client.query('SELECT account_state FROM users WHERE id=$1', [
+            linkedAccount.userId,
+          ])
+        ).rows[0].account_state,
+      ).toBe('active')
+      await client.query(
+        'INSERT INTO reading_progress SELECT * FROM jsonb_populate_recordset(NULL::reading_progress, $1::jsonb)',
+        [JSON.stringify(oldReading.rows)],
+      )
+      await database.client
+        .insert(staffRoleAssignments)
+        .values({
+          userId: linkedAccount.userId,
+          role: 'editor',
+          reason: 'Isolated recovery fixture',
+        })
+      await expect(
+        reapplyRecoveryRestrictions(database.client, restrictions, () =>
+          Promise.reject(new Error('identity unavailable')),
+        ),
+      ).rejects.toThrow('identity unavailable')
+      await expect(
+        database.client.transaction((tx) =>
+          lockActiveAccount(tx, linkedAccount.userId),
+        ),
+      ).rejects.toThrow('Account is not active')
+      await expect(
+        reapplyRecoveryRestrictions(database.client, restrictions, () =>
+          Promise.resolve(),
+        ),
+      ).resolves.toEqual({ verified: true })
+      await expect(
+        reapplyRecoveryRestrictions(database.client, restrictions, () =>
+          Promise.resolve(),
+        ),
+      ).resolves.toEqual({ verified: true })
+      const recoveredAccount = await exportAccountData(
+        database.client,
+        linkedAccount.userId,
+      )
+      expect(recoveredAccount.readingProgress).toEqual([])
+      for (const key of [
+        'wallet',
+        'ownership',
+        'purchases',
+        'walletTransactions',
+        'reversals',
+      ] as const)
+        expect(recoveredAccount[key]).toEqual(afterDeletion[key])
     } finally {
       await client.end()
       await database.pool.end()

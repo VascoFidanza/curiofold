@@ -6,6 +6,12 @@
 
 ## In progress
 
+- CRFD-80 — Privileged nonproduction recovery remediation replays authoritative
+  restrictions into isolated local restores, coordinates Clerk bans/session
+  revocation and fails closed on identity/provider errors. No financial mutation
+  or production execution. See `RECOVERY.md` and linked Linear/PR validation.
+  Real older-backup/Clerk acceptance is distinct from reconstructed integration tests.
+
 - CRFD-79 — Actual nonproduction encrypted logical dump/local PostgreSQL restore
   passed, including tamper rejection, financial fingerprints, wallet reconciliation
   and privacy comparison. Local recovery server stopped. See `RECOVERY.md` for
