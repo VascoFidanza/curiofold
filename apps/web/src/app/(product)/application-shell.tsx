@@ -114,7 +114,7 @@ export function ApplicationShell({
         {children}
       </main>
 
-      <footer>
+      <footer className={styles.supportFooter}>
         <Link className={styles.actionLink} href="/support">
           Help and support
         </Link>
