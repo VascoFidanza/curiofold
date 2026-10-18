@@ -136,6 +136,36 @@ mechanism. Separately verify Clerk restrictions and keep writes frozen through
 cutover. An unavailable authoritative database is a blocker, not permission to
 skip the comparison. Actual older-backup remediation remains unverified.
 
+### Reapply restrictions before opening an isolated restore (CRFD-80)
+
+`pnpm exec tsx scripts/reapply-recovery-restrictions.ts` is an explicit privileged
+nonproduction operator command, not a scheduled action or public API. Inject:
+
+- `CURIOFOLD_RECOVERY_SOURCE_URL`: current authoritative allowlisted nonproduction
+  database, never the older backup itself.
+- `CURIOFOLD_RECOVERY_TARGET_URL`: isolated loopback `curiofold_recovery` database
+  with explicit port; no application traffic or workers.
+- Existing Development `CLERK_SECRET_KEY`, never a live key.
+- `CURIOFOLD_RECOVERY_CONFIRMATION=isolated-nonproduction-writes-frozen` only after
+  actually freezing source writes and closing restored traffic. The value is an
+  operator acknowledgment, not proof of those conditions.
+
+The command captures current restricted identities, preflights every mapping under
+ordered target row locks and fails on missing/remapped accounts before any writes.
+It reapplies denial, clears deletion-account reading history and verification
+metadata, revokes staff roles and records audit evidence. No financial records or
+ownership evidence are changed, and pending deletion is never downgraded.
+After commit it bans Clerk identities and revokes active sessions with bounded
+requests. Provider failure leaves the application denied and the command failed;
+keep traffic closed, fix the cause and repeat. Final verification re-reads current
+restrictions; it cannot make independent database snapshots atomic across cutover.
+
+PostgreSQL tests reconstruct older active/history/staff state, reject bad mappings,
+inject provider failure, repeat remediation and compare retained financial exports.
+This is not evidence of a real older-backup/Clerk drill: that acceptance and durable
+backup/key-custody configuration remain required. Do not use this local-only tool
+to cut over production or claim irreversible retention cleanup approval.
+
 - Independent encrypted off-provider backups or cross-region disaster recovery.
 - Production PITR retention, production RPO/RTO, or production rollback controls.
 - Reopening an older snapshot after replaying post-backup deletion restrictions.
