@@ -102,6 +102,14 @@ export function createStripePaymentProvider(
       command: PaymentProviderCheckoutCommand,
       idempotencyKey: string,
     ): Promise<PaymentProviderCheckoutResult> {
+      // Activation controls only NEW charges. Never disable order recovery/fulfilment.
+      if (
+        /^(?:sk|rk)_live_/u.test(secretKey ?? '') &&
+        (process.env.NEXT_PUBLIC_ENVIRONMENT !== 'production' ||
+          process.env.CURIOFOLD_LIVE_PAYMENTS_ENABLED !== 'true')
+      ) {
+        throw new PaymentProviderError(false)
+      }
       try {
         const session = await stripe().checkout.sessions.create(
           {

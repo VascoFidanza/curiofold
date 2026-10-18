@@ -43,7 +43,7 @@ Core Sandbox purchase/ownership/Reader, account export/deactivation, scheduled
 reconciliation and actual alert delivery have recorded evidence above/below.
 The following are not yet certified and prevent declaring engineering V1 complete:
 
-1. Durable independent backup destination/key custody, scheduled backup verification
+1. Before accepting real customers/payments: durable independent backup destination/key custody, scheduled backup verification
    and alerts. Actual encrypted logical restore and older-backup/Clerk remediation
    have passed, but owner-only local temporary artifacts are not durable backups.
 2. Final manual accessibility, security and representative performance acceptance.
@@ -60,13 +60,30 @@ standards are drafted in `CONTENT_PUBLICATION.md`; AI production remains post-V1
 
 ### Exact external actions versus unfinished engineering
 
-- Backup storage: approve/provide a durable off-Neon destination and separately
-  managed key custody. No backup bucket, runtime storage credentials or managed
-  backup key is configured locally. Proposed minimal approach is a private EU S3
-  destination with least-privileged automated access and an encryption private key
-  held separately by the owner. Any paid account/service requires approval before
-  provisioning; scheduling/upload/recovery verification must then be completed,
-  not marked blocked in place of implementation or substituted with temporary files.
+- **Budget decision (2026-10-18): new pre-launch services must cost €0.** This
+  supersedes the earlier AWS S3 approval. No paid bucket/service may be provisioned.
+  Existing authenticated encrypted backup/restore and Clerk recovery remediation
+  remain validated; durable off-provider storage, separate key custody, scheduling
+  and verification remain a before-real-customers/payments activation gate, not a
+  reason to block independent engineering. Temporary local artifacts are not that service.
+- Free-resource assessment: personal Google storage has 15 GB shared with Gmail
+  and Photos; available owner quota has not been verified. A manual encrypted copy
+  could reuse existing free capacity, but does not prove scheduled recoverability
+  or independent key custody. GitHub Actions has included quotas, but overages can
+  be billed with a payment method; alerts alone are not a hard stop. Neither is a
+  certified zero-cost automated backup destination. No upload/service was created.
+  Sources: [Google storage](https://support.google.com/drive/answer/6374270?hl=en),
+  [Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions),
+  [hard-stop budgets](https://docs.github.com/en/billing/how-tos/set-up-budgets).
+- CRFD-81: new live Stripe Checkout requires both production environment and the
+  server-only Config `CURIOFOLD_LIVE_PAYMENTS_ENABLED=true`. Default is disabled;
+  Sandbox Checkout, order retrieval and reconciliation remain independent. Do not
+  enable the flag until the existing launch gates and owner authorization pass.
+  Local validation: 12 provider tests, web typecheck, targeted ESLint and diff checks
+  pass (local runtime Node 23; project requires Node 24, so supported-runtime CI is
+  still required). Local validation/commit does not certify hosted acceptance or a
+  development merge. Remote integration is pending verification that Actions and
+  existing hosting cannot bill overages; GitHub billing requires owner sign-in.
 - Support: supply a genuine monitored mailbox, set server Config
   `CURIOFOLD_SUPPORT_EMAIL` in intended environments, redeploy and verify receipt/reply.
 - Business/legal: resolve OD-007/010/011 with accountant/legal review, provide
