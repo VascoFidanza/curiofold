@@ -2662,13 +2662,11 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         'INSERT INTO reading_progress SELECT * FROM jsonb_populate_recordset(NULL::reading_progress, $1::jsonb)',
         [JSON.stringify(oldReading.rows)],
       )
-      await database.client
-        .insert(staffRoleAssignments)
-        .values({
-          userId: linkedAccount.userId,
-          role: 'editor',
-          reason: 'Isolated recovery fixture',
-        })
+      await database.client.insert(staffRoleAssignments).values({
+        userId: linkedAccount.userId,
+        role: 'editor',
+        reason: 'Isolated recovery fixture',
+      })
       await expect(
         reapplyRecoveryRestrictions(database.client, restrictions, () =>
           Promise.reject(new Error('identity unavailable')),

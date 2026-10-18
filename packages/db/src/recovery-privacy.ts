@@ -116,15 +116,13 @@ export async function reapplyRecoveryRestrictions(
           .where(eq(schema.readingProgress.userId, restriction.id))
     }
     if (restricted.length)
-      await transaction
-        .insert(schema.auditEvents)
-        .values({
-          action: 'recovery.account_restrictions_reapplied',
-          targetType: 'recovery',
-          reason:
-            'Current authoritative restrictions reapplied before restored traffic opens.',
-          metadata: { count: restricted.length },
-        })
+      await transaction.insert(schema.auditEvents).values({
+        action: 'recovery.account_restrictions_reapplied',
+        targetType: 'recovery',
+        reason:
+          'Current authoritative restrictions reapplied before restored traffic opens.',
+        metadata: { count: restricted.length },
+      })
   })
   // Persist denial first. Provider failure cannot roll it back or authorize cutover.
   // The callback must ban/revoke sessions idempotently and enforce its own timeout.
