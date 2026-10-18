@@ -7,6 +7,28 @@ const chromiumWidths = [
 const crossEngineWidths = [320, 768, 1440, 2560] as const
 
 test.describe('responsive browser contract', () => {
+  test('public support links existing tools without inventing a contact', async ({
+    page,
+  }) => {
+    await page.goto('/support')
+    await expect(
+      page.getByRole('heading', { name: 'Help and support', level: 1 }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole('link', { name: 'Open your account' }),
+    ).toHaveAttribute('href', '/account')
+    await expect(
+      page.getByRole('link', { name: 'Visit your Library' }),
+    ).toHaveAttribute('href', '/library')
+    await expect(
+      page.getByText('A support contact has not yet been configured', {
+        exact: false,
+      }),
+    ).toBeVisible()
+    await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0)
+    const results = await new AxeBuilder({ page }).analyze()
+    expect(results.violations).toEqual([])
+  })
   test('Story detail reflows at the supported and arbitrary widths', async ({
     browserName,
     page,
