@@ -162,9 +162,39 @@ restrictions; it cannot make independent database snapshots atomic across cutove
 
 PostgreSQL tests reconstruct older active/history/staff state, reject bad mappings,
 inject provider failure, repeat remediation and compare retained financial exports.
-This is not evidence of a real older-backup/Clerk drill: that acceptance and durable
-backup/key-custody configuration remain required. Do not use this local-only tool
+The tests alone are not evidence of a live drill; the later acceptance below
+supersedes that outstanding live-evidence limitation. Durable backup/key-custody
+configuration remains required. Do not use this local-only tool
 to cut over production or claim irreversible retention cleanup approval.
+
+### Genuine older-backup and Clerk acceptance — 2026-10-18
+
+- At 18:14:53 UTC, created one disposable Clerk Development identity and a genuine
+  active session, then linked its nonproduction application account. No credits,
+  entitlement, payment or other financial records were added for this account.
+- Took an actual encrypted logical backup and restored it into isolated loopback
+  PostgreSQL while that account was active. This was not reconstructed old state.
+- At 18:15:12 UTC, accepted application deletion and ran cleanup with actual Clerk
+  API calls. Independent provider reads confirmed `banned=true` and session `revoked`.
+- At 18:15:35 UTC, the older restored account was still `active` and the privacy
+  acceptance gate correctly rejected it. Financial fingerprints still matched.
+- Held a brief SHARE lock write freeze on authoritative identity/progress/staff and
+  financial tables while the existing guarded remediation command captured current
+  restrictions and reapplied them to the isolated target. No restored traffic or
+  worker was enabled. Locks were released in `finally`; no production was involved.
+- Actual command passed at 18:15:45 UTC; independent verification at 18:16:04 found
+  restored `pending_deletion`, passing privacy acceptance and zero wallet discrepancies.
+- Repeated under the same controlled freeze at 18:16:21; independent reads at
+  18:16:23 again confirmed Clerk ban, revoked session, restored denial and unchanged
+  source/restored financial fingerprints (all five hashes in CRFD-79 above).
+- Local restore server stopped; temporary plaintext cluster and private fixture
+  scaffolding removed. Disposable identity stays banned and its application deletion
+  evidence remains. Encrypted rehearsal artifacts are private temporary material.
+
+This closes the genuine pre-deletion-backup/provider-remediation acceptance case.
+It does not certify every historical schema, missing-account reconstruction,
+production cutover or durable backup operations. Failed identity mapping must
+still keep a restore closed for explicit operator review.
 
 - Independent encrypted off-provider backups or cross-region disaster recovery.
 - Production PITR retention, production RPO/RTO, or production rollback controls.

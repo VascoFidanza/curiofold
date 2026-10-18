@@ -33,12 +33,18 @@
 
 ## Finite engineering-completion gates
 
+**Decision (2026-10-18): Engineering V1 is NOT yet complete.** Genuine older-backup
+and live Clerk remediation now pass (`RECOVERY.md`, CRFD-80); do not reopen that
+accepted case without a defect. Remaining work is the finite list below, not an
+AI-agent dependency or a reason to add post-V1 features.
+
 Core Sandbox purchase/ownership/Reader, account export/deactivation, scheduled
 reconciliation and actual alert delivery have recorded evidence above/below.
 The following are not yet certified and prevent declaring engineering V1 complete:
 
-1. Independent encrypted off-provider backup and a successful restore; older-backup
-   deletion remediation plus Clerk restriction verification before reopening traffic.
+1. Durable independent backup destination/key custody, scheduled backup verification
+   and alerts. Actual encrypted logical restore and older-backup/Clerk remediation
+   have passed, but owner-only local temporary artifacts are not durable backups.
 2. Final manual accessibility, security and representative performance acceptance.
 3. Protected production publishing approval workflow, scoped production secrets/roles,
    deployment/migration/rollback controls and production monitoring configuration.
@@ -50,6 +56,31 @@ accountant/legal approval of fiscal/refund/retention rules, genuine business/sup
 details, production provider setup and explicit Product Owner launch authorization.
 No percentage or calendar forecast replaces these acceptance gates. Editorial working
 standards are drafted in `CONTENT_PUBLICATION.md`; AI production remains post-V1.
+
+### Exact external actions versus unfinished engineering
+
+- Backup storage: approve/provide a durable off-Neon destination and separately
+  managed key custody. No backup bucket, runtime storage credentials or managed
+  backup key is configured locally. Proposed minimal approach is a private EU S3
+  destination with least-privileged automated access and an encryption private key
+  held separately by the owner. Any paid account/service requires approval before
+  provisioning; scheduling/upload/recovery verification must then be completed,
+  not marked blocked in place of implementation or substituted with temporary files.
+- Support: supply a genuine monitored mailbox, set server Config
+  `CURIOFOLD_SUPPORT_EMAIL` in intended environments, redeploy and verify receipt/reply.
+- Business/legal: resolve OD-007/010/011 with accountant/legal review, provide
+  business/fiscal/complaints details and approved policy text. Finance-operation
+  policy behavior and fiscal integration remain engineering work dependent on this.
+- Production: approve required production resources/spend and supply production
+  provider configuration through secret stores. Protected publishing/deployment
+  controls and production verification are still required; no public release is authorized.
+- Content/launch: approve genuine English launch Stories, reviewers/media rights,
+  domain/brand and finally authorize public real-money launch explicitly.
+
+Canonical Preview smoke on 2026-10-18 preserved the owner's 4 credits, two owned
+Stories and one saved completion. Real keyboard skip navigation reached main content;
+Reader settings had named controls. These narrow observations are not a full
+screen-reader, security audit or representative performance sign-off.
 
 ## Current execution details
 
