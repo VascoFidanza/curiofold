@@ -56,6 +56,42 @@ deletion confirmation surface remained functional after routing restoration.
 
 ## Repeat safely
 
+### Logical backup portability rehearsal — 2026-10-18 (CRFD-79)
+
+Actual PostgreSQL 18 `pg_dump --format=custom --no-owner --no-acl` read the
+allowlisted nonproduction **direct** endpoint over verified TLS. The archive was
+encrypted with AES-256-GCM and a random 256-bit key, then read back, authenticated
+and restored with `pg_restore --single-transaction --exit-on-error` into an empty
+loopback-only PostgreSQL 18.6 cluster on port 55479. Tampered ciphertext was
+rejected before restore. No plaintext dump file was written.
+
+Restored/source/baseline fingerprints matched for payment orders, ledger,
+credit grants, wallets and entitlements. Orders/ledger/entitlement fingerprints
+match the October 15 evidence above; grants were `537a363632d8794e8c181aa13e7e081b`
+and wallets `4e39f7538d17ca47a1a4cc8e272988a9`. Repository wallet reconciliation
+reported zero discrepancies and `verifyRecoveryPrivacy` passed. No provider call,
+payment creation, source mutation, cutover or production operation occurred.
+
+An initial comparison exposed server timezone differences in JSON timestamps;
+canonical UTC sessions resolved the discrepancy without changing records.
+The temporary restored server was stopped after acceptance. Private encrypted
+artifacts/key remain in owner-only local temporary storage, outside Git. They are
+rehearsal material, **not durable backups or independent key custody**.
+
+Repeat with `pnpm exec tsx scripts/rehearse-logical-backup.ts`, injecting
+`CURIOFOLD_BACKUP_SOURCE_URL` (exact allowlisted direct source) and
+`CURIOFOLD_BACKUP_RESTORE_URL` (127.0.0.1, explicit port, empty
+`curiofold_recovery` database). Start/stop the disposable loopback cluster separately.
+The operator script caps the in-memory archive at 128 MiB and commands at two
+minutes; it fails closed rather than serving as a general production backup tool.
+Credentials are passed to libpq via environment, never CLI URLs. The encrypted
+format is nonce (12 bytes), GCM tag (16 bytes), ciphertext; keep the key private.
+
+**Still required:** independently managed durable storage and key custody,
+scheduled backup/retention/failure alerts, actual older-backup deletion remediation,
+and production recovery approval/configuration. This rehearsal closes portability
+and logical-restore evidence only, not these remaining launch requirements.
+
 1. Resolve project, original branch, compute, aliases and exact commits by ID.
    Record a baseline of orders, grants, ledger, wallet sums, entitlements,
    deletion markers and outstanding financial work. Never use production for a
