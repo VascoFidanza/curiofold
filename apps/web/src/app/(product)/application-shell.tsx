@@ -114,6 +114,12 @@ export function ApplicationShell({
         {children}
       </main>
 
+      <footer className={styles.supportFooter}>
+        <Link className={styles.actionLink} href="/support">
+          Help and support
+        </Link>
+      </footer>
+
       <nav aria-label="Mobile navigation" className={styles.mobileNavigation}>
         <ul>
           {mobileItems.map((item) => (

@@ -6,6 +6,14 @@
 
 ## In progress
 
+- CRFD-78 — Public Help and support entry point connects account, purchase-history,
+  export/deletion and Library tools. `CURIOFOLD_SUPPORT_EMAIL` is an optional
+  server-side Config value (not a secret); set a genuine monitored mailbox in
+  each intended environment and redeploy. Missing/invalid values show explicit
+  unavailability, never an invented address. Verify the rendered mailto and a real
+  reply before launch. This is not approved legal copy, a refund policy or proof
+  that support staffing exists. PR/Linear carry current validation and delivery.
+
 - CRFD-77 — Read-only restore privacy acceptance compares current restrictions
   against recovered accounts and rejects revived access/history/privileges. This
   is an operator gate, not automatic remediation or evidence of an older-backup

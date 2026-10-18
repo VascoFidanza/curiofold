@@ -186,3 +186,7 @@
     transition-duration: 1ms;
   }
 }
+.supportFooter {
+  padding: var(--cf-space-5);
+  padding-bottom: 6rem;
+}

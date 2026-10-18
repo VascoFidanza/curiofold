@@ -13,3 +13,4 @@ export function getIdentityEnvironment() {
 
 export { parseIdentityEnvironment }
 export type { IdentityEnvironment } from './env'
+export { supportContact } from './support'
