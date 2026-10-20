@@ -4,7 +4,26 @@
 **Current milestone:** V1 operational/release readiness — account lifecycle and recovery
 **Health:** At Risk — core Sandbox journeys, payment failure/replay, account deletion, nonproduction restore/rollback and scheduled reconciliation with genuine alert delivery now have live evidence. Production backup/configuration, release assurance, real content and legal/fiscal approvals remain. Engineering-complete V1 is not yet certified; public launch is not authorized.
 
-## In progress
+## Recent delivery evidence
+
+- **2026-10-20 / CRFD-82:** local release acceptance found and corrected Reader
+  skip-link/source focus targets and the missing reading-status landmark. Expanded
+  keyboard/settings/source navigation coverage is in the existing three-browser
+  suite. Bundled Node 24.19.0 is available for supported-runtime local checks.
+  No remote CI/deployment is triggered while cost exposure remains unverified.
+  This is not manual screen-reader or representative performance acceptance.
+  Validation on Node 24.19.0: `pnpm validate` passed (349 unit tests; one database
+  integration scenario deliberately skipped by the unit command), migration graph
+  check passed, and browser suite passed 22 tests with two intentional non-Chromium
+  touch skips. Production build and client-secret scan (31 bundles) passed.
+  Local production HTTP smoke returned 404 for all three fixture routes even with
+  the fixture flag set, retained security headers and suppressed X-Powered-By.
+  With identity deliberately unconfigured, wallet returned 503/no-store and Reader
+  rendered its unavailable state with private/no-store, without paid body text.
+  This is a fail-closed smoke, not a new authenticated payment acceptance.
+  Dependency audit at High threshold passed with an existing ESLint-only High
+  exclusion (GHSA-vfj7-8cjw-p6xm) and a remaining moderate development-only esbuild
+  advisory (GHSA-67mh-4wv8-2f99, Drizzle tooling). No claim of zero advisories.
 
 - CRFD-80 — Privileged nonproduction recovery remediation replays authoritative
   restrictions into isolated local restores, coordinates Clerk bans/session
@@ -79,11 +98,25 @@ standards are drafted in `CONTENT_PUBLICATION.md`; AI production remains post-V1
   server-only Config `CURIOFOLD_LIVE_PAYMENTS_ENABLED=true`. Default is disabled;
   Sandbox Checkout, order retrieval and reconciliation remain independent. Do not
   enable the flag until the existing launch gates and owner authorization pass.
-  Local validation: 12 provider tests, web typecheck, targeted ESLint and diff checks
-  pass (local runtime Node 23; project requires Node 24, so supported-runtime CI is
-  still required). Local validation/commit does not certify hosted acceptance or a
+  Initial local validation: 12 provider tests, web typecheck, targeted ESLint and
+  diff checks passed. The 2026-10-20 full local validation also runs on Node 24.
+  Local validation/commit does not certify hosted acceptance or a
   development merge. Remote integration is pending verification that Actions and
   existing hosting cannot bill overages; GitHub billing requires owner sign-in.
+- Billing checks remain separate: Vercel team access is confirmed, but the billing
+  charges API returns `costs_not_found`; this is not proof of no billing exposure.
+  GitHub requires account-wide Actions paid-usage blocking evidence. Vercel requires
+  current plan/trial/add-on evidence: Spend Management's production-only pause can
+  lag and does not stop storage charges, so it is not a guaranteed €0 cap for Preview.
+  Owner screenshots must redact payment/address details. Do not upgrade or add a
+  payment method. See [Vercel's documented limits](https://vercel.com/docs/spend-management).
+  Owner clarification (2026-10-20): existing free functionality is authorized
+  within available allowances; do not invent a blocker for each routine run or
+  require a new budget as a prerequisite when existing zero-cost allowance is
+  established. Current plan/remaining usage evidence is sufficient for bounded
+  execution. Connector omits billing fields; existing CLI credentials return 403
+  for the read-only team query. Remaining owner evidence is current GitHub Actions
+  included usage and Vercel plan/usage, not new services, credentials or upgrades.
 - Support: supply a genuine monitored mailbox, set server Config
   `CURIOFOLD_SUPPORT_EMAIL` in intended environments, redeploy and verify receipt/reply.
 - Business/legal: resolve OD-007/010/011 with accountant/legal review, provide

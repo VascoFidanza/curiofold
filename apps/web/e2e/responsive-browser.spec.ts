@@ -7,6 +7,55 @@ const chromiumWidths = [
 const crossEngineWidths = [320, 768, 1440, 2560] as const
 
 test.describe('responsive browser contract', () => {
+  test('Reader keyboard settings, source navigation and skip link remain accessible', async ({
+    browserName,
+    page,
+  }) => {
+    await page.route('**/api/v1/reading-progress/**', (route) =>
+      route.fulfill({ body: '{}', contentType: 'application/json' }),
+    )
+    await page.goto('/test-fixtures/reader')
+    const skip = page.getByRole('link', { name: 'Skip to Story' })
+    await skip.focus()
+    await page.keyboard.press('Enter')
+    await expect(page.locator('#story-content')).toBeFocused()
+
+    const settings = page.getByLabel('Reading settings')
+    await settings.focus()
+    await page.keyboard.press('Enter')
+    const larger = page.getByRole('button', { name: 'Larger', exact: true })
+    if (browserName === 'webkit') {
+      // Like the shell keyboard test, respect Safari's host Tab preference.
+      // Explicit focus still verifies keyboard activation and accessible state.
+      await larger.focus()
+    } else {
+      await page.keyboard.press('Tab')
+      await expect(
+        page.getByRole('button', { name: 'Smaller', exact: true }),
+      ).toBeFocused()
+      await page.keyboard.press('Tab')
+      await page.keyboard.press('Tab')
+    }
+    await expect(larger).toBeFocused()
+    await page.keyboard.press('Space')
+    await expect(larger).toHaveAttribute('aria-pressed', 'true')
+    // Scan the settled selected state, not an intermediate colour transition.
+    await larger.evaluate(async (button) => {
+      await Promise.all(
+        button.getAnimations().map((animation) => animation.finished),
+      )
+    })
+    const results = await new AxeBuilder({ page }).analyze()
+    expect(results.violations).toEqual([])
+
+    const citation = page.getByRole('link', { name: /^Source 1:/ }).first()
+    await citation.focus()
+    await page.keyboard.press('Enter')
+    const target = await citation.getAttribute('href')
+    expect(target).toMatch(/^#source-/)
+    if (!target) throw new Error('Citation must reference a source')
+    await expect(page.locator(target)).toBeFocused()
+  })
   test('public support links existing tools without inventing a contact', async ({
     page,
   }) => {

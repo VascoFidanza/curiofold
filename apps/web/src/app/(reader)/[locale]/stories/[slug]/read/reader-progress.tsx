@@ -491,7 +491,11 @@ export function ReaderProgressIndicator() {
           : `${String(progress.highWaterPercent)}% read.`
 
   return (
-    <div className={styles.progressRegion}>
+    <div
+      aria-label="Reading status"
+      className={styles.progressRegion}
+      role="region"
+    >
       <progress
         aria-label="Reading progress"
         max={100}

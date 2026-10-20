@@ -26,6 +26,21 @@ The suite renders the real application shell, public Story Detail, and browser-n
 
 The test fixture intercepts progress persistence because this gate is provider-independent. Authenticated, database-backed progress remains covered by integration tests and must receive live environment evidence when Clerk and the preview database are connected.
 
+### Reader release acceptance — 2026-10-20 (CRFD-82)
+
+The expanded browser test exposed two gaps that the earlier closed-settings scan
+did not cover: the Reader skip-link target could not receive focus, and the progress
+indicator was outside accessible landmarks. Main content and source-note targets now
+use `tabIndex=-1` (programmatically focusable, not extra Tab stops); reading status
+has a named region. The test activates the real skip link, opens settings with Enter,
+changes text size with Space and verifies pressed state, scans expanded settings
+with axe, then follows a citation and verifies focus on its source. Colour transitions
+finish before scanning; no accessibility rule is disabled. WebKit uses explicit
+control focus because of the same host Tab preference documented above.
+
+This is local automated browser evidence, not a VoiceOver/NVDA or physical-device
+sign-off. The manual release matrix below still applies.
+
 ## Manual release matrix
 
 Automation does not honestly reproduce all physical-device and assistive-technology behavior. Before the relevant milestone or production release closes, record evidence for:
