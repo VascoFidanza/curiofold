@@ -26,6 +26,7 @@ async function main() {
   assertNonProductionSeedEnvironment(
     process.env.NEXT_PUBLIC_ENVIRONMENT,
     process.env.CURIOFOLD_CONTENT_CONFIRMATION,
+    process.env.VERCEL_ENV,
   )
   if (process.env.CURIOFOLD_CONTENT_REVIEW !== `approved:${commit}`) {
     throw new Error(

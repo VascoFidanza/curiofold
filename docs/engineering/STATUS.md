@@ -6,6 +6,19 @@
 
 ## Recent delivery evidence
 
+- **2026-10-20 / CRFD-83:** nonproduction publication and seed commands also
+  reject Vercel production deployment context, regardless of a mistakenly allowed
+  public app label. Production publishing remains disabled; this is an operator
+  configuration safeguard, not human approval or database-role authorization.
+  Tests cover mislabeled environments and preserved local/Preview behavior.
+  Vercel Hobby is now owner-confirmed; remaining usage evidence is pending.
+  Validation on Node 24.19.0: 41 DB-package unit tests passed (integration is
+  separately gated in that command), DB typecheck, repository lint, formatting
+  and diff checks passed. The actual PostgreSQL 18 integration harness passed
+  against a fresh localhost database, including both CLI rejection cases and
+  the successful nonproduction release path. Temporary cluster stopped and
+  removed afterward; no shared/provider database was modified. This closes the
+  mislabeled-deployment guard gap, not protected production publishing activation.
 - **2026-10-20 / CRFD-82:** local release acceptance found and corrected Reader
   skip-link/source focus targets and the missing reading-status landmark. Expanded
   keyboard/settings/source navigation coverage is in the existing three-browser

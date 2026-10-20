@@ -53,6 +53,7 @@ async function main() {
   assertNonProductionSeedEnvironment(
     process.env.NEXT_PUBLIC_ENVIRONMENT,
     process.env.CURIOFOLD_SEED_CONFIRMATION,
+    process.env.VERCEL_ENV,
   )
   const connectionString = process.env.DATABASE_URL
   if (!connectionString) {

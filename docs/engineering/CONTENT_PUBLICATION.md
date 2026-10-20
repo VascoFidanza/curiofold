@@ -8,7 +8,12 @@ operator command, not a browser API or an AI-agent tool. Use a scoped database
 connection injected into the process; never paste credentials in Git or commands.
 
 This first operator path is **nonproduction only**. It rejects production even
-when confirmation is supplied. Production execution needs a separately approved
+when confirmation is supplied. Both release and synthetic seeding additionally
+reject `VERCEL_ENV=production`, even if `NEXT_PUBLIC_ENVIRONMENT` is accidentally
+set to an allowed nonproduction value. `NODE_ENV=production` alone is not rejected:
+Preview builds legitimately use that Node mode. These checks prevent configuration
+mistakes; they do not authenticate an operator or replace database role isolation.
+Production execution needs a separately approved
 protected workflow, database role/secret scope and initial-release authorization.
 No production resource or automated publication schedule is created here.
 
