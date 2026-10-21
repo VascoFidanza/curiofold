@@ -6,6 +6,16 @@
 
 ## Recent delivery evidence
 
+- **2026-10-21 / PR #71 integration:** owner verified GitHub Free 0/2,000
+  included Actions minutes, 0/0.5 GB storage and $0 actual billing; Vercel Hobby
+  usage is far below the inspected free allowances. Routine bounded CI/Preview
+  execution is authorized. Billing is no longer an integration blocker.
+  CRFD-81/82/83 are one combined PR targeting `development`, not three separate
+  deployment batches. Initial hosted build/tests passed, but audit detected the
+  newly updated Vite advisory GHSA-587h-7wmj-h5pm. Override the locked test-tool
+  dependency from 8.3.0 to patched 8.3.3; no advisory suppression was added.
+  Local High-threshold audit passes again with only the previously documented
+  development-tool advisory/exclusion. Hosted checks must pass before merging.
 - **2026-10-20 / CRFD-83:** nonproduction publication and seed commands also
   reject Vercel production deployment context, regardless of a mistakenly allowed
   public app label. Production publishing remains disabled; this is an operator
@@ -113,23 +123,13 @@ standards are drafted in `CONTENT_PUBLICATION.md`; AI production remains post-V1
   enable the flag until the existing launch gates and owner authorization pass.
   Initial local validation: 12 provider tests, web typecheck, targeted ESLint and
   diff checks passed. The 2026-10-20 full local validation also runs on Node 24.
-  Local validation/commit does not certify hosted acceptance or a
-  development merge. Remote integration is pending verification that Actions and
-  existing hosting cannot bill overages; GitHub billing requires owner sign-in.
-- Billing checks remain separate: Vercel team access is confirmed, but the billing
-  charges API returns `costs_not_found`; this is not proof of no billing exposure.
-  GitHub requires account-wide Actions paid-usage blocking evidence. Vercel requires
-  current plan/trial/add-on evidence: Spend Management's production-only pause can
-  lag and does not stop storage charges, so it is not a guaranteed €0 cap for Preview.
-  Owner screenshots must redact payment/address details. Do not upgrade or add a
-  payment method. See [Vercel's documented limits](https://vercel.com/docs/spend-management).
-  Owner clarification (2026-10-20): existing free functionality is authorized
-  within available allowances; do not invent a blocker for each routine run or
-  require a new budget as a prerequisite when existing zero-cost allowance is
-  established. Current plan/remaining usage evidence is sufficient for bounded
-  execution. Connector omits billing fields; existing CLI credentials return 403
-  for the read-only team query. Remaining owner evidence is current GitHub Actions
-  included usage and Vercel plan/usage, not new services, credentials or upgrades.
+  Local validation/commit does not certify hosted acceptance or a development
+  merge. PR #71 now carries hosted acceptance; earlier billing holds are superseded
+  by the verified included-usage evidence above.
+- Cost policy: existing free functionality is authorized within verified included
+  allowances (owner evidence above). Do not reopen the resolved billing hold
+  without changed evidence, enable overages or request upgrades. Paid backup and
+  production-service activation remain separate explicit approval boundaries.
 - Support: supply a genuine monitored mailbox, set server Config
   `CURIOFOLD_SUPPORT_EMAIL` in intended environments, redeploy and verify receipt/reply.
 - Business/legal: resolve OD-007/010/011 with accountant/legal review, provide
