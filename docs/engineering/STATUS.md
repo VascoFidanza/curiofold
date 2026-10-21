@@ -16,9 +16,26 @@
   Three-browser suite: 25 passed, two intentional touch skips. Parser-injected
   nonce-less scripts are blocked and clean Reader settings hydrate in each engine.
   Actual Clerk Development sign-in rendered under the production CSP; its embedded
-  images need an image-only `data:` allowance. Hosted configured journeys and CI
-  still require verification before merge/Done; current evidence lives in CRFD-84.
+  images need an image-only `data:` allowance. All mandatory hosted gates passed
+  (CI 39597368231, CodeQL 39597368335); PR #72 merged as d320839. Canonical Preview
+  dpl_HgXmPc2gLPbc3BUyeVsFiuW5JaC9 is READY. Normal Clerk browser-session Account,
+  Library and export passed under the CSP with no violations/page errors. Scoped
+  feature acceptance opened real Stripe Sandbox Checkout for €1.30; its unpaid
+  session was expired and the order reconciled to canceled, with zero credits,
+  ledger entries or entitlements. Reader controls/injection protection passed in
+  the three-browser suite; no new paid Reader or real-money purchase was claimed.
+  See CRFD-84 / PR #72 for the origin-scoped feature test boundary and evidence.
   No production resources, provider keys, money or retention policy changed.
+- **2026-10-21 / CRFD-85:** mobile lab acceptance on the real authenticated
+  Preview (390×844, 4× CPU, 70ms/1.6Mbps download/750Kbps upload, disabled cache)
+  found Account CLS 0.19–0.22. PerformanceObserver attributes the dominant shift
+  to the support footer leaving its initial y=305 position when Account data
+  streams in. Reserve the initial content viewport using the existing responsive
+  header dimensions; keep support reachable. Cross-browser regression and repeated
+  hosted measurements are required before certification. Local `pnpm validate`
+  passed, including 359 unit tests/build/bundle scan; browser suite passed 28 tests
+  with two intentional touch skips. These lab samples are
+  not production RUM, INP, manual assistive-technology or full release sign-off.
 - **2026-10-21 / PR #71 integration:** owner verified GitHub Free 0/2,000
   included Actions minutes, 0/0.5 GB storage and $0 actual billing; Vercel Hobby
   usage is far below the inspected free allowances. Routine bounded CI/Preview
@@ -190,10 +207,16 @@ Payment reconciliation and consistent read-only wallet auditing now run beside t
 
 - CRFD-52 has merged owner-scoped payment history and auditable reversal review, but its final legal/provider behavior waits for OD-007. CRFD-37 remains held behind OD-010.
 
-## In review
+## Deferred acceptance (not active code review)
 
-- S1-10 — The semantic token system and accessible responsive application shell pass local code, accessibility, build and four-width browser validation; final visual acceptance remains dependent on renewed Figma inspection.
-- S1-13 — Progress/resume/completion and later-session acceptance passed; automated retry/reconnect tests pass. Historical pending-session notes below are superseded.
+- CRFD-12 / S1-10 — implementation is merged (PR #8); final Figma comparison is
+  unverified. Backlog, not an indefinitely active code review. CRFD-18 retains
+  this original acceptance dependency; no visual sign-off was fabricated.
+- CRFD-52 — history/reversal review implementation is merged (PR #43); remaining
+  provider refund/entitlement-policy acceptance awaits OD-007. Backlog with Product
+  Decision, not active review. CRFD-37 similarly depends on OD-010.
+- Progress/resume/completion and later-session acceptance already passed; do not
+  reopen them solely because historical pending-session notes remain below.
 
 ## Recently completed
 
@@ -276,7 +299,7 @@ Payment reconciliation and consistent read-only wallet auditing now run beside t
 
 ## Next
 
-1. Finish CRFD-84 configured Clerk/checkout/Reader compatibility and hosted checks; merge only after successful validation. Retain existing payment/deletion/reconciliation/alert/recovery evidence instead of reopening those accepted tests.
+1. Finish CRFD-85 measured streamed-content layout stability, regression checks and canonical Preview remeasurement. CRFD-84 is merged/verified. Retain existing payment/deletion/reconciliation/alert/recovery evidence instead of reopening those accepted tests.
 2. Finish the remaining bounded release assurance: manual assistive-technology checks, representative performance/security and protected production publishing/release controls. Independent encrypted restore and older-backup restriction remediation already passed; durable independent backup activation is a separate pre-customer gate.
 3. Prepare a small genuinely reviewed English launch catalogue through the merged publication workflow. Fictional fixtures must not be purchasable in production. AI editorial automation is post-V1.
 4. Obtain accountant/legal approval for invoicing/VAT/jurisdictions, digital-content consent/refunds, category-specific retention and unused-value/dispute handling. Preserve financial evidence and paid value meanwhile; finalize approved policy/support/business information without fabricated placeholders.
