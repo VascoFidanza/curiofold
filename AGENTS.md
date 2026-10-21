@@ -283,3 +283,17 @@ Be:
 Do not generate ceremony for its own sake.
 
 The goal is a professionally managed, production-ready product.
+
+## 17. V1 execution continuity
+
+V1 engineering completion is the standing assignment under the approved plan and
+finite release checklist. Closing or merging an issue does not end it: select the
+next highest-priority actionable V1 requirement and continue within the active
+execution without another Product Owner prompt. Do not invent post-V1 work.
+
+Stop only at genuine authorization boundaries, exhausted execution limits, or when
+all independently actionable V1 engineering is complete. Continue independent work
+when another requirement is externally blocked. Before stopping, preserve the
+implementation state, validation evidence, blockers and exact next action in
+`docs/engineering/STATUS.md`; resume there without restarting planning. Existing
+quality gates, production restrictions and the €0 additional-cost policy still apply.
