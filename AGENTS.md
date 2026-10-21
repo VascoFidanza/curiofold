@@ -119,6 +119,12 @@ Codex must:
 
 Follow `docs/project/DELIVERY_GOVERNANCE.md`.
 
+Maintain Linear continuously as part of delivery, not a separate housekeeping
+project: give active work a purpose, owner and acceptance criteria; keep priorities,
+dependencies and blockers truthful; link completion to PRs, commits and validation;
+resolve duplicate/obsolete entries without deleting history. Prefer closing existing
+V1 requirements, and distinguish engineering blockers from external approvals.
+
 ---
 
 ## 7. Progressive elaboration
