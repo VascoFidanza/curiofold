@@ -178,7 +178,7 @@ function SourceEntry({
   source: ReaderStorySource
 }>) {
   return (
-    <li id={`source-${source.id}`}>
+    <li id={`source-${source.id}`} tabIndex={-1}>
       <p>
         <span className={styles.sourceNumber}>{number}.</span>{' '}
         {source.authors.length > 0 ? `${source.authors.join(', ')}. ` : null}
@@ -254,7 +254,7 @@ export function StoryReader({
         detailHref={`/${story.locale}/stories/${story.slug}`}
         title={story.title}
       >
-        <main id="story-content">
+        <main id="story-content" tabIndex={-1}>
           <article className={styles.story} lang={story.locale}>
             <header className={styles.storyHeader}>
               <p className={styles.category}>

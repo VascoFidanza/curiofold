@@ -63,9 +63,11 @@ function assertSeedDocument(document: DevelopmentSeedDocument): void {
 export function assertNonProductionSeedEnvironment(
   environment: string | undefined,
   confirmation: string | undefined,
+  deploymentEnvironment?: string,
 ): void {
   const permittedEnvironments = new Set(['local', 'preview', 'staging', 'test'])
   if (
+    deploymentEnvironment === 'production' ||
     !environment ||
     !permittedEnvironments.has(environment) ||
     confirmation !== 'nonproduction'

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type Stripe from 'stripe'
 
 import {
@@ -21,6 +21,53 @@ function session(
 }
 
 describe('Stripe payment provider', () => {
+  afterEach(() => vi.unstubAllEnvs())
+
+  it.each([
+    ['preview', 'true', 'sk_live_', false],
+    ['production', '', 'sk_live_', false],
+    ['production', 'false', 'sk_live_', false],
+    ['production', 'true', 'sk_live_', true],
+    ['preview', 'true', 'rk_live_', false],
+    ['production', '', 'rk_live_', false],
+    ['preview', '', 'sk_test_', true],
+    ['preview', '', 'rk_test_', true],
+  ])(
+    'gates Checkout in %s with activation %s and key type %s',
+    async (environment, activation, keyPrefix, allowed) => {
+      vi.stubEnv('NEXT_PUBLIC_ENVIRONMENT', environment)
+      vi.stubEnv('CURIOFOLD_LIVE_PAYMENTS_ENABLED', activation)
+      const create = vi.fn().mockResolvedValue(session())
+      const retrieve = vi.fn().mockResolvedValue(session())
+      const provider = createStripePaymentProvider({
+        appUrl: 'https://curiofold.test',
+        secretKey: `${keyPrefix}fixture_not_a_secret`,
+        client: { checkout: { sessions: { create, retrieve } } },
+      })
+      const checkout = provider.createCheckoutSession(
+        {
+          amountMinor: 130,
+          cancelPath: '/account',
+          credits: 0,
+          currency: 'EUR',
+          orderId: 'order-1',
+          packKey: 'story',
+          successPath: '/library',
+          purchaseType: 'individual_story',
+        },
+        'operation',
+      )
+      if (allowed) await expect(checkout).resolves.toBeDefined()
+      else {
+        await expect(checkout).rejects.toMatchObject({ retryable: false })
+        expect(create).not.toHaveBeenCalled()
+      }
+      await expect(
+        provider.retrieveOrder('cs_test_order_1'),
+      ).resolves.toBeDefined()
+      expect(retrieve).toHaveBeenCalledOnce()
+    },
+  )
   it('creates hosted Checkout from the trusted order snapshot', async () => {
     const create = vi.fn().mockResolvedValue(session())
     const provider = createStripePaymentProvider({

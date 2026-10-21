@@ -4,7 +4,49 @@
 **Current milestone:** V1 operational/release readiness — account lifecycle and recovery
 **Health:** At Risk — core Sandbox journeys, payment failure/replay, account deletion, nonproduction restore/rollback and scheduled reconciliation with genuine alert delivery now have live evidence. Production backup/configuration, release assurance, real content and legal/fiscal approvals remain. Engineering-complete V1 is not yet certified; public launch is not authorized.
 
-## In progress
+## Recent delivery evidence
+
+- **2026-10-21 / PR #71 integration:** owner verified GitHub Free 0/2,000
+  included Actions minutes, 0/0.5 GB storage and $0 actual billing; Vercel Hobby
+  usage is far below the inspected free allowances. Routine bounded CI/Preview
+  execution is authorized. Billing is no longer an integration blocker.
+  CRFD-81/82/83 are one combined PR targeting `development`, not three separate
+  deployment batches. Initial hosted build/tests passed, but audit detected the
+  newly updated Vite advisory GHSA-587h-7wmj-h5pm. Override the locked test-tool
+  dependency from 8.3.0 to patched 8.3.3; no advisory suppression was added.
+  Local High-threshold audit passes again with only the previously documented
+  development-tool advisory/exclusion. Hosted checks must pass before merging.
+- **2026-10-20 / CRFD-83:** nonproduction publication and seed commands also
+  reject Vercel production deployment context, regardless of a mistakenly allowed
+  public app label. Production publishing remains disabled; this is an operator
+  configuration safeguard, not human approval or database-role authorization.
+  Tests cover mislabeled environments and preserved local/Preview behavior.
+  Vercel Hobby is now owner-confirmed; remaining usage evidence is pending.
+  Validation on Node 24.19.0: 41 DB-package unit tests passed (integration is
+  separately gated in that command), DB typecheck, repository lint, formatting
+  and diff checks passed. The actual PostgreSQL 18 integration harness passed
+  against a fresh localhost database, including both CLI rejection cases and
+  the successful nonproduction release path. Temporary cluster stopped and
+  removed afterward; no shared/provider database was modified. This closes the
+  mislabeled-deployment guard gap, not protected production publishing activation.
+- **2026-10-20 / CRFD-82:** local release acceptance found and corrected Reader
+  skip-link/source focus targets and the missing reading-status landmark. Expanded
+  keyboard/settings/source navigation coverage is in the existing three-browser
+  suite. Bundled Node 24.19.0 is available for supported-runtime local checks.
+  No remote CI/deployment is triggered while cost exposure remains unverified.
+  This is not manual screen-reader or representative performance acceptance.
+  Validation on Node 24.19.0: `pnpm validate` passed (349 unit tests; one database
+  integration scenario deliberately skipped by the unit command), migration graph
+  check passed, and browser suite passed 22 tests with two intentional non-Chromium
+  touch skips. Production build and client-secret scan (31 bundles) passed.
+  Local production HTTP smoke returned 404 for all three fixture routes even with
+  the fixture flag set, retained security headers and suppressed X-Powered-By.
+  With identity deliberately unconfigured, wallet returned 503/no-store and Reader
+  rendered its unavailable state with private/no-store, without paid body text.
+  This is a fail-closed smoke, not a new authenticated payment acceptance.
+  Dependency audit at High threshold passed with an existing ESLint-only High
+  exclusion (GHSA-vfj7-8cjw-p6xm) and a remaining moderate development-only esbuild
+  advisory (GHSA-67mh-4wv8-2f99, Drizzle tooling). No claim of zero advisories.
 
 - CRFD-80 — Privileged nonproduction recovery remediation replays authoritative
   restrictions into isolated local restores, coordinates Clerk bans/session
@@ -43,7 +85,7 @@ Core Sandbox purchase/ownership/Reader, account export/deactivation, scheduled
 reconciliation and actual alert delivery have recorded evidence above/below.
 The following are not yet certified and prevent declaring engineering V1 complete:
 
-1. Durable independent backup destination/key custody, scheduled backup verification
+1. Before accepting real customers/payments: durable independent backup destination/key custody, scheduled backup verification
    and alerts. Actual encrypted logical restore and older-backup/Clerk remediation
    have passed, but owner-only local temporary artifacts are not durable backups.
 2. Final manual accessibility, security and representative performance acceptance.
@@ -60,13 +102,34 @@ standards are drafted in `CONTENT_PUBLICATION.md`; AI production remains post-V1
 
 ### Exact external actions versus unfinished engineering
 
-- Backup storage: approve/provide a durable off-Neon destination and separately
-  managed key custody. No backup bucket, runtime storage credentials or managed
-  backup key is configured locally. Proposed minimal approach is a private EU S3
-  destination with least-privileged automated access and an encryption private key
-  held separately by the owner. Any paid account/service requires approval before
-  provisioning; scheduling/upload/recovery verification must then be completed,
-  not marked blocked in place of implementation or substituted with temporary files.
+- **Budget decision (2026-10-18): new pre-launch services must cost €0.** This
+  supersedes the earlier AWS S3 approval. No paid bucket/service may be provisioned.
+  Existing authenticated encrypted backup/restore and Clerk recovery remediation
+  remain validated; durable off-provider storage, separate key custody, scheduling
+  and verification remain a before-real-customers/payments activation gate, not a
+  reason to block independent engineering. Temporary local artifacts are not that service.
+- Free-resource assessment: personal Google storage has 15 GB shared with Gmail
+  and Photos; available owner quota has not been verified. A manual encrypted copy
+  could reuse existing free capacity, but does not prove scheduled recoverability
+  or independent key custody. GitHub Actions has included quotas, but overages can
+  be billed with a payment method; alerts alone are not a hard stop. Neither is a
+  certified zero-cost automated backup destination. No upload/service was created.
+  Sources: [Google storage](https://support.google.com/drive/answer/6374270?hl=en),
+  [Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions),
+  [hard-stop budgets](https://docs.github.com/en/billing/how-tos/set-up-budgets).
+- CRFD-81: new live Stripe Checkout requires both production environment and the
+  server-only Config `CURIOFOLD_LIVE_PAYMENTS_ENABLED=true`. Default is disabled;
+  Sandbox Checkout, order retrieval and reconciliation remain independent. Do not
+  enable the flag until the existing launch gates and owner authorization pass.
+  Initial local validation: 12 provider tests, web typecheck, targeted ESLint and
+  diff checks passed. The 2026-10-20 full local validation also runs on Node 24.
+  Local validation/commit does not certify hosted acceptance or a development
+  merge. PR #71 now carries hosted acceptance; earlier billing holds are superseded
+  by the verified included-usage evidence above.
+- Cost policy: existing free functionality is authorized within verified included
+  allowances (owner evidence above). Do not reopen the resolved billing hold
+  without changed evidence, enable overages or request upgrades. Paid backup and
+  production-service activation remain separate explicit approval boundaries.
 - Support: supply a genuine monitored mailbox, set server Config
   `CURIOFOLD_SUPPORT_EMAIL` in intended environments, redeploy and verify receipt/reply.
 - Business/legal: resolve OD-007/010/011 with accountant/legal review, provide

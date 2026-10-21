@@ -4,6 +4,30 @@ import { assertNonProductionSeedEnvironment } from './development-seed'
 
 describe('assertNonProductionSeedEnvironment', () => {
   it.each(['local', 'test', 'preview', 'staging'])(
+    'rejects a production deployment mislabeled as %s',
+    (environment) => {
+      expect(() => {
+        assertNonProductionSeedEnvironment(
+          environment,
+          'nonproduction',
+          'production',
+        )
+      }).toThrow(/non-production/u)
+    },
+  )
+  it.each(['preview', 'development', undefined])(
+    'preserves allowed operation on platform %s',
+    (deploymentEnvironment) => {
+      expect(() => {
+        assertNonProductionSeedEnvironment(
+          'preview',
+          'nonproduction',
+          deploymentEnvironment,
+        )
+      }).not.toThrow()
+    },
+  )
+  it.each(['local', 'test', 'preview', 'staging'])(
     'permits the explicit %s non-production environment',
     (environment) => {
       expect(() => {

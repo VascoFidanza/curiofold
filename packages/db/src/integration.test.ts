@@ -2593,6 +2593,24 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       expect(() =>
         execFileSync('pnpm', cliArgs, {
           cwd: repositoryRoot,
+          env: { ...cliEnvironment, VERCEL_ENV: 'production' },
+          stdio: 'pipe',
+        }),
+      ).toThrow()
+      expect(() =>
+        execFileSync('pnpm', ['db:seed:development'], {
+          cwd: repositoryRoot,
+          env: {
+            ...cliEnvironment,
+            CURIOFOLD_SEED_CONFIRMATION: 'nonproduction',
+            VERCEL_ENV: 'production',
+          },
+          stdio: 'pipe',
+        }),
+      ).toThrow(/non-production/u)
+      expect(() =>
+        execFileSync('pnpm', cliArgs, {
+          cwd: repositoryRoot,
           env: { ...cliEnvironment, CURIOFOLD_CONTENT_REVIEW: '' },
           stdio: 'pipe',
         }),

@@ -32,6 +32,10 @@ only in provider-scoped environment storage and local ignored files.
 
 ## Vercel nonproduction resource
 
+- Plan: Hobby, independently confirmed by the Product Owner on 2026-10-20.
+  Remaining Vercel usage and GitHub Actions included-usage evidence is pending;
+  existing free functionality is authorized within verified allowances. No paid
+  upgrade, new service or payment method is authorized.
 - Team: `vascofidanzas-projects` (`team_Ri5uN8wH4DtXbvPs0XBXN18K`)
 - Project: `curiofold` (`prj_qOjqibHnZATdR84vrDtAlEhOb8Qc`)
 - Git repository: `VascoFidanza/curiofold`
