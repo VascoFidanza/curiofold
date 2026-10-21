@@ -119,6 +119,12 @@ Codex must:
 
 Follow `docs/project/DELIVERY_GOVERNANCE.md`.
 
+Maintain Linear continuously as part of delivery, not a separate housekeeping
+project: give active work a purpose, owner and acceptance criteria; keep priorities,
+dependencies and blockers truthful; link completion to PRs, commits and validation;
+resolve duplicate/obsolete entries without deleting history. Prefer closing existing
+V1 requirements, and distinguish engineering blockers from external approvals.
+
 ---
 
 ## 7. Progressive elaboration
@@ -283,3 +289,17 @@ Be:
 Do not generate ceremony for its own sake.
 
 The goal is a professionally managed, production-ready product.
+
+## 17. V1 execution continuity
+
+V1 engineering completion is the standing assignment under the approved plan and
+finite release checklist. Closing or merging an issue does not end it: select the
+next highest-priority actionable V1 requirement and continue within the active
+execution without another Product Owner prompt. Do not invent post-V1 work.
+
+Stop only at genuine authorization boundaries, exhausted execution limits, or when
+all independently actionable V1 engineering is complete. Continue independent work
+when another requirement is externally blocked. Before stopping, preserve the
+implementation state, validation evidence, blockers and exact next action in
+`docs/engineering/STATUS.md`; resume there without restarting planning. Existing
+quality gates, production restrictions and the €0 additional-cost policy still apply.
