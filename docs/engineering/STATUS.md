@@ -31,11 +31,17 @@
   found Account CLS 0.19–0.22. PerformanceObserver attributes the dominant shift
   to the support footer leaving its initial y=305 position when Account data
   streams in. Reserve the initial content viewport using the existing responsive
-  header dimensions; keep support reachable. Cross-browser regression and repeated
-  hosted measurements are required before certification. Local `pnpm validate`
-  passed, including 359 unit tests/build/bundle scan; browser suite passed 28 tests
-  with two intentional touch skips. These lab samples are
-  not production RUM, INP, manual assistive-technology or full release sign-off.
+  header dimensions; keep support reachable. PR #73 merged as 6487761 after CI
+  39600382308 and CodeQL 39600382287 passed. Local `pnpm validate` passed, including
+  359 unit tests/build/bundle scan; browser suite passed 28 tests with two intentional
+  touch skips. READY canonical deployment dpl_5mEi3fxnCLBqjxwn43SFLUy92Zub passed
+  three fresh native-Clerk-session Account navigations under the same lab profile:
+  CLS 0.00005684 / 0.00005684 / 0.0288801, zero footer shifts; LCP 2328 / 2328 /
+  1128ms. One earlier feature cold-load LCP was 3224ms, so broader representative
+  performance acceptance remains open. These small lab samples are not production
+  RUM, INP, manual assistive-technology or full release sign-off. The disposable
+  identity is banned with zero active sessions; its unpaid order is canceled.
+  Temporary browser contexts were closed and in-memory credentials cleared.
 - **2026-10-21 / PR #71 integration:** owner verified GitHub Free 0/2,000
   included Actions minutes, 0/0.5 GB storage and $0 actual billing; Vercel Hobby
   usage is far below the inspected free allowances. Routine bounded CI/Preview
@@ -299,11 +305,25 @@ Payment reconciliation and consistent read-only wallet auditing now run beside t
 
 ## Next
 
-1. Finish CRFD-85 measured streamed-content layout stability, regression checks and canonical Preview remeasurement. CRFD-84 is merged/verified. Retain existing payment/deletion/reconciliation/alert/recovery evidence instead of reopening those accepted tests.
+1. CRFD-84/85 are Done, merged and canonical-Preview verified. Do not repeat their investigation. The next existing implementation issue is CRFD-37: reuse the domain staff/MFA policy in `packages/domain/src/identity.ts` and immutable reversal operations in `packages/db/src/payment-reversals.ts` to provide guarded operator boundaries. Keep spent-credit decisions and actual policy-sensitive refunds disabled pending OD-010/007; do not invent financial behavior. Inspect those specific implementations and CRFD-37 acceptance before coding, not the entire repository again.
 2. Finish the remaining bounded release assurance: manual assistive-technology checks, representative performance/security and protected production publishing/release controls. Independent encrypted restore and older-backup restriction remediation already passed; durable independent backup activation is a separate pre-customer gate.
 3. Prepare a small genuinely reviewed English launch catalogue through the merged publication workflow. Fictional fixtures must not be purchasable in production. AI editorial automation is post-V1.
 4. Obtain accountant/legal approval for invoicing/VAT/jurisdictions, digital-content consent/refunds, category-specific retention and unused-value/dispute handling. Preserve financial evidence and paid value meanwhile; finalize approved policy/support/business information without fabricated placeholders.
 5. With explicit authorization, provision isolated production services/secrets, backup/alerting and protected release controls. Verify production configuration and obtain separate initial real-money launch approval.
+
+### Acceptance execution notes
+
+The existing local `VERCEL_OIDC_TOKEN` was expired. For protected browser testing,
+the authenticated cached Vercel CLI can inject a fresh same-project token with
+`env run --project <verified-project-id> --scope vascofidanzas-projects -- <command>`.
+Run from an isolated temporary working directory so the root `.env.local` does
+not override it with the stale token. Keep credentials in memory and scope the
+access header to the intended Preview origin only; do not log token output,
+replace provider keys or disable protection. Immutable feature URLs are not the
+canonical authorized Clerk application origin; feature-scoped API acceptance and
+normal canonical browser-session acceptance are explicitly distinguished in Linear.
+Use the canonical `development` URL for Product Owner testing:
+<https://curiofold-git-development-vascofidanzas-projects.vercel.app>.
 
 ## Open decisions
 
