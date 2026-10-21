@@ -6,6 +6,19 @@
 
 ## Recent delivery evidence
 
+- **2026-10-21 / CRFD-84:** standing V1 execution continuity and ongoing Linear
+  ownership/evidence housekeeping are explicit in `AGENTS.md` (5502a6d, ba0b33d).
+  Nonce script CSP uses Clerk's supported strict builder when configured and a
+  cryptographically random fallback otherwise. The root shell renders dynamically
+  and documents are no-store, so HTML cannot reuse another request's nonce.
+  Local Node 24 `pnpm validate` passed (359 unit tests; DB integration remains a
+  separate hosted gate), including production build and 31-bundle secret scan.
+  Three-browser suite: 25 passed, two intentional touch skips. Parser-injected
+  nonce-less scripts are blocked and clean Reader settings hydrate in each engine.
+  Actual Clerk Development sign-in rendered under the production CSP; its embedded
+  images need an image-only `data:` allowance. Hosted configured journeys and CI
+  still require verification before merge/Done; current evidence lives in CRFD-84.
+  No production resources, provider keys, money or retention policy changed.
 - **2026-10-21 / PR #71 integration:** owner verified GitHub Free 0/2,000
   included Actions minutes, 0/0.5 GB storage and $0 actual billing; Vercel Hobby
   usage is far below the inspected free allowances. Routine bounded CI/Preview
@@ -14,8 +27,12 @@
   deployment batches. Initial hosted build/tests passed, but audit detected the
   newly updated Vite advisory GHSA-587h-7wmj-h5pm. Override the locked test-tool
   dependency from 8.3.0 to patched 8.3.3; no advisory suppression was added.
-  Local High-threshold audit passes again with only the previously documented
-  development-tool advisory/exclusion. Hosted checks must pass before merging.
+  Local High-threshold audit passed again with only the previously documented
+  development-tool advisory/exclusion. All hosted checks passed on 222240a;
+  PR #71 merged as e267a17. Canonical Preview deployment
+  dpl_25HTixew92NYb5yxny3ogWzRnxMr is READY for that merge. Protected health/public
+  Story smoke passed; anonymous wallet access remained denied. The old billing
+  holds in historical entries below are superseded, not current blockers.
 - **2026-10-20 / CRFD-83:** nonproduction publication and seed commands also
   reject Vercel production deployment context, regardless of a mistakenly allowed
   public app label. Production publishing remains disabled; this is an operator
@@ -259,15 +276,14 @@ Payment reconciliation and consistent read-only wallet auditing now run beside t
 
 ## Next
 
-1. Retain CRFD-74 scheduled reconciliation evidence; do not repeat completed payments or deletion acceptance.
-2. Connect the deployed operational probe to an approved external monitoring/paging channel and verify human delivery. No additional Stripe keys, products or webhook endpoints are required.
-3. Finish the bounded release-assurance evidence: manual assistive-technology/accessibility, representative performance/security, actionable monitoring/support and recovery suppression for older backups. Add independent encrypted backup/restore verification; a provider snapshot alone does not satisfy that requirement.
-4. Prepare a small genuinely reviewed English launch catalogue through the merged publication workflow. Fictional fixtures must not be purchasable in production. AI editorial automation is post-V1.
-5. Obtain accountant/legal approval for invoicing/VAT/jurisdictions, digital-content consent/refunds, category-specific retention and unused-value/dispute handling. Preserve financial evidence and paid value meanwhile; finalize approved policy/support/business information without fabricated placeholders.
-6. With explicit authorization, provision isolated production services/secrets, backup/alerting and protected release controls. Verify production configuration and obtain separate initial real-money launch approval.
+1. Finish CRFD-84 configured Clerk/checkout/Reader compatibility and hosted checks; merge only after successful validation. Retain existing payment/deletion/reconciliation/alert/recovery evidence instead of reopening those accepted tests.
+2. Finish the remaining bounded release assurance: manual assistive-technology checks, representative performance/security and protected production publishing/release controls. Independent encrypted restore and older-backup restriction remediation already passed; durable independent backup activation is a separate pre-customer gate.
+3. Prepare a small genuinely reviewed English launch catalogue through the merged publication workflow. Fictional fixtures must not be purchasable in production. AI editorial automation is post-V1.
+4. Obtain accountant/legal approval for invoicing/VAT/jurisdictions, digital-content consent/refunds, category-specific retention and unused-value/dispute handling. Preserve financial evidence and paid value meanwhile; finalize approved policy/support/business information without fabricated placeholders.
+5. With explicit authorization, provision isolated production services/secrets, backup/alerting and protected release controls. Verify production configuration and obtain separate initial real-money launch approval.
 
 ## Open decisions
 
 See `docs/project/OPEN_DECISIONS.md`. No open product decision blocks the foundation stage.
 
-**Last updated:** 2026-10-15
+**Last updated:** 2026-10-21

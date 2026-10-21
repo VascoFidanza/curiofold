@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { headers } from 'next/headers'
 import { ClerkProvider } from '@clerk/nextjs'
 import { Instrument_Sans, Newsreader } from 'next/font/google'
 import type { ReactNode } from 'react'
@@ -40,11 +41,14 @@ export const viewport: Viewport = {
   width: 'device-width',
 }
 
-export default function RootLayout({
+export const dynamic = 'force-dynamic'
+
+export default async function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   const clerkPublishableKey =
     publicEnvironment.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+  const nonce = (await headers()).get('x-nonce') ?? undefined
 
   return (
     <html
@@ -54,6 +58,7 @@ export default function RootLayout({
       <body>
         {clerkPublishableKey && isClerkSessionConfigured() ? (
           <ClerkProvider
+            {...(nonce ? { nonce } : {})}
             publishableKey={clerkPublishableKey}
             signInUrl="/sign-in"
             signUpUrl="/sign-up"

@@ -1,10 +1,9 @@
 /**
  * Headers that are safe to apply to every response before route-specific policy.
  *
- * The CSP deliberately establishes non-script guardrails only. A nonce-based
- * script policy will be added with the authenticated application shell so that
- * framework scripts and Clerk can be verified together instead of weakened by
- * a blanket `unsafe-inline` exception.
+ * Static assets retain this non-script baseline. Document requests receive the
+ * request-specific nonce script policy from proxy.ts (Clerk's strict CSP when
+ * identity is configured), and the dynamic shell forwards that nonce to Clerk.
  */
 export const securityHeaders: readonly {
   readonly key: string

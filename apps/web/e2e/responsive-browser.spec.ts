@@ -7,6 +7,64 @@ const chromiumWidths = [
 const crossEngineWidths = [320, 768, 1440, 2560] as const
 
 test.describe('responsive browser contract', () => {
+  test('nonce CSP allows Reader hydration but blocks injected inline scripts', async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      document.addEventListener('securitypolicyviolation', (event) => {
+        sessionStorage.setItem('curiofold-test-csp-blocked', event.blockedURI)
+      })
+    })
+    await page.route('**/test-fixtures/reader', async (route) => {
+      const response = await route.fetch()
+      const body = (await response.text()).replace(
+        '</head>',
+        '<script id="attack-probe">document.documentElement.dataset.cspAttack="executed"</script></head>',
+      )
+      await route.fulfill({ response, body })
+    })
+    await page.route('**/api/v1/reading-progress/**', (route) =>
+      route.fulfill({ body: '{}', contentType: 'application/json' }),
+    )
+    const first = await page.goto('/test-fixtures/reader')
+    const policy = first?.headers()['content-security-policy'] ?? ''
+    const nonce = /'nonce-([^']+)'/u.exec(policy)?.[1]
+    expect(nonce).toBeTruthy()
+    expect(policy).toContain("'strict-dynamic'")
+    if (!first) throw new Error('Reader document response missing')
+    // Inspect the delivered document, not scripts later loaded by trusted JS.
+    const scripts = await page.evaluate(
+      (html) => {
+        const document = new DOMParser().parseFromString(html, 'text/html')
+        return Array.from(
+          document.querySelectorAll<HTMLScriptElement>(
+            'script:not(#attack-probe)',
+          ),
+        ).map((script) => script.nonce)
+      },
+      await first.text(),
+    )
+    expect(scripts.length).toBeGreaterThan(0)
+    expect(scripts.every((value) => value === nonce)).toBe(true)
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          sessionStorage.getItem('curiofold-test-csp-blocked'),
+        ),
+      )
+      .toBe('inline')
+    expect(
+      await page.locator('html').getAttribute('data-csp-attack'),
+    ).toBeNull()
+    await page.unroute('**/test-fixtures/reader')
+    const second = await page.reload()
+    expect(second?.headers()['content-security-policy']).not.toBe(policy)
+    await page.getByLabel('Reading settings').click()
+    await page.getByRole('button', { name: 'Larger', exact: true }).click()
+    await expect(
+      page.getByRole('button', { name: 'Larger', exact: true }),
+    ).toHaveAttribute('aria-pressed', 'true')
+  })
   test('Reader keyboard settings, source navigation and skip link remain accessible', async ({
     browserName,
     page,
