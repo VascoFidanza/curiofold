@@ -7,6 +7,21 @@ const chromiumWidths = [
 const crossEngineWidths = [320, 768, 1440, 2560] as const
 
 test.describe('responsive browser contract', () => {
+  test('short content reserves the viewport without hiding the support link', async ({
+    page,
+  }) => {
+    for (const width of [390, 1440]) {
+      await page.setViewportSize({ width, height: 844 })
+      await page.goto('/test-fixtures/shell-expansion')
+      const footerTop = await page
+        .getByRole('contentinfo')
+        .evaluate((footer) => footer.getBoundingClientRect().top)
+      expect(footerTop).toBeGreaterThanOrEqual(844)
+      const support = page.getByRole('link', { name: 'Help and support' })
+      await support.scrollIntoViewIfNeeded()
+      await expect(support).toBeInViewport()
+    }
+  })
   test('nonce CSP allows Reader hydration but blocks injected inline scripts', async ({
     page,
   }) => {

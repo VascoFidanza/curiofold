@@ -129,6 +129,8 @@
 
 .main {
   min-width: 0;
+  /* Keep the footer below the initial viewport while page data streams in. */
+  min-height: calc(100svh - 4.25rem);
 }
 
 .mobileNavigation {
@@ -163,6 +165,10 @@
 }
 
 @media (min-width: 48rem) {
+  .main {
+    min-height: calc(100svh - 4.75rem);
+  }
+
   .shell {
     padding-bottom: 0;
   }
