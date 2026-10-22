@@ -172,13 +172,11 @@ export async function assertFinanceReviewIntegration(
     .update(users)
     .set({ emailVerifiedAt: new Date() })
     .where(eq(users.id, otherOperator.userId))
-  await database
-    .insert(staffRoleAssignments)
-    .values({
-      userId: otherOperator.userId,
-      role: 'finance',
-      reason: 'Isolated concurrent operator fixture',
-    })
+  await database.insert(staffRoleAssignments).values({
+    userId: otherOperator.userId,
+    role: 'finance',
+    reason: 'Isolated concurrent operator fixture',
+  })
   const directInput = {
     ...input,
     orderId: directOrder.id,
