@@ -18,7 +18,9 @@
   no audit exclusion was added. Local `pnpm validate` passed (403 unit tests,
   build/boundaries and 33-bundle secret scan). High-threshold audit passed with
   the previously documented ESLint-only High exception and Drizzle-only Moderate
-  advisory. Hosted validation/merge remain pending. CRFD-86 is not Done:
+  advisory. Hosted validation and integration evidence are maintained in
+  [PR #76](https://github.com/VascoFidanza/curiofold/pull/76) and CRFD-86; the
+  engineering changes are 7107d32 and 5794a66. CRFD-86 is not Done:
   manual assistive-technology, representative authenticated Reader performance
   and the finite production-activation gates below remain unverified.
 
@@ -39,7 +41,12 @@
   records, CSRF/tampering, keyboard/axe and hydration. Safari's differing locale
   timestamp punctuation was corrected using deterministic UTC output. Browser
   operator fixtures intercept requests: this is not live staff-MFA or refund
-  execution acceptance. Hosted CI/merge and canonical smoke are pending.
+  execution acceptance. PR #75 merged as 2d6636d after CI 39796744099 and CodeQL
+  39796744026 passed; the hosted browser log confirms 34 passed/two skips and
+  successful completion, despite temporarily stale aggregate status. Canonical
+  Preview dpl_GWuKEe8zqmDCRebe4PyAbW2Mbxcq is READY: health 200, finance API 401
+  private/no-store, operator page restricted with no queue, fixture route 404.
+  CRFD-37 is Done for its explicitly policy-gated scope.
   See `FINANCE_OPERATIONS.md` for the bounded workflow and policy restrictions.
 
 - **2026-10-21 / CRFD-84:** standing V1 execution continuity and ongoing Linear
@@ -167,8 +174,8 @@ The following are not yet certified and prevent declaring engineering V1 complet
 2. Final manual accessibility, security and representative performance acceptance.
 3. Protected production publishing approval workflow, scoped production secrets/roles,
    deployment/migration/rollback controls and production monitoring configuration.
-4. Essential support/legal disclosure surfaces and approved finance-operation behavior
-   where refunds involve spent credits (CRFD-37 / OD-010).
+4. Approved support/legal disclosures and financial-policy execution (OD-007/010/011).
+   CRFD-37's guarded review intake is complete; actual refund execution remains gated.
 
 Public launch additionally requires real human-reviewed English Stories (not fixtures),
 accountant/legal approval of fiscal/refund/retention rules, genuine business/support
@@ -342,8 +349,8 @@ Payment reconciliation and consistent read-only wallet auditing now run beside t
 
 ## Next
 
-1. Finish PR #75 / CRFD-37 hosted CI, merge and canonical finance denial smoke. All gates except the browser job are green; that job is still installing its browser runtimes. Do not merge before it passes. The follow-on `codex/crfd-86-release-assurance` branch contains the locally validated checkout-limit and Vitest security slice; integrate it separately after PR #75. Keep actual refunds and spent-credit decisions disabled pending OD-010/007.
-2. Finish the remaining bounded release assurance: manual assistive-technology checks, representative performance/security and protected production publishing/release controls. Independent encrypted restore and older-backup restriction remediation already passed; durable independent backup activation is a separate pre-customer gate.
+1. Continue CRFD-86 after the PR #76 security slice; its delivery evidence is in the linked PR/Linear, and CRFD-37 is merged/Done. Do not repeat their investigation. Exact next acceptance: use a real signed-in canonical Preview session for representative mobile entitled-Reader interaction/performance checks. No in-app tab was open during this session; a nonblocking request to the owner asks them to sign in and leave it open. Do not invent authenticated evidence or create test payments merely to obtain access. Keep refunds and spent-credit decisions disabled pending OD-010/007.
+2. Complete actual VoiceOver/Safari and NVDA/Firefox checks, then the remaining bounded security and protected production publishing/release controls. Human assistive-technology evidence cannot be substituted by axe. Independent encrypted restore and older-backup restriction remediation already passed; durable independent backup activation is a separate pre-customer gate. Production publication remains disabled in the CLI pending the protected human-approved workflow and scoped production connection; preparing that workflow is the next independent engineering task if browser acceptance is still externally blocked.
 3. Prepare a small genuinely reviewed English launch catalogue through the merged publication workflow. Fictional fixtures must not be purchasable in production. AI editorial automation is post-V1.
 4. Obtain accountant/legal approval for invoicing/VAT/jurisdictions, digital-content consent/refunds, category-specific retention and unused-value/dispute handling. Preserve financial evidence and paid value meanwhile; finalize approved policy/support/business information without fabricated placeholders.
 5. With explicit authorization, provision isolated production services/secrets, backup/alerting and protected release controls. Verify production configuration and obtain separate initial real-money launch approval.
