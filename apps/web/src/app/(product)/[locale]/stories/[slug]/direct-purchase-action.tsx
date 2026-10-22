@@ -43,6 +43,12 @@ export function DirectPurchaseAction({
         setError('Verify your email in Account before buying this Story.')
         return
       }
+      if (response.status === 429) {
+        setError(
+          'Too many checkout attempts. Please wait a few minutes before trying again.',
+        )
+        return
+      }
       if (response.status === 409) {
         const problem = (await response.json()) as { code?: string }
         if (problem.code === 'already_owned') {

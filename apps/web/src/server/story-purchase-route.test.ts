@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import type { AuthorizationContext, PaymentProvider } from '@curiofold/domain'
-import type { PaymentOrderRecord } from '@curiofold/db'
+import {
+  PaymentOrderRateLimitError,
+  type PaymentOrderRecord,
+} from '@curiofold/db'
 
 import { createStoryPurchaseResponse } from './story-purchase-route'
 
@@ -63,6 +66,37 @@ function provider(): PaymentProvider {
 }
 
 describe('Story purchase route', () => {
+  it('returns a retryable checkout limit without calling Stripe', async () => {
+    const createCheckoutSession = vi.fn()
+    const retrieveOrder = vi.fn()
+    const paymentProvider = {
+      ...provider(),
+      createCheckoutSession,
+      retrieveOrder,
+    }
+    const response = await createStoryPurchaseResponse(
+      request(),
+      'request-limited',
+      {
+        authorizationSource: () => Promise.resolve(authorization),
+        ownedSource: () => Promise.resolve(null),
+        publishedSource: () => Promise.resolve(true),
+        createOrderSource: () =>
+          Promise.reject(new PaymentOrderRateLimitError(120)),
+        provider: paymentProvider,
+      },
+    )
+    expect(response.status).toBe(429)
+    expect(response.headers.get('retry-after')).toBe('120')
+    expect(response.headers.get('content-type')).toBe(
+      'application/problem+json',
+    )
+    await expect(response.json()).resolves.toMatchObject({
+      code: 'checkout_rate_limited',
+    })
+    expect(createCheckoutSession).not.toHaveBeenCalled()
+    expect(retrieveOrder).not.toHaveBeenCalled()
+  })
   it('creates an exact €1.30 checkout without wallet credits', async () => {
     const createOrderSource = vi.fn().mockResolvedValue({
       created: true,

@@ -17,6 +17,25 @@ afterEach(() => {
 })
 
 describe('credit purchase', () => {
+  it('explains a checkout limit without discarding the retry key', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response(null, { status: 429 }))
+    render(<CreditsPurchase orderId={null} returnPath="/account" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Continue to payment' }))
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toContain(
+        'wait a few minutes',
+      )
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Continue to payment' }))
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(2)
+    })
+    expect(fetchMock.mock.calls[0]?.[1]?.headers).toEqual(
+      fetchMock.mock.calls[1]?.[1]?.headers,
+    )
+  })
   it('shows canonical credit totals and reuses the checkout key after failure', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')

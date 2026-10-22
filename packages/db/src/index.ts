@@ -89,6 +89,7 @@ export {
   findPaymentOrderById,
   findPaymentOrderForUser,
   PaymentOrderConflictError,
+  PaymentOrderRateLimitError,
   type AttachPaymentCheckoutInput,
   type CreatePaymentOrderInput,
   type CreatePaymentOrderResult,
