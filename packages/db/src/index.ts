@@ -104,11 +104,17 @@ export {
 } from './payment-reconciliation'
 export {
   createPaymentReversal,
+  requestRefundReview,
+  listRefundReviews,
+  refundReviewSummary,
+  FinanceAuthorizationError,
   PaymentReversalConflictError,
   PaymentReversalUnavailableError,
   type CreatePaymentReversalInput,
   type CreatePaymentReversalResult,
   type PaymentReversalRecord,
+  type RefundReview,
+  type RefundReviewInput,
 } from './payment-reversals'
 export {
   listPurchaseHistory,

@@ -1,17 +1,22 @@
 import {
   assertPaymentReversalTransition,
+  can,
   normalizeCreditOperationKey,
   normalizeReversalReasonCode,
   paymentReversalKinds,
   type PaymentReversalKind,
   type PaymentReversalStatus,
+  type AuthorizationContext,
 } from '@curiofold/domain'
-import { and, eq, notInArray } from 'drizzle-orm'
+import { and, desc, eq, isNull, notInArray } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 
 import * as schema from './schema'
 
 type CuriofoldDatabase = NodePgDatabase<typeof schema>
+type Transaction = Parameters<
+  Parameters<CuriofoldDatabase['transaction']>[0]
+>[0]
 
 export interface CreatePaymentReversalInput {
   readonly amountMinor: number
@@ -134,105 +139,279 @@ export async function createPaymentReversal(
   database: CuriofoldDatabase,
   input: CreatePaymentReversalInput,
 ): Promise<CreatePaymentReversalResult> {
+  return database.transaction((transaction) =>
+    createReversal(transaction, input),
+  )
+}
+
+async function createReversal(
+  transaction: Transaction,
+  input: CreatePaymentReversalInput,
+): Promise<CreatePaymentReversalResult> {
   const normalized = validateInput(input)
   const createdAt = input.createdAt ?? new Date()
 
+  const [order] = await transaction
+    .select()
+    .from(schema.paymentOrders)
+    .where(eq(schema.paymentOrders.id, normalized.orderId))
+    .limit(1)
+    .for('update')
+  if (order?.status !== 'fulfilled') {
+    throw new PaymentReversalUnavailableError('order_not_fulfilled')
+  }
+
+  const [existing] = await transaction
+    .select()
+    .from(schema.paymentReversals)
+    .where(eq(schema.paymentReversals.operationKey, normalized.operationKey))
+    .limit(1)
+  if (existing) {
+    if (
+      existing.orderId !== normalized.orderId ||
+      existing.kind !== normalized.kind ||
+      existing.amountMinor !== normalized.amountMinor ||
+      existing.creditsRequested !== normalized.creditsRequested ||
+      existing.reasonCode !== normalized.reasonCode ||
+      existing.createdByUserId !== (normalized.createdByUserId ?? null)
+    ) {
+      throw new PaymentReversalConflictError()
+    }
+    return { created: false, reversal: serialize(existing) }
+  }
+
+  const activeReversals = await transaction
+    .select({
+      amountMinor: schema.paymentReversals.amountMinor,
+      creditsRequested: schema.paymentReversals.creditsRequested,
+    })
+    .from(schema.paymentReversals)
+    .where(
+      and(
+        eq(schema.paymentReversals.orderId, order.id),
+        notInArray(schema.paymentReversals.status, ['canceled', 'rejected']),
+      ),
+    )
+  const amountAlreadyRequested = activeReversals.reduce(
+    (total, reversal) => total + reversal.amountMinor,
+    0,
+  )
+  const creditsAlreadyRequested = activeReversals.reduce(
+    (total, reversal) => total + reversal.creditsRequested,
+    0,
+  )
+  if (
+    amountAlreadyRequested + normalized.amountMinor > order.amountMinor ||
+    creditsAlreadyRequested + normalized.creditsRequested >
+      order.creditsPurchased
+  ) {
+    throw new PaymentReversalUnavailableError('amount_exceeded')
+  }
+
+  const [created] = await transaction
+    .insert(schema.paymentReversals)
+    .values({
+      amountMinor: normalized.amountMinor,
+      createdAt,
+      createdByUserId: normalized.createdByUserId ?? null,
+      creditsRequested: normalized.creditsRequested,
+      currency: order.currency,
+      kind: normalized.kind,
+      operationKey: normalized.operationKey,
+      orderId: order.id,
+      reasonCode: normalized.reasonCode,
+      updatedAt: createdAt,
+    })
+    .returning()
+  if (!created) throw new PaymentReversalConflictError()
+
+  await transaction.insert(schema.auditEvents).values({
+    action: 'payment.reversal_requested',
+    actorUserId: normalized.createdByUserId ?? null,
+    metadata: {
+      amountMinor: normalized.amountMinor,
+      creditsRequested: normalized.creditsRequested,
+      currency: order.currency,
+      kind: normalized.kind,
+      reasonCode: normalized.reasonCode,
+    },
+    targetId: created.id,
+    targetType: 'payment_reversal',
+  })
+  await transaction.insert(schema.outboxEvents).values({
+    aggregateId: created.id,
+    aggregateType: 'payment_reversal',
+    eventType: 'payment.reversal_requested',
+    payload: { orderId: order.id, reversalId: created.id },
+  })
+
+  return { created: true, reversal: serialize(created) }
+}
+
+export class FinanceAuthorizationError extends Error {
+  override readonly name = 'FinanceAuthorizationError'
+}
+
+/** Recheck mutable authorization while holding the same lock as deletion. */
+async function requireFinance(
+  transaction: Transaction,
+  authorization: AuthorizationContext,
+) {
+  const [account] = await transaction
+    .select({
+      accountState: schema.users.accountState,
+      emailVerifiedAt: schema.users.emailVerifiedAt,
+    })
+    .from(schema.users)
+    .where(eq(schema.users.id, authorization.userId))
+    .for('update')
+  if (!account) throw new FinanceAuthorizationError()
+  const assignments = await transaction
+    .select({ role: schema.staffRoleAssignments.role })
+    .from(schema.staffRoleAssignments)
+    .where(
+      and(
+        eq(schema.staffRoleAssignments.userId, authorization.userId),
+        isNull(schema.staffRoleAssignments.revokedAt),
+      ),
+    )
+    .for('share')
+  if (
+    !can(
+      {
+        ...authorization,
+        accountState: account.accountState,
+        emailVerified: account.emailVerifiedAt !== null,
+        staffRoles: new Set(assignments.map(({ role }) => role)),
+      },
+      'payment.refund',
+    )
+  )
+    throw new FinanceAuthorizationError()
+}
+
+export interface RefundReviewInput {
+  readonly authorization: AuthorizationContext
+  readonly operationKey: string
+  readonly orderId: string
+  readonly reasonCode: string
+  readonly correlationId: string
+}
+
+/** Records a policy-gated case only. Never calls a provider or changes value. */
+export async function requestRefundReview(
+  database: CuriofoldDatabase,
+  input: RefundReviewInput,
+): Promise<CreatePaymentReversalResult> {
+  const operationKey = normalizeCreditOperationKey(input.operationKey)
+  if (operationKey.length > 128)
+    throw new TypeError('Operation key is too long.')
   return database.transaction(async (transaction) => {
+    await requireFinance(transaction, input.authorization)
     const [order] = await transaction
       .select()
       .from(schema.paymentOrders)
-      .where(eq(schema.paymentOrders.id, normalized.orderId))
-      .limit(1)
+      .where(eq(schema.paymentOrders.id, input.orderId))
       .for('update')
     if (order?.status !== 'fulfilled') {
       throw new PaymentReversalUnavailableError('order_not_fulfilled')
     }
-
-    const [existing] = await transaction
-      .select()
-      .from(schema.paymentReversals)
-      .where(eq(schema.paymentReversals.operationKey, normalized.operationKey))
-      .limit(1)
-    if (existing) {
-      if (
-        existing.orderId !== normalized.orderId ||
-        existing.kind !== normalized.kind ||
-        existing.amountMinor !== normalized.amountMinor ||
-        existing.creditsRequested !== normalized.creditsRequested ||
-        existing.reasonCode !== normalized.reasonCode ||
-        existing.createdByUserId !== (normalized.createdByUserId ?? null)
-      ) {
-        throw new PaymentReversalConflictError()
-      }
-      return { created: false, reversal: serialize(existing) }
-    }
-
-    const activeReversals = await transaction
-      .select({
-        amountMinor: schema.paymentReversals.amountMinor,
-        creditsRequested: schema.paymentReversals.creditsRequested,
-      })
-      .from(schema.paymentReversals)
-      .where(
-        and(
-          eq(schema.paymentReversals.orderId, order.id),
-          notInArray(schema.paymentReversals.status, ['canceled', 'rejected']),
-        ),
-      )
-    const amountAlreadyRequested = activeReversals.reduce(
-      (total, reversal) => total + reversal.amountMinor,
-      0,
+    const result = await createReversal(transaction, {
+      amountMinor: order.amountMinor,
+      creditsRequested: order.creditsPurchased,
+      createdByUserId: input.authorization.userId,
+      kind: 'refund',
+      operationKey: `finance-review:${input.authorization.userId}:${operationKey}`,
+      orderId: order.id,
+      reasonCode: input.reasonCode,
+    })
+    if (!result.created) return result
+    assertPaymentReversalTransition(
+      result.reversal.status,
+      'manual_review',
+      'guarded_operator',
     )
-    const creditsAlreadyRequested = activeReversals.reduce(
-      (total, reversal) => total + reversal.creditsRequested,
-      0,
-    )
-    if (
-      amountAlreadyRequested + normalized.amountMinor > order.amountMinor ||
-      creditsAlreadyRequested + normalized.creditsRequested >
-        order.creditsPurchased
-    ) {
-      throw new PaymentReversalUnavailableError('amount_exceeded')
-    }
-
-    const [created] = await transaction
-      .insert(schema.paymentReversals)
-      .values({
-        amountMinor: normalized.amountMinor,
-        createdAt,
-        createdByUserId: normalized.createdByUserId ?? null,
-        creditsRequested: normalized.creditsRequested,
-        currency: order.currency,
-        kind: normalized.kind,
-        operationKey: normalized.operationKey,
-        orderId: order.id,
-        reasonCode: normalized.reasonCode,
-        updatedAt: createdAt,
-      })
+    const [updated] = await transaction
+      .update(schema.paymentReversals)
+      .set({ status: 'manual_review', updatedAt: new Date() })
+      .where(eq(schema.paymentReversals.id, result.reversal.id))
       .returning()
-    if (!created) throw new PaymentReversalConflictError()
-
+    if (!updated) throw new PaymentReversalConflictError()
     await transaction.insert(schema.auditEvents).values({
-      action: 'payment.reversal_requested',
-      actorUserId: normalized.createdByUserId ?? null,
-      metadata: {
-        amountMinor: normalized.amountMinor,
-        creditsRequested: normalized.creditsRequested,
-        currency: order.currency,
-        kind: normalized.kind,
-        reasonCode: normalized.reasonCode,
-      },
-      targetId: created.id,
+      action: 'payment.reversal_review_required',
+      actorUserId: input.authorization.userId,
+      correlationId: input.correlationId,
+      reason: input.reasonCode,
+      metadata: { policyRequired: true, orderId: order.id },
+      targetId: updated.id,
       targetType: 'payment_reversal',
     })
     await transaction.insert(schema.outboxEvents).values({
-      aggregateId: created.id,
+      aggregateId: updated.id,
       aggregateType: 'payment_reversal',
-      eventType: 'payment.reversal_requested',
-      payload: { orderId: order.id, reversalId: created.id },
+      eventType: 'payment.reversal_review_required',
+      payload: {
+        orderId: order.id,
+        policyRequired: true,
+        reversalId: updated.id,
+      },
     })
+    return { created: true, reversal: serialize(updated) }
+  })
+}
 
-    return { created: true, reversal: serialize(created) }
+export type RefundReview = Pick<
+  PaymentReversalRecord,
+  | 'id'
+  | 'orderId'
+  | 'amountMinor'
+  | 'currency'
+  | 'creditsRequested'
+  | 'reasonCode'
+  | 'status'
+  | 'createdAt'
+>
+
+export function refundReviewSummary(
+  reversal: PaymentReversalRecord,
+): RefundReview {
+  const {
+    id,
+    orderId,
+    amountMinor,
+    currency,
+    creditsRequested,
+    reasonCode,
+    status,
+    createdAt,
+  } = reversal
+  return {
+    id,
+    orderId,
+    amountMinor,
+    currency,
+    creditsRequested,
+    reasonCode,
+    status,
+    createdAt,
+  }
+}
+
+export async function listRefundReviews(
+  database: CuriofoldDatabase,
+  authorization: AuthorizationContext,
+): Promise<readonly RefundReview[]> {
+  return database.transaction(async (transaction) => {
+    await requireFinance(transaction, authorization)
+    const reversals = await transaction
+      .select()
+      .from(schema.paymentReversals)
+      .orderBy(
+        desc(schema.paymentReversals.createdAt),
+        desc(schema.paymentReversals.id),
+      )
+      .limit(50)
+    return reversals.map((reversal) => refundReviewSummary(serialize(reversal)))
   })
 }
 

@@ -6,6 +6,26 @@
 
 ## Recent delivery evidence
 
+- **2026-10-22 / CRFD-37:** guarded finance review now connects the existing
+  reversal records to `/operations/finance` and an explicit internal review API.
+  Finance/admin, verified email and recent two-factor verification are required;
+  account and role state are rechecked inside the locked transaction. Full-order
+  prices/credits come from the order snapshot, not the browser. Actor-scoped
+  idempotency and order reservations prevent duplicate cases; reason-coded audit
+  and outbox evidence commit atomically. All new requests enter `manual_review`
+  with policy approval required. There is no provider refund, wallet adjustment,
+  entitlement change or irreversible cleanup. OD-007/010 remain launch gates,
+  not blockers to this explicitly gated engineering scope.
+  Local `pnpm validate` passed: 399 unit tests, build, boundaries and client-secret
+  scan (33 bundles). The isolated PostgreSQL 18 harness passed; three-browser
+  regression passed 34 tests with two intentional touch skips. Tests cover stale
+  roles/account restrictions, concurrent retries, unchanged financial/ownership
+  records, CSRF/tampering, keyboard/axe and hydration. Safari's differing locale
+  timestamp punctuation was corrected using deterministic UTC output. Browser
+  operator fixtures intercept requests: this is not live staff-MFA or refund
+  execution acceptance. Hosted CI/merge and canonical smoke are pending.
+  See `FINANCE_OPERATIONS.md` for the bounded workflow and policy restrictions.
+
 - **2026-10-21 / CRFD-84:** standing V1 execution continuity and ongoing Linear
   ownership/evidence housekeeping are explicit in `AGENTS.md` (5502a6d, ba0b33d).
   Nonce script CSP uses Clerk's supported strict builder when configured and a
@@ -211,7 +231,7 @@ Payment reconciliation and consistent read-only wallet auditing now run beside t
 
 - V1 priorities now follow the convergence sequence in `EXECUTION_PLAN.md`: certify CRFD-50 → reviewed-content release workflow and launch catalogue → minimum account/privacy/support operations → staging security/accessibility/recovery gate → owner-approved production launch. AI editorial automation and nonessential polish are post-V1. Current fictional fixtures must not be presented as real launch content.
 
-- CRFD-52 has merged owner-scoped payment history and auditable reversal review, but its final legal/provider behavior waits for OD-007. CRFD-37 remains held behind OD-010.
+- CRFD-52 has merged owner-scoped payment history and auditable reversal review, but its final legal/provider behavior waits for OD-007. CRFD-37's operator intake is implemented with policy-dependent execution disabled; final spent-credit behavior remains held behind OD-010.
 
 ## Deferred acceptance (not active code review)
 
@@ -220,7 +240,8 @@ Payment reconciliation and consistent read-only wallet auditing now run beside t
   this original acceptance dependency; no visual sign-off was fabricated.
 - CRFD-52 — history/reversal review implementation is merged (PR #43); remaining
   provider refund/entitlement-policy acceptance awaits OD-007. Backlog with Product
-  Decision, not active review. CRFD-37 similarly depends on OD-010.
+  Decision, not active review. CRFD-37's engineering scope explicitly gates all
+  financial execution; it does not decide OD-010 or certify provider refunds.
 - Progress/resume/completion and later-session acceptance already passed; do not
   reopen them solely because historical pending-session notes remain below.
 
@@ -305,7 +326,7 @@ Payment reconciliation and consistent read-only wallet auditing now run beside t
 
 ## Next
 
-1. CRFD-84/85 are Done, merged and canonical-Preview verified. Do not repeat their investigation. The next existing implementation issue is CRFD-37: reuse the domain staff/MFA policy in `packages/domain/src/identity.ts` and immutable reversal operations in `packages/db/src/payment-reversals.ts` to provide guarded operator boundaries. Keep spent-credit decisions and actual policy-sensitive refunds disabled pending OD-010/007; do not invent financial behavior. Inspect those specific implementations and CRFD-37 acceptance before coding, not the entire repository again.
+1. Finish CRFD-37's hosted CI/review, merge into `development`, and verify the canonical Preview's fail-closed finance boundary. Its operator implementation and local validation are complete; do not rebuild it. Then continue the existing CRFD-86 release-assurance gate. Keep actual refunds and spent-credit decisions disabled pending OD-010/007.
 2. Finish the remaining bounded release assurance: manual assistive-technology checks, representative performance/security and protected production publishing/release controls. Independent encrypted restore and older-backup restriction remediation already passed; durable independent backup activation is a separate pre-customer gate.
 3. Prepare a small genuinely reviewed English launch catalogue through the merged publication workflow. Fictional fixtures must not be purchasable in production. AI editorial automation is post-V1.
 4. Obtain accountant/legal approval for invoicing/VAT/jurisdictions, digital-content consent/refunds, category-specific retention and unused-value/dispute handling. Preserve financial evidence and paid value meanwhile; finalize approved policy/support/business information without fabricated placeholders.

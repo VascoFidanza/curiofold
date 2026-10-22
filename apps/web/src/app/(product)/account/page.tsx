@@ -1,5 +1,6 @@
 import { UserButton } from '@clerk/nextjs'
 import Link from 'next/link'
+import { can } from '@curiofold/domain'
 
 import { ErrorState, PageFrame } from '@curiofold/ui'
 
@@ -21,6 +22,7 @@ export const dynamic = 'force-dynamic'
 type AccountResolution =
   | Readonly<{
       emailVerified: boolean
+      canReviewPayments: boolean
       status: 'authenticated'
       userId: string
     }>
@@ -33,6 +35,7 @@ async function resolveAccount(): Promise<AccountResolution> {
     const context = await requireAuthorizationContext()
     return {
       emailVerified: context.emailVerified,
+      canReviewPayments: can(context, 'payment.refund'),
       status: 'authenticated',
       userId: context.userId,
     }
@@ -74,6 +77,9 @@ export default async function AccountPage() {
         <section className={styles.account}>
           <p className={styles.eyebrow}>Account</p>
           <h1>Your Curiofold account</h1>
+          {account.canReviewPayments ? (
+            <Link href="/operations/finance">Finance review</Link>
+          ) : null}
           <DeleteAccount />
           <p>
             Your identity session is active. Curiofold keeps authorization and
