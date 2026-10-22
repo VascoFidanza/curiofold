@@ -1,10 +1,21 @@
 # Curiofold Engineering Status
 
 **Current phase:** V1 convergence — complete journeys, real content and release readiness
-**Current milestone:** V1 operational/release readiness — account lifecycle and recovery
+**Current milestone:** 5.2 non-functional release gate (CRFD-86); account lifecycle and nonproduction recovery are validated
 **Health:** At Risk — core Sandbox journeys, payment failure/replay, account deletion, nonproduction restore/rollback and scheduled reconciliation with genuine alert delivery now have live evidence. Production backup/configuration, release assurance, real content and legal/fiscal approvals remain. Engineering-complete V1 is not yet certified; public launch is not authorized.
 
 ## Recent delivery evidence
+
+- **2026-10-22 / CRFD-86 compute placement:** real readiness responses exposed
+  default US Node execution (`cdg1::iad1`) despite the approved Frankfurt compute/
+  database topology. `apps/web/vercel.json` now pins exactly one `fra1` region,
+  supported by the existing Hobby plan without a new resource or paid feature.
+  A deployment contract test passed. Feature deployment
+  dpl_FMGauzjrwR4CJwMh7vwEjjAiGvQA (3e9d6fe) is READY with metadata `regions: [fra1]`;
+  three real readiness requests returned 200 / `cdg1::fra1`. See `ENVIRONMENTS.md`
+  for bounded diagnostic timings; no p75/Reader/INP sign-off is inferred. Final
+  hosted CI, merge and canonical placement evidence are linked through CRFD-86.
+  No production service, database, credential, payment or plan was changed.
 
 - **2026-10-22 / CRFD-86 security slice:** release review found unbounded
   authenticated new-checkout creation. Both purchase paths now share ten new
@@ -19,8 +30,11 @@
   build/boundaries and 33-bundle secret scan). High-threshold audit passed with
   the previously documented ESLint-only High exception and Drizzle-only Moderate
   advisory. Hosted validation and integration evidence are maintained in
-  [PR #76](https://github.com/VascoFidanza/curiofold/pull/76) and CRFD-86; the
-  engineering changes are 7107d32 and 5794a66. CRFD-86 is not Done:
+  [PR #76](https://github.com/VascoFidanza/curiofold/pull/76) and CRFD-86: merged as
+  8f2e82e after CI 39801269847 / CodeQL 39801269801 passed. The canonical Preview
+  dpl_DuzGHjEPnAK8Bd7XAzSmveHaWAhb is READY; readiness 200 and anonymous wallet/
+  finance APIs 401/no-store passed. The engineering changes are 7107d32 and
+  5794a66. CRFD-86 is not Done:
   manual assistive-technology, representative authenticated Reader performance
   and the finite production-activation gates below remain unverified.
 
