@@ -33,18 +33,28 @@ only in provider-scoped environment storage and local ignored files.
 ## Vercel nonproduction resource
 
 - Plan: Hobby, independently confirmed by the Product Owner on 2026-10-20.
-  Remaining Vercel usage and GitHub Actions included-usage evidence is pending;
-  existing free functionality is authorized within verified allowances. No paid
+  Vercel usage and GitHub Actions included-usage evidence were verified on
+  2026-10-21; routine bounded CI/Preview work is authorized within those allowances. No paid
   upgrade, new service or payment method is authorized.
 - Team: `vascofidanzas-projects` (`team_Ri5uN8wH4DtXbvPs0XBXN18K`)
 - Project: `curiofold` (`prj_qOjqibHnZATdR84vrDtAlEhOb8Qc`)
 - Git repository: `VascoFidanza/curiofold`
 - Framework: Next.js
 - Root directory: `apps/web`
+- Function placement: `apps/web/vercel.json` selects a single `fra1` region beside
+  the existing Frankfurt Neon database. This uses the existing Hobby single-region
+  capability, with no failover/multi-region feature, new resource or plan upgrade.
+  Before this correction, real `/health/ready` responses showed `cdg1::iad1`
+  (European ingress, US Node execution). Three baseline readiness TTFBs were
+  2.976 / 0.473 / 0.634 seconds; the first includes cold dependencies. These are
+  diagnostic samples, not p75 customer-performance acceptance. Verify actual
+  deployed function placement through deployment metadata and `x-vercel-id`;
+  configuration alone is not live evidence. Vendor-wide data residency is not
+  established merely by pinning application compute.
 - Node.js: 24.x
 - Install command: `pnpm install --frozen-lockfile`
 - Build command: `pnpm build`
-- Verified preview: `https://curiofold-pc8q6ux7t-vascofidanzas-projects.vercel.app`
+- Canonical testing Preview: `https://curiofold-git-development-vascofidanzas-projects.vercel.app`
 - Deployment protection is enabled; authenticated smoke testing returned the expected Curiofold shell.
 - No production deployment was created or promoted.
 
