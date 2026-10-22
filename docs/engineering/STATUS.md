@@ -6,6 +6,22 @@
 
 ## Recent delivery evidence
 
+- **2026-10-22 / CRFD-86 security slice:** release review found unbounded
+  authenticated new-checkout creation. Both purchase paths now share ten new
+  orders per account per rolling five minutes, enforced under the existing
+  account lock using the existing order timestamp index. Matching retries remain
+  reusable at the limit; conflicting retries fail. HTTP 429/Retry-After is returned
+  before Stripe, with clear wait feedback and retained client keys. No pricing,
+  ledger, fulfilment or schema change was introduced. Concurrent mixed-path,
+  account-isolation, retry and historical-window PostgreSQL scenarios passed.
+  Vitest 5.0.3 patches two newly reported development-only mocker advisories;
+  no audit exclusion was added. Local `pnpm validate` passed (403 unit tests,
+  build/boundaries and 33-bundle secret scan). High-threshold audit passed with
+  the previously documented ESLint-only High exception and Drizzle-only Moderate
+  advisory. Hosted validation/merge remain pending. CRFD-86 is not Done:
+  manual assistive-technology, representative authenticated Reader performance
+  and the finite production-activation gates below remain unverified.
+
 - **2026-10-22 / CRFD-37:** guarded finance review now connects the existing
   reversal records to `/operations/finance` and an explicit internal review API.
   Finance/admin, verified email and recent two-factor verification are required;
@@ -326,7 +342,7 @@ Payment reconciliation and consistent read-only wallet auditing now run beside t
 
 ## Next
 
-1. Finish CRFD-37's hosted CI/review, merge into `development`, and verify the canonical Preview's fail-closed finance boundary. Its operator implementation and local validation are complete; do not rebuild it. Then continue the existing CRFD-86 release-assurance gate. Keep actual refunds and spent-credit decisions disabled pending OD-010/007.
+1. Finish PR #75 / CRFD-37 hosted CI, merge and canonical finance denial smoke. All gates except the browser job are green; that job is still installing its browser runtimes. Do not merge before it passes. The follow-on `codex/crfd-86-release-assurance` branch contains the locally validated checkout-limit and Vitest security slice; integrate it separately after PR #75. Keep actual refunds and spent-credit decisions disabled pending OD-010/007.
 2. Finish the remaining bounded release assurance: manual assistive-technology checks, representative performance/security and protected production publishing/release controls. Independent encrypted restore and older-backup restriction remediation already passed; durable independent backup activation is a separate pre-customer gate.
 3. Prepare a small genuinely reviewed English launch catalogue through the merged publication workflow. Fictional fixtures must not be purchasable in production. AI editorial automation is post-V1.
 4. Obtain accountant/legal approval for invoicing/VAT/jurisdictions, digital-content consent/refunds, category-specific retention and unused-value/dispute handling. Preserve financial evidence and paid value meanwhile; finalize approved policy/support/business information without fabricated placeholders.
