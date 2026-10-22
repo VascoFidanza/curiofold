@@ -9,6 +9,7 @@ import {
   attachPaymentCheckoutSession,
   createPaymentOrder,
   PaymentOrderConflictError,
+  PaymentOrderRateLimitError,
   type AttachPaymentCheckoutInput,
   type CreatePaymentOrderInput,
   type CreatePaymentOrderResult,
@@ -310,6 +311,15 @@ export async function createCreditCheckoutResponse(
       },
     )
   } catch (error) {
+    if (error instanceof PaymentOrderRateLimitError) {
+      return problem(
+        429,
+        'checkout_rate_limited',
+        'Too many checkout attempts. Please wait before trying again.',
+        requestId,
+        { 'Retry-After': String(error.retryAfterSeconds) },
+      )
+    }
     if (error instanceof PaymentOrderConflictError) {
       return problem(
         409,

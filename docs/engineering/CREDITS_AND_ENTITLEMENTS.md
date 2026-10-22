@@ -8,6 +8,19 @@ The wallet is provider-independent. Stripe, another payment processor, promotion
 
 ## Accounting invariants
 
+### Checkout abuse boundary
+
+Direct Story purchases and credit top-ups share a limit of ten new payment orders
+per account in a rolling five-minute window. The existing account lock and indexed
+order timestamps enforce the limit across processes and concurrent requests; no
+new cache, service or migration is required. Existing matching operation keys
+remain reusable at the limit, and changed payloads still conflict. Rejected new
+orders create no audit/order or Stripe session. APIs return HTTP 429 plus
+`Retry-After`, and both purchase controls explain the wait without losing the key.
+This is a creation limit, not a new pricing, credit-expiry or refund policy.
+
+### Ledger and ownership
+
 1. `wallet_entries` is the source of accounting truth and is append-only.
 2. `wallet_accounts.balance_cached` equals the sum of that wallet's signed ledger deltas.
 3. A credit-grant operation creates exactly one credit lot and one positive ledger entry.

@@ -187,7 +187,9 @@ export function CreditsPurchase({
         setError(
           response.status === 403
             ? 'Verify your email in Account before adding credits.'
-            : 'Checkout could not start. Please try again.',
+            : response.status === 429
+              ? 'Too many checkout attempts. Please wait a few minutes before trying again.'
+              : 'Checkout could not start. Please try again.',
         )
         return
       }

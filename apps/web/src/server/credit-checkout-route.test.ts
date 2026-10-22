@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { AuthorizationContext, PaymentProvider } from '@curiofold/domain'
 import {
   PaymentOrderConflictError,
+  PaymentOrderRateLimitError,
   type PaymentOrderRecord,
 } from '@curiofold/db'
 
@@ -88,6 +89,27 @@ function dependencies(overrides: Record<string, unknown> = {}) {
 }
 
 describe('credit Checkout route', () => {
+  it('returns a retryable checkout limit without calling Stripe', async () => {
+    const createCheckoutSession = vi.fn()
+    const retrieveOrder = vi.fn()
+    const paymentProvider = provider({ createCheckoutSession, retrieveOrder })
+    const response = await createCreditCheckoutResponse(
+      request(),
+      'request-limited',
+      dependencies({
+        createOrderSource: () =>
+          Promise.reject(new PaymentOrderRateLimitError(120)),
+        provider: paymentProvider,
+      }),
+    )
+    expect(response.status).toBe(429)
+    expect(response.headers.get('retry-after')).toBe('120')
+    await expect(response.json()).resolves.toMatchObject({
+      code: 'checkout_rate_limited',
+    })
+    expect(createCheckoutSession).not.toHaveBeenCalled()
+    expect(retrieveOrder).not.toHaveBeenCalled()
+  })
   it('derives the canonical quote from a whole-euro amount', async () => {
     const createOrderSource = vi.fn().mockResolvedValue({
       created: true,

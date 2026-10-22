@@ -12,6 +12,7 @@ import {
   findOwnedStoryState,
   isPublishedStory,
   PaymentOrderConflictError,
+  PaymentOrderRateLimitError,
   type AttachPaymentCheckoutInput,
   type CreatePaymentOrderResult,
   type PaymentOrderRecord,
@@ -75,12 +76,14 @@ function problem(
   code: string,
   title: string,
   requestId: string,
+  extraHeaders: Record<string, string> = {},
 ): Response {
   return Response.json(
     { type: 'about:blank', title, status, code, requestId },
     {
       status,
       headers: {
+        ...extraHeaders,
         'Cache-Control': 'no-store',
         'Content-Type': 'application/problem+json',
       },
@@ -269,6 +272,15 @@ export async function createStoryPurchaseResponse(
       },
     )
   } catch (error) {
+    if (error instanceof PaymentOrderRateLimitError) {
+      return problem(
+        429,
+        'checkout_rate_limited',
+        'Too many checkout attempts. Please wait before trying again.',
+        requestId,
+        { 'Retry-After': String(error.retryAfterSeconds) },
+      )
+    }
     if (error instanceof PaymentOrderConflictError)
       return problem(
         409,

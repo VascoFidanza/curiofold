@@ -4,7 +4,7 @@ import {
   type CreditPackSnapshot,
   type PaymentOrderStatus,
 } from '@curiofold/domain'
-import { and, eq } from 'drizzle-orm'
+import { and, asc, eq, gt } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 
 import * as schema from './schema'
@@ -47,6 +47,14 @@ export class PaymentOrderConflictError extends Error {
     super(
       'The payment operation key already belongs to a different order command.',
     )
+  }
+}
+
+export class PaymentOrderRateLimitError extends Error {
+  override readonly name = 'PaymentOrderRateLimitError'
+
+  constructor(readonly retryAfterSeconds: number) {
+    super('Too many new checkout orders. Retry after the current window.')
   }
 }
 
@@ -163,10 +171,52 @@ export async function createPaymentOrder(
   ) {
     throw new TypeError('Only direct Story orders may reference a Story.')
   }
-  const createdAt = input.createdAt ?? new Date()
-
   return database.transaction(async (transaction) => {
     await lockActiveAccount(transaction, input.userId)
+    // Existing keys remain reusable even when the new-order budget is exhausted.
+    const [existing] = await transaction
+      .select()
+      .from(schema.paymentOrders)
+      .where(
+        and(
+          eq(schema.paymentOrders.userId, input.userId),
+          eq(schema.paymentOrders.operationKey, normalized.operationKey),
+        ),
+      )
+      .limit(1)
+    if (existing) {
+      if (!matchesCommand(existing, normalized, input.storyId))
+        throw new PaymentOrderConflictError()
+      return { created: false, order: serializeOrder(existing) }
+    }
+    // The account lock serializes both purchase paths; use the existing index.
+    const now = Date.now()
+    const windowMs = 5 * 60_000
+    const recent = await transaction
+      .select({ createdAt: schema.paymentOrders.createdAt })
+      .from(schema.paymentOrders)
+      .where(
+        and(
+          eq(schema.paymentOrders.userId, input.userId),
+          gt(schema.paymentOrders.createdAt, new Date(now - windowMs)),
+        ),
+      )
+      .orderBy(asc(schema.paymentOrders.createdAt))
+      .limit(10)
+    if (recent.length === 10) {
+      const oldest = recent[0]
+      if (!oldest) throw new Error('Checkout limit could not be evaluated')
+      throw new PaymentOrderRateLimitError(
+        Math.min(
+          300,
+          Math.max(
+            1,
+            Math.ceil((oldest.createdAt.getTime() + windowMs - now) / 1000),
+          ),
+        ),
+      )
+    }
+    const createdAt = input.createdAt ?? new Date()
     const [created] = await transaction
       .insert(schema.paymentOrders)
       .values({
@@ -216,22 +266,7 @@ export async function createPaymentOrder(
       return { created: true, order: serializeOrder(created) }
     }
 
-    const [existing] = await transaction
-      .select()
-      .from(schema.paymentOrders)
-      .where(
-        and(
-          eq(schema.paymentOrders.userId, input.userId),
-          eq(schema.paymentOrders.operationKey, normalized.operationKey),
-        ),
-      )
-      .limit(1)
-
-    if (!existing || !matchesCommand(existing, normalized, input.storyId)) {
-      throw new PaymentOrderConflictError()
-    }
-
-    return { created: false, order: serializeOrder(existing) }
+    throw new PaymentOrderConflictError()
   })
 }
 
