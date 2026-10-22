@@ -1,0 +1,37 @@
+.fields {
+  display: grid;
+  min-width: 0;
+  gap: var(--cf-space-3);
+  margin: 0;
+  padding: var(--cf-space-4);
+  border: 1px solid var(--cf-color-border-subtle);
+  border-radius: var(--cf-radius-md);
+}
+
+.fields input,
+.fields select,
+.fields button {
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: var(--cf-space-3);
+  color: var(--cf-color-text-primary);
+  font: inherit;
+  background: var(--cf-color-bg-surface);
+  border: 1px solid var(--cf-color-text-secondary);
+  border-radius: var(--cf-radius-md);
+}
+
+.fields button {
+  color: var(--cf-color-action-on-primary);
+  font-weight: 600;
+  background: var(--cf-color-action-primary);
+}
+
+.fields button:disabled {
+  cursor: not-allowed;
+}
+
+.caseDetails {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

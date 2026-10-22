@@ -20,6 +20,7 @@ import {
   processAccountDeletions,
 } from './account-deletion'
 import { exportAccountData } from './account-export'
+import { assertFinanceReviewIntegration } from './finance-review.integration'
 import {
   recordPaymentOperationsRun,
   readPaymentOperationsHealth,
@@ -2615,6 +2616,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
           stdio: 'pipe',
         }),
       ).toThrow()
+      await assertFinanceReviewIntegration(database.client, client, story.id)
       const beforeDeletion = await exportAccountData(
         database.client,
         linkedAccount.userId,
