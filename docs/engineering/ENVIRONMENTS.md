@@ -46,10 +46,12 @@ only in provider-scoped environment storage and local ignored files.
   capability, with no failover/multi-region feature, new resource or plan upgrade.
   Before this correction, real `/health/ready` responses showed `cdg1::iad1`
   (European ingress, US Node execution). Three baseline readiness TTFBs were
-  2.976 / 0.473 / 0.634 seconds; the first includes cold dependencies. These are
-  diagnostic samples, not p75 customer-performance acceptance. Verify actual
-  deployed function placement through deployment metadata and `x-vercel-id`;
-  configuration alone is not live evidence. Vendor-wide data residency is not
+  2.976 / 0.473 / 0.634 seconds; the first may include cold dependencies. Feature
+  deployment `dpl_FMGauzjrwR4CJwMh7vwEjjAiGvQA` (3e9d6fe) verified region `fra1`:
+  three readiness requests returned 200 with `cdg1::fra1` and TTFBs
+  0.975 / 0.584 / 0.290 seconds. These small, non-equivalent warm/cold samples are
+  diagnostics, not p75 customer-performance or causal speedup acceptance. Canonical
+  post-merge verification is recorded in CRFD-86. Vendor-wide data residency is not
   established merely by pinning application compute.
 - Node.js: 24.x
 - Install command: `pnpm install --frozen-lockfile`
