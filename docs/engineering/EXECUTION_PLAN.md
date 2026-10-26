@@ -30,7 +30,7 @@ Account export is a synchronous, authenticated JSON download of explicitly selec
 
 Curiofold is a TypeScript modular monolith:
 
-- Next.js 16.3 App Router on Node.js 24 LTS;
+- Next.js 16 App Router on Node.js 24 LTS (16.4.1 security baseline; original selection 16.3);
 - Vercel Node compute in Frankfurt;
 - PostgreSQL 18 on Neon in Frankfurt;
 - Drizzle schema/migrations and `node-postgres` transactions;

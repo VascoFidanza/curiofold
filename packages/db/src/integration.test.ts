@@ -22,6 +22,7 @@ import {
 import { exportAccountData } from './account-export'
 import { assertFinanceReviewIntegration } from './finance-review.integration'
 import { assertCheckoutLimitIntegration } from './checkout-limit.integration'
+import { assertPublicationRoleIntegration } from './publication-role.integration'
 import {
   recordPaymentOperationsRun,
   readPaymentOperationsHealth,
@@ -2619,6 +2620,13 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
       ).toThrow()
       await assertFinanceReviewIntegration(database.client, client, story.id)
       await assertCheckoutLimitIntegration(database.client, client, story.id)
+      await assertPublicationRoleIntegration(
+        client,
+        connectionString,
+        original.document,
+        correction.document,
+        linkedAccount.userId,
+      )
       const beforeDeletion = await exportAccountData(
         database.client,
         linkedAccount.userId,

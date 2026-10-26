@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": { "allowJs": true },
+  "include": [
+    "production-content-approval.mjs",
+    "read-content-release.ts",
+    "release-content.ts",
+    "release-production-content.ts"
+  ]
+}

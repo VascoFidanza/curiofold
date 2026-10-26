@@ -5,6 +5,8 @@ packages:
 overrides:
   vite@8.3.0: 8.3.3
   source-map-js@1.2.1: 1.2.2
+  undici@8.10.2: 8.12.2
+  zod@4.6.5: 4.6.6
 
 auditConfig:
   # ESLint-only fast-glob dependency; accepts repository-controlled patterns.
