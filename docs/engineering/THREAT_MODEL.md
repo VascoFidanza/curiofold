@@ -117,8 +117,11 @@ The primary objectives are:
   exclusion and Drizzle-only esbuild Moderate advisory; neither is silently waived
   as a runtime finding. No new exclusion was added.
 - CRFD-84/85 nonce CSP and bounded Account performance evidence remain accepted.
-  Representative authenticated Reader interaction/performance, human
-  VoiceOver/Safari and NVDA/Firefox, production publishing/roles/configuration and
+  On 2026-10-26, real authenticated mobile Reader lab measurements also passed:
+  LCP 1060–1128ms, CLS 0.0001373 and six tested interactions per sample at no more
+  than 80ms, with financial/ownership state unchanged. This warm short-Story case
+  is not production p75, cold-start or approved launch-content/device evidence.
+  Human VoiceOver/Safari and NVDA/Firefox, production publishing/roles/configuration and
   durable off-provider backup activation remain open. Passing automated checks
   does not certify these unperformed requirements or authorize public launch.
 

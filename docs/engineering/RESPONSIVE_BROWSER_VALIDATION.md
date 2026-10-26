@@ -47,6 +47,62 @@ control focus because of the same host Tab preference documented above.
 This is local automated browser evidence, not a VoiceOver/NVDA or physical-device
 sign-off. The manual release matrix below still applies.
 
+### Live authenticated Reader performance — 2026-10-26 (CRFD-86)
+
+Tested the canonical `development` Preview at commit `6339860`, deployment
+`dpl_H4FUDFmwwbDttASKBDcLNowfSHZw`, using Playwright 1.63.0 / Chromium
+153.0.8010.12. These were real entitled `/en/stories/lantern-atlas/read`
+responses, not fixture routes or mocked APIs. The account and Library rendered
+successfully before/after the Reader samples.
+
+Profile: 390×844 CSS pixels, mobile/touch emulation, 4× CPU slowdown, 70ms
+network latency, 1.6Mbps download / 750Kbps upload, browser HTTP cache disabled.
+The application/database were already warm from authentication; none of these
+samples establishes a cold-start bound. A fresh, isolated browser context used
+an existing Clerk Development identity. The sign-in ticket expired after 60
+seconds and stayed in memory; only the new acceptance session was revoked.
+The owner's existing in-app browser session was preserved. Existing same-project
+Vercel authentication was attached only to the exact Preview origin. No protection
+setting, provider key or production resource changed.
+
+| Sample | Document TTFB | Story DOM observed | LCP    | CLS       | Maximum observed interaction duration |
+| ------ | ------------- | ------------------ | ------ | --------- | ------------------------------------- |
+| 1      | 32.4ms        | 1085.3ms           | 1128ms | 0.0001373 | 80ms                                  |
+| 2      | 113.0ms       | 1002.4ms           | 1060ms | 0.0001373 | 32ms                                  |
+| 3      | 98.5ms        | 999.4ms            | 1060ms | 0.0001373 | 16ms                                  |
+
+Measurement method and scope:
+
+- Install buffered `PerformanceObserver`s before document navigation for
+  `largest-contentful-paint`, `layout-shift`, `event` (16ms duration threshold)
+  and `longtask`. Record navigation `responseStart` separately: a streamed
+  document's first byte does not mean the entitled Story is ready.
+- Observe `#story-content`, then allow a fixed four-second no-input observation
+  window before interacting. Every final LCP element was paragraph `#block-route`
+  inside the Story, not the loading shell or toolbar.
+- Compute CLS using the maximum session window (one-second gap / five-second
+  limit), excluding shifts following recent input. Do not simply sum every shift.
+- Exercise six interactions per sample: open settings, Larger, Default, Wide,
+  Standard and close settings. Verify the Larger state actually updates. Event
+  Timing reported all six interaction IDs. The reported maximum is bounded lab
+  interaction evidence, **not** population INP or production p75.
+- No horizontal page overflow occurred. One long task per sample lasted
+  103/88/71ms; no task exceeded 200ms in the observed windows. This is not proof
+  of absence of jank in every future Story or device.
+- Read authenticated account exports into memory before/after and compare wallet,
+  ownership, purchases, ledger transactions and reversals: exactly unchanged.
+  Normal Reader progress saves remained enabled. Checkout/unlock/deletion writes
+  were blocked by the test driver; no purchase or account deletion was performed.
+- Temporary test sessions, including two interrupted setup attempts, were revoked.
+  No browser authentication state, tokens, exports, traces or paid text are committed.
+
+The warm, short synthetic catalogue passes these bounded lab checks without a
+runtime change. It does **not** certify a reviewed 5–10-minute launch Story,
+physical mobile hardware, cold dependencies, production RUM/p75, or human
+assistive-technology acceptance. Repeat against the approved launch catalogue
+before public release; do not reopen the already-passed short-Reader case without
+a regression. The previously documented cold Account sample remains disclosed.
+
 ## Manual release matrix
 
 Automation does not honestly reproduce all physical-device and assistive-technology behavior. Before the relevant milestone or production release closes, record evidence for:
@@ -61,6 +117,24 @@ Automation does not honestly reproduce all physical-device and assistive-technol
 - approved Figma comparison at 375, 768, 1024, and 1440px.
 
 The release owner records the device/OS/browser version, tested route, result, evidence link, defect link, and tester/date. A failed core journey, inaccessible action, clipped content, horizontal page scrolling, or material visual divergence blocks the gate.
+
+Minimum actual screen-reader journey (both VoiceOver/Safari and NVDA/Firefox):
+
+1. Use the canonical development Preview and sign in normally. Confirm the account
+   heading, credits and purchase status can be understood without visual context.
+2. Open Library and an already-owned Story. Navigate its headings/landmarks; activate
+   “Skip to Story” and confirm reading begins in the main Story, not the toolbar.
+3. Open “Reading settings” with the keyboard, change Larger/Default, and verify
+   names, selected state and focus remain understandable. Close the settings.
+4. Follow a source note and its return link. Confirm the citation, destination
+   and return position are announced and usable. Do not open synthetic external
+   reference domains.
+5. Open Help and support and navigate its account/purchase help links. Record any
+   silent, misleading, unreachable or focus-trapping control as a defect.
+
+No purchase, new credit grant, deletion or production change is needed. Restore
+test-only Reader preferences and leave the owner signed in. AX-tree inspection
+and automated axe results do not substitute for this tester evidence.
 
 ## Explicit boundary
 
