@@ -79,6 +79,31 @@ protection. See `PAYMENT_OPERATIONS.md` for secret names, live evidence and heal
 signals. The existing Vercel internal endpoint remains bearer-protected and is
 not used by this scheduler; no Vercel bypass/CRON_SECRET was created.
 
+## Migration execution
+
+Use `pnpm db:migrate` as the migration authority, separately from application
+startup. It retains Drizzle's existing `drizzle.__drizzle_migrations` journal and
+committed SQL; there is no new schema migration or history reset. A dedicated
+direct connection holds a database-scoped session advisory lock throughout
+history verification and Drizzle's transaction. A second runner fails with
+`migration_busy`; retry only after the first operator/run has finished. Disconnect
+releases the lock, including after an interrupted run.
+
+Connection establishment is bounded to 10 seconds, DDL lock waits to 5 seconds,
+and each statement to 60 seconds. Keep large backfills separate and resumable as
+required by the plan. Applied hashes/timestamps must match an exact prefix of the
+committed journal. `migration_history_mismatch` requires investigation: never
+delete history, rerun edited migrations, or auto-baseline an existing database.
+Inspect ambiguous completion before retrying; a successful retry is a no-op.
+
+The CLI uses the supplied direct `DATABASE_URL`, rejects known `-pooler` hosts
+and production app/deployment context, and reports sanitized error codes only.
+It cannot identify every possible proxy or infer a database's business purpose
+from its URL: credentials and target selection remain operator responsibilities.
+Raw Drizzle CLI invocation bypasses this serialization and is not the supported
+migration path. Production still requires a separately approved protected job,
+migration role, exact tested commit and backup checkpoint; none was activated.
+
 ## Secret-handling rules
 
 - Credentials belong only in ignored local configuration or provider secret

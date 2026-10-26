@@ -6,6 +6,21 @@
 
 ## Recent delivery evidence
 
+- **2026-10-26 / CRFD-86 migration release control:** replace the unlocked
+  Drizzle Kit execution path with a dedicated-client, advisory-locked Drizzle
+  runner using the same SQL/journal. Concurrent runs fail fast; bounded lock/
+  statement timeouts, exact applied-history verification, transactional failure
+  recovery and safe retry protect deployment integrity. The integration harness
+  now exercises tracked migrations rather than directly executing SQL files.
+  Real isolated PostgreSQL 18 tests passed for failure rollback, lock contention,
+  disconnect recovery, previous-release upgrade, no-op replay, stale/edited history
+  rejection and unchanged financial records. CLI production-context/pooled-target
+  guards are explicit. Local full validation passed (413 unit tests, 11 publication
+  tests, build and 33-bundle scan). An empty-database CLI apply/retry retained exactly
+  18 records. A read-only comparison against the existing nonproduction Neon branch
+  confirmed all 18 applied hashes/timestamps match the source journal; no remote
+  migration ran. Final hosted checks/delivery are linked from CRFD-86; this is not
+  production migration activation or closure of manual release acceptance.
 - **2026-10-26 / CRFD-86 measured Reader acceptance:** the canonical merged
   `6339860` Preview passed three real entitled mobile Reader samples with 4× CPU,
   70ms/1.6Mbps download/750Kbps upload and disabled browser cache. LCP was
@@ -422,7 +437,7 @@ Payment reconciliation and consistent read-only wallet auditing now run beside t
 
 ## Next
 
-1. CRFD-86: bounded real authenticated mobile Reader timing/interaction acceptance now passes (see the measurements above); no runtime fix was necessary. Await actual VoiceOver/Safari + NVDA/Firefox results and address any observed defect. The exact tester checklist is in the manual release matrix; report OS/browser/AT versions, route, result and tester/date. Approved launch content is needed for representative 5–10-minute content/device and release p75 acceptance. Do not fabricate those results or repeat accepted short-fixture checks without cause. The owner session is left open on Account; no new test purchases/deletion are authorized. Follow CRFD-87's linked delivery evidence and keep production publication credentials/activation unset.
+1. CRFD-86: finish the linked migration-runner delivery/CI, then continue independently actionable release controls. Bounded real authenticated mobile Reader timing/interaction acceptance now passes. Actual VoiceOver/Safari + NVDA/Firefox and physical-device evidence remain scheduled final acceptance, not a reason to stop independent engineering or claim certification. The tester checklist is in the manual release matrix. Approved launch content is needed for representative 5–10-minute content/device and release p75 acceptance. Do not repeat accepted short-fixture checks without cause. The owner session is left open on Account; no new test purchases/deletion are authorized. Keep production publication credentials/activation unset.
 2. Complete the remaining bounded security/release acceptance. Reuse the accepted nonce, checkout/finance, payment/replay, deletion and recovery evidence; do not reopen it without a defect. Human assistive-technology evidence cannot be substituted by axe. Independent encrypted restore and older-backup restriction remediation already passed; durable independent backup activation is a separate pre-customer gate. Protected publishing is prepared by CRFD-87, but owner-authorized production setup and real provider/approval execution remain separate launch actions.
 3. Prepare a small genuinely reviewed English launch catalogue through the merged publication workflow. Fictional fixtures must not be purchasable in production. AI editorial automation is post-V1.
 4. Obtain accountant/legal approval for invoicing/VAT/jurisdictions, digital-content consent/refunds, category-specific retention and unused-value/dispute handling. Preserve financial evidence and paid value meanwhile; finalize approved policy/support/business information without fabricated placeholders.

@@ -1,4 +1,4 @@
-import { readdir, readFile } from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
@@ -9,6 +9,8 @@ import { Client } from 'pg'
 import { describe, expect, it } from 'vitest'
 
 import { createDatabase } from './client'
+import { assertMigrationIntegration } from './migrations.integration'
+import { runDatabaseMigrations } from './migrations'
 import {
   verifyRecoveryPrivacy,
   captureRecoveryRestrictions,
@@ -162,24 +164,7 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
 
     try {
       await client.connect()
-      const migrationDirectory = fileURLToPath(
-        new URL('../drizzle', import.meta.url),
-      )
-      const migrationFiles = (await readdir(migrationDirectory))
-        .filter((file) => file.endsWith('.sql'))
-        .sort()
-
-      for (const migrationFile of migrationFiles) {
-        const migration = await readFile(
-          `${migrationDirectory}/${migrationFile}`,
-          'utf8',
-        )
-        for (const statement of migration.split('--> statement-breakpoint')) {
-          if (statement.trim()) {
-            await client.query(statement)
-          }
-        }
-      }
+      await assertMigrationIntegration(client, connectionString)
 
       const operationsNow = new Date('2026-10-15T10:00:00Z')
       expect(
@@ -2730,6 +2715,19 @@ describe.skipIf(!integrationEnabled)('PostgreSQL integration harness', () => {
         'reversals',
       ] as const)
         expect(recoveredAccount[key]).toEqual(afterDeletion[key])
+      await runDatabaseMigrations(connectionString)
+      const afterMigrationReplay = await exportAccountData(
+        database.client,
+        linkedAccount.userId,
+      )
+      for (const key of [
+        'wallet',
+        'ownership',
+        'purchases',
+        'walletTransactions',
+        'reversals',
+      ] as const)
+        expect(afterMigrationReplay[key]).toEqual(recoveredAccount[key])
     } finally {
       await client.end()
       await database.pool.end()

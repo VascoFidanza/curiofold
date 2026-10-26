@@ -58,6 +58,14 @@ pnpm test:integration # requires Docker and starts an isolated PostgreSQL contai
 `db:generate` and `db:migrate:check` must use a local, CI, preview or staging
 database URL. They must never be pointed at production from a developer shell.
 
+`pnpm db:migrate` uses the existing Drizzle journal through a dedicated direct
+connection, not the application pooler. Supply that environment's direct
+`DATABASE_URL` through your secret manager; standalone commands do not auto-load
+`.env.local`. The runner takes a database-scoped advisory lock, rejects changed/
+missing applied history, and safely skips already-applied migrations. A busy
+runner fails rather than racing another deployment. Production deployment/app
+contexts are refused; this command does not authorize production migrations.
+
 ## Documentation ownership
 
 - Product/business behavior: `docs/product/PROJECT_SPEC.md`
