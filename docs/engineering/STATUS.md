@@ -6,6 +6,18 @@
 
 ## Recent delivery evidence
 
+- **2026-10-26 / CRFD-86 measured Reader acceptance:** the canonical merged
+  `6339860` Preview passed three real entitled mobile Reader samples with 4× CPU,
+  70ms/1.6Mbps download/750Kbps upload and disabled browser cache. LCP was
+  1128/1060/1060ms, CLS 0.0001373 in each sample, and maximum observed settings
+  interaction duration 80/32/16ms (six interactions per sample). Final LCP was
+  inside the Story; no horizontal overflow. Account/Library worked and before/
+  after wallet, ownership, purchases, ledger and reversals were unchanged. Only
+  temporary acceptance sessions were revoked; the owner's session remains open.
+  See `RESPONSIVE_BROWSER_VALIDATION.md` for method and limits. No runtime defect
+  was found: this is warm short-catalogue lab evidence, not production p75/INP,
+  cold-start, physical-device or reviewed launch-content certification. Actual
+  VoiceOver/Safari and NVDA/Firefox evidence has been requested; CRFD-86 stays open.
 - **2026-10-26 / CRFD-86 dependency remediation:** a fresh audit found newly
   disclosed Critical/High Next.js, High Zod and development-only undici advisories.
   Pin Next.js/ESLint 16.4.1, Zod 4.6.6 (including the ESLint transitive copy), and
@@ -34,8 +46,10 @@
   remained 100%; original default preferences were restored. Browser application
   errors: none. No payment, deletion, entitlement or production change. Native
   browser read-only DOM inspection does not expose performance timing APIs; no
-  Reader LCP/CLS/INP evidence is fabricated. Human VoiceOver/NVDA and representative
-  measured Reader performance remain open under CRFD-86, not replaced by AX trees.
+  Reader LCP/CLS/INP evidence is fabricated. The separate timing-capable browser
+  test above now records bounded Reader measurements; human VoiceOver/NVDA and
+  final representative launch-content/device acceptance remain open, not replaced
+  by AX trees.
 - **2026-10-26 / CRFD-87:** prepared a dormant manual production-content workflow
   using the existing public GitHub repository/Free environment-review capability.
   The separate command verifies actual owner approval of the exact SHA/manifest,
@@ -408,7 +422,7 @@ Payment reconciliation and consistent read-only wallet auditing now run beside t
 
 ## Next
 
-1. Follow CRFD-87's linked delivery/check evidence; keep the production publication flag and credentials unset. Real signed-in mobile Reader/keyboard acceptance passed on 2026-10-26. CRFD-86 still needs measured authenticated mobile Reader performance with a timing-capable test browser and actual VoiceOver/Safari + NVDA/Firefox evidence. The connected in-app browser can inspect DOM but not timing instrumentation; do not claim unmeasured results. The owner session is left open on Account. No new test purchases/deletion are authorized.
+1. CRFD-86: bounded real authenticated mobile Reader timing/interaction acceptance now passes (see the measurements above); no runtime fix was necessary. Await actual VoiceOver/Safari + NVDA/Firefox results and address any observed defect. The exact tester checklist is in the manual release matrix; report OS/browser/AT versions, route, result and tester/date. Approved launch content is needed for representative 5–10-minute content/device and release p75 acceptance. Do not fabricate those results or repeat accepted short-fixture checks without cause. The owner session is left open on Account; no new test purchases/deletion are authorized. Follow CRFD-87's linked delivery evidence and keep production publication credentials/activation unset.
 2. Complete the remaining bounded security/release acceptance. Reuse the accepted nonce, checkout/finance, payment/replay, deletion and recovery evidence; do not reopen it without a defect. Human assistive-technology evidence cannot be substituted by axe. Independent encrypted restore and older-backup restriction remediation already passed; durable independent backup activation is a separate pre-customer gate. Protected publishing is prepared by CRFD-87, but owner-authorized production setup and real provider/approval execution remain separate launch actions.
 3. Prepare a small genuinely reviewed English launch catalogue through the merged publication workflow. Fictional fixtures must not be purchasable in production. AI editorial automation is post-V1.
 4. Obtain accountant/legal approval for invoicing/VAT/jurisdictions, digital-content consent/refunds, category-specific retention and unused-value/dispute handling. Preserve financial evidence and paid value meanwhile; finalize approved policy/support/business information without fabricated placeholders.
