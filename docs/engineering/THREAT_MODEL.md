@@ -2,7 +2,7 @@
 
 **Status:** V1 release assurance in progress — not production security sign-off
 
-**Last reviewed:** 2026-10-22 (guarded finance, checkout abuse and dependency review)
+**Last reviewed:** 2026-10-26 (live Reader boundary, protected publication and fresh dependency audit)
 
 **Next mandatory review:** Before the V1 release gate closes and whenever a trust
 boundary, payment provider or content-delivery model changes.
@@ -78,6 +78,25 @@ The primary objectives are:
 
 ## Release-assurance evidence and limits
 
+- 2026-10-26 fresh audit exposed new Next.js Critical/High, Zod High and
+  development-only undici findings. Pin Next.js/ESLint to 16.4.1, Zod to 4.6.6
+  (including the old ESLint transitive copy), and undici to 8.12.2. No new advisory
+  suppression is introduced. These updates remove affected versions; they do not
+  assert exploitation of Curiofold or that its configuration used every affected
+  feature. See [Next.js SVG advisory](https://github.com/advisories/GHSA-2464-fhr4-w9xw),
+  [Next.js cache advisory](https://github.com/advisories/GHSA-673q-mjm6-r5xr),
+  [Zod collection advisory](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5), and
+  [undici advisory](https://github.com/advisories/GHSA-xjj6-f33q-929c).
+- Real anonymous canonical Reader HTML redirected to sign-in (307); the RSC
+  request returned the expected 200 Flight redirect instruction, not Story text.
+  Both were private/no-store, with distinct per-request CSP nonces and no tested
+  paid passage. Real entitled Readers and keyboard controls passed with no browser
+  application errors. This is bounded access/cache evidence, not a penetration test.
+- CRFD-87 prepares protected publication using exact SHA/manifest owner approval
+  verified against GitHub, trusted main execution and a dedicated publisher role.
+  Local PostgreSQL proves role isolation and transaction rollback without audit
+  permission. No production setup or live environment-review execution has occurred;
+  activation and provider-specific privilege verification remain owner-gated.
 - CRFD-37's operator page/API are covered by the PostgreSQL authorization,
   revocation/deletion, concurrent request, audit and financial-preservation tests;
   browser fixtures exercise keyboard/axe/reflow/hydration but do not prove live
