@@ -6,6 +6,20 @@
 
 ## Recent delivery evidence
 
+- **2026-10-26 / CRFD-88:** add the missing versioned legal-information framework
+  at `/legal`, linked from the footer, Help and purchase entry points. A fixed
+  schema supports reviewed plain-text documents, version, effective date and
+  approval reference; drafts/future versions are not presented as active policy.
+  All current records remain empty drafts, not fabricated legal/business copy.
+  New live-key Checkout additionally requires all five effective documents and
+  configured support contact; Sandbox, recovery and fulfilment remain independent.
+  See `LEGAL_INFORMATION.md` and CRFD-88 for validation/delivery and external policy
+  boundaries. Local validation passed: 431 unit tests, 11 publication tests,
+  build/33-bundle scan and 46 browser tests/two intentional skips. An initial
+  oversubscribed local run hit dev-compiler deadlines; unchanged isolated cases
+  and the full two-worker suite passed without higher deadlines/retries. The
+  shared compiler now has that explicit worker bound. No consent, refund, tax
+  or public-launch approval is implied.
 - **2026-10-26 / CRFD-86 migration release control:** replace the unlocked
   Drizzle Kit execution path with a dedicated-client, advisory-locked Drizzle
   runner using the same SQL/journal. Concurrent runs fail fast; bounded lock/
@@ -437,7 +451,7 @@ Payment reconciliation and consistent read-only wallet auditing now run beside t
 
 ## Next
 
-1. CRFD-86: finish the linked migration-runner delivery/CI, then continue independently actionable release controls. Bounded real authenticated mobile Reader timing/interaction acceptance now passes. Actual VoiceOver/Safari + NVDA/Firefox and physical-device evidence remain scheduled final acceptance, not a reason to stop independent engineering or claim certification. The tester checklist is in the manual release matrix. Approved launch content is needed for representative 5–10-minute content/device and release p75 acceptance. Do not repeat accepted short-fixture checks without cause. The owner session is left open on Account; no new test purchases/deletion are authorized. Keep production publication credentials/activation unset.
+1. CRFD-88: finish the legal-information delivery/CI and canonical verification. The migration runner is merged via PR #80 (`ea22bd8`); do not reimplement it. Continue independently actionable V1 requirements without treating pending human AT as a coding blocker. Bounded authenticated Reader timing/interaction acceptance passes; actual AT/device and approved 5–10-minute launch-content/p75 evidence remain scheduled final acceptance, not certified or waived. The tester checklist is in the manual release matrix. Do not repeat accepted short-fixture checks without cause. The owner session is left open on Account; no new purchases/deletion are authorized. Keep production publication credentials/activation unset.
 2. Complete the remaining bounded security/release acceptance. Reuse the accepted nonce, checkout/finance, payment/replay, deletion and recovery evidence; do not reopen it without a defect. Human assistive-technology evidence cannot be substituted by axe. Independent encrypted restore and older-backup restriction remediation already passed; durable independent backup activation is a separate pre-customer gate. Protected publishing is prepared by CRFD-87, but owner-authorized production setup and real provider/approval execution remain separate launch actions.
 3. Prepare a small genuinely reviewed English launch catalogue through the merged publication workflow. Fictional fixtures must not be purchasable in production. AI editorial automation is post-V1.
 4. Obtain accountant/legal approval for invoicing/VAT/jurisdictions, digital-content consent/refunds, category-specific retention and unused-value/dispute handling. Preserve financial evidence and paid value meanwhile; finalize approved policy/support/business information without fabricated placeholders.

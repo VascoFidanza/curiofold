@@ -10,6 +10,9 @@ export default function SupportPage() {
   return (
     <PageFrame>
       <h1>Help and support</h1>
+      <p>
+        <Link href="/legal">Legal, privacy and purchase information</Link>
+      </p>
       <section aria-labelledby="account-help">
         <h2 id="account-help">Your account and purchases</h2>
         <p>

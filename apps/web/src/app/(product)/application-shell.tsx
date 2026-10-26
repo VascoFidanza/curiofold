@@ -118,6 +118,9 @@ export function ApplicationShell({
         <Link className={styles.actionLink} href="/support">
           Help and support
         </Link>
+        <Link className={styles.actionLink} href="/legal">
+          Legal and privacy
+        </Link>
       </footer>
 
       <nav aria-label="Mobile navigation" className={styles.mobileNavigation}>

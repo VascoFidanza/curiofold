@@ -7,6 +7,46 @@ const chromiumWidths = [
 const crossEngineWidths = [320, 768, 1440, 2560] as const
 
 test.describe('responsive browser contract', () => {
+  test('legal information is discoverable and never presents drafts as active policy', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 844 })
+    await page.goto('/legal')
+    await expect(
+      page.getByRole('heading', {
+        name: 'Legal and privacy information',
+        exact: true,
+      }),
+    ).toBeVisible()
+    await expect(page.locator('li > a[href^="/legal/"]')).toHaveCount(5)
+    await page
+      .getByRole('link', { name: 'Privacy policy', exact: true })
+      .click()
+    await expect(
+      page
+        .getByRole('heading', { name: 'Not yet available', exact: true })
+        .or(page.locator('time')),
+    ).toBeVisible()
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([])
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > innerWidth,
+      ),
+    ).toBe(false)
+    await page
+      .getByRole('link', {
+        name: 'All legal and privacy information',
+        exact: true,
+      })
+      .focus()
+    await page.keyboard.press('Enter')
+    await expect(
+      page.getByRole('heading', {
+        name: 'Legal and privacy information',
+        exact: true,
+      }),
+    ).toBeVisible()
+  })
   test('short content reserves the viewport without hiding the support link', async ({
     page,
   }) => {

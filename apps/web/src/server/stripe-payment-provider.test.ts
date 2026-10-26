@@ -5,6 +5,11 @@ import {
   createStripePaymentProvider,
   PaymentProviderError,
 } from './stripe-payment-provider'
+import { isLiveCommerceDisclosureReady } from './legal-information'
+
+vi.mock('./legal-information', () => ({
+  isLiveCommerceDisclosureReady: vi.fn(() => true),
+}))
 
 function session(
   overrides: Partial<Stripe.Checkout.Session> = {},
@@ -21,7 +26,71 @@ function session(
 }
 
 describe('Stripe payment provider', () => {
-  afterEach(() => vi.unstubAllEnvs())
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.mocked(isLiveCommerceDisclosureReady).mockReset().mockReturnValue(true)
+  })
+
+  it.each(['sk_live_', 'rk_live_'])(
+    'refuses new %s Checkout without effective disclosures but preserves recovery',
+    async (keyPrefix) => {
+      vi.stubEnv('NEXT_PUBLIC_ENVIRONMENT', 'production')
+      vi.stubEnv('CURIOFOLD_LIVE_PAYMENTS_ENABLED', 'true')
+      vi.mocked(isLiveCommerceDisclosureReady).mockReturnValue(false)
+      const create = vi.fn()
+      const retrieve = vi.fn().mockResolvedValue(session())
+      const provider = createStripePaymentProvider({
+        appUrl: 'https://curiofold.test',
+        secretKey: `${keyPrefix}fixture_not_a_secret`,
+        client: { checkout: { sessions: { create, retrieve } } },
+      })
+      await expect(
+        provider.createCheckoutSession(
+          {
+            amountMinor: 130,
+            cancelPath: '/account',
+            credits: 0,
+            currency: 'EUR',
+            orderId: 'order-1',
+            packKey: 'story',
+            purchaseType: 'individual_story',
+            successPath: '/library',
+          },
+          'operation',
+        ),
+      ).rejects.toMatchObject({ retryable: false })
+      expect(create).not.toHaveBeenCalled()
+      await expect(
+        provider.retrieveOrder('cs_test_order_1'),
+      ).resolves.toBeDefined()
+      expect(retrieve).toHaveBeenCalledOnce()
+    },
+  )
+
+  it('keeps Sandbox Checkout available when policy drafts are pending', async () => {
+    vi.mocked(isLiveCommerceDisclosureReady).mockReturnValue(false)
+    const create = vi.fn().mockResolvedValue(session())
+    const provider = createStripePaymentProvider({
+      appUrl: 'https://curiofold.test',
+      secretKey: 'sk_test_fixture_not_a_secret',
+      client: { checkout: { sessions: { create, retrieve: vi.fn() } } },
+    })
+    await expect(
+      provider.createCheckoutSession(
+        {
+          amountMinor: 500,
+          cancelPath: '/account',
+          credits: 5,
+          currency: 'EUR',
+          orderId: 'order-1',
+          packKey: 'top-up',
+          successPath: '/credits',
+        },
+        'operation',
+      ),
+    ).resolves.toBeDefined()
+    expect(create).toHaveBeenCalledOnce()
+  })
 
   it.each([
     ['preview', 'true', 'sk_live_', false],

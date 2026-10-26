@@ -5,6 +5,7 @@ import type {
   PaymentProviderOrderSnapshot,
 } from '@curiofold/domain'
 import Stripe from 'stripe'
+import { isLiveCommerceDisclosureReady } from './legal-information'
 
 interface StripeCheckoutClient {
   readonly checkout: {
@@ -106,7 +107,8 @@ export function createStripePaymentProvider(
       if (
         /^(?:sk|rk)_live_/u.test(secretKey ?? '') &&
         (process.env.NEXT_PUBLIC_ENVIRONMENT !== 'production' ||
-          process.env.CURIOFOLD_LIVE_PAYMENTS_ENABLED !== 'true')
+          process.env.CURIOFOLD_LIVE_PAYMENTS_ENABLED !== 'true' ||
+          !isLiveCommerceDisclosureReady())
       ) {
         throw new PaymentProviderError(false)
       }

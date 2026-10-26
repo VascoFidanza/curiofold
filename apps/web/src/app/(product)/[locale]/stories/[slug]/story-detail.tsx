@@ -253,6 +253,11 @@ export function StoryDetail({
                 <p className={styles.unlockNote}>
                   Yours permanently in your Library.
                 </p>
+                <p>
+                  <Link href="/legal">
+                    Terms, privacy and refund information
+                  </Link>
+                </p>
               </>
             )
           ) : (
