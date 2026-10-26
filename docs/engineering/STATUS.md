@@ -6,6 +6,30 @@
 
 ## Recent delivery evidence
 
+- **2026-10-26 / CRFD-86 live Reader acceptance:** normal canonical Google/Clerk
+  sign-in, Account (4 credits and existing purchase history), Library (two owned/
+  completed Stories) and both entitled Readers passed. At 390×844, larger text/
+  wide mode had no horizontal overflow; keyboard settings and refresh persistence,
+  skip-link focus on main and citation focus on the source note passed. Completion
+  remained 100%; original default preferences were restored. Browser application
+  errors: none. No payment, deletion, entitlement or production change. Native
+  browser read-only DOM inspection does not expose performance timing APIs; no
+  Reader LCP/CLS/INP evidence is fabricated. Human VoiceOver/NVDA and representative
+  measured Reader performance remain open under CRFD-86, not replaced by AX trees.
+- **2026-10-26 / CRFD-87:** prepared a dormant manual production-content workflow
+  using the existing public GitHub repository/Free environment-review capability.
+  The separate command verifies actual owner approval of the exact SHA/manifest,
+  trusted first-attempt main execution, passing CI/CodeQL, committed ancestor content,
+  dedicated publisher connection/TLS and rejection of fictional rehearsal content.
+  Normal nonproduction publication stays production-disabled. No production
+  environment, secret, role or activation flag was created. See `CONTENT_PUBLICATION.md`
+  for the precise later owner setup and live-verification boundary. Eleven publication
+  guard tests, full local validation (404 existing unit tests/build/bundle scan) and
+  the real isolated PostgreSQL 18 restricted-role/failure rehearsal passed. Fresh
+  audit exposed new Next.js/Zod/undici advisories being patched under CRFD-86 before
+  hosted integration. Merge evidence belongs to CRFD-87; this preparation is not
+  production publication acceptance or launch authorization.
+
 - **2026-10-22 / CRFD-86 compute placement:** real readiness responses exposed
   default US Node execution (`cdg1::iad1`) despite the approved Frankfurt compute/
   database topology. `apps/web/vercel.json` now pins exactly one `fra1` region,
@@ -186,8 +210,9 @@ The following are not yet certified and prevent declaring engineering V1 complet
    and alerts. Actual encrypted logical restore and older-backup/Clerk remediation
    have passed, but owner-only local temporary artifacts are not durable backups.
 2. Final manual accessibility, security and representative performance acceptance.
-3. Protected production publishing approval workflow, scoped production secrets/roles,
-   deployment/migration/rollback controls and production monitoring configuration.
+3. Protected production publishing workflow preparation (CRFD-87), then authorized
+   scoped production secrets/roles and actual activation acceptance; deployment/
+   migration/rollback controls and production monitoring configuration.
 4. Approved support/legal disclosures and financial-policy execution (OD-007/010/011).
    CRFD-37's guarded review intake is complete; actual refund execution remains gated.
 
@@ -363,8 +388,8 @@ Payment reconciliation and consistent read-only wallet auditing now run beside t
 
 ## Next
 
-1. Continue CRFD-86 after the PR #76 security slice; its delivery evidence is in the linked PR/Linear, and CRFD-37 is merged/Done. Do not repeat their investigation. Exact next acceptance: use a real signed-in canonical Preview session for representative mobile entitled-Reader interaction/performance checks. No in-app tab was open during this session; a nonblocking request to the owner asks them to sign in and leave it open. Do not invent authenticated evidence or create test payments merely to obtain access. Keep refunds and spent-credit decisions disabled pending OD-010/007.
-2. Complete actual VoiceOver/Safari and NVDA/Firefox checks, then the remaining bounded security and protected production publishing/release controls. Human assistive-technology evidence cannot be substituted by axe. Independent encrypted restore and older-backup restriction remediation already passed; durable independent backup activation is a separate pre-customer gate. Production publication remains disabled in the CLI pending the protected human-approved workflow and scoped production connection; preparing that workflow is the next independent engineering task if browser acceptance is still externally blocked.
+1. Finish CRFD-87 validation/integration; keep the production publication flag and credentials unset. Real signed-in mobile Reader/keyboard acceptance passed on 2026-10-26. CRFD-86 still needs measured authenticated mobile Reader performance with a timing-capable test browser and actual VoiceOver/Safari + NVDA/Firefox evidence. The connected in-app browser can inspect DOM but not timing instrumentation; do not claim unmeasured results. The owner session is left open on Account. No new test purchases/deletion are authorized.
+2. Complete the remaining bounded security/release acceptance. Reuse the accepted nonce, checkout/finance, payment/replay, deletion and recovery evidence; do not reopen it without a defect. Human assistive-technology evidence cannot be substituted by axe. Independent encrypted restore and older-backup restriction remediation already passed; durable independent backup activation is a separate pre-customer gate. Protected publishing is prepared by CRFD-87, but owner-authorized production setup and real provider/approval execution remain separate launch actions.
 3. Prepare a small genuinely reviewed English launch catalogue through the merged publication workflow. Fictional fixtures must not be purchasable in production. AI editorial automation is post-V1.
 4. Obtain accountant/legal approval for invoicing/VAT/jurisdictions, digital-content consent/refunds, category-specific retention and unused-value/dispute handling. Preserve financial evidence and paid value meanwhile; finalize approved policy/support/business information without fabricated placeholders.
 5. With explicit authorization, provision isolated production services/secrets, backup/alerting and protected release controls. Verify production configuration and obtain separate initial real-money launch approval.
@@ -387,4 +412,4 @@ Use the canonical `development` URL for Product Owner testing:
 
 See `docs/project/OPEN_DECISIONS.md`. No open product decision blocks the foundation stage.
 
-**Last updated:** 2026-10-21
+**Last updated:** 2026-10-26

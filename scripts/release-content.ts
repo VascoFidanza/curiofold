@@ -1,14 +1,10 @@
-import { execFileSync } from 'node:child_process'
-
-import {
-  compileStoryDocument,
-  publicationManifestSchema,
-} from '@curiofold/content'
 import {
   assertNonProductionSeedEnvironment,
   createDatabase,
   releaseReviewedStory,
 } from '@curiofold/db'
+
+import { readContentRelease } from './read-content-release'
 
 async function main() {
   const [commit, manifestPath, ...extra] = process.argv.slice(2)
@@ -33,25 +29,7 @@ async function main() {
       'Human review must be acknowledged for this exact SHA using CURIOFOLD_CONTENT_REVIEW=approved:<sha>.',
     )
   }
-  const readCommittedJson = (path: string): unknown =>
-    JSON.parse(
-      execFileSync('git', ['show', `${commit}:${path}`], {
-        encoding: 'utf8',
-        maxBuffer: 10 * 1024 * 1024,
-      }),
-    ) as unknown
-  const manifest = publicationManifestSchema.parse(
-    readCommittedJson(manifestPath),
-  )
-  const document = readCommittedJson(manifest.storyPath)
-  const compiled = compileStoryDocument(document)
-  const [, , storyKey, locale] = manifest.storyPath.split('/')
-  if (
-    compiled.document.storyKey !== storyKey ||
-    compiled.document.locale !== locale
-  ) {
-    throw new Error('Story path and document identity disagree.')
-  }
+  const { manifest, document } = readContentRelease(commit, manifestPath)
   if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required.')
   const database = createDatabase(process.env.DATABASE_URL)
   try {

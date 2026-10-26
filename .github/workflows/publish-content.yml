@@ -1,0 +1,55 @@
+name: Publish reviewed production Story
+
+on:
+  workflow_dispatch:
+    inputs:
+      content_sha:
+        description: Full reviewed source commit SHA (must already be on main)
+        required: true
+        type: string
+      manifest_path:
+        description: Reviewed content/releases/<name>.json
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: production-content-publication
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # Deliberately dormant until the owner authorizes production activation.
+    if: github.ref == 'refs/heads/main' && vars.CURIOFOLD_PRODUCTION_PUBLICATION_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production-content
+    steps:
+      - name: Check out trusted workflow code, not the content input
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install pinned package manager and dependencies without publication secrets
+        run: |
+          npm install --global pnpm@11.27.0
+          pnpm install --frozen-lockfile
+
+      - name: Publish approved content
+        run: pnpm exec tsx scripts/release-production-content.ts
+        env:
+          CONTENT_SHA: ${{ github.event.inputs.content_sha }}
+          CONTENT_MANIFEST: ${{ github.event.inputs.manifest_path }}
+          CURIOFOLD_PRODUCTION_PUBLICATION_ENABLED: ${{ vars.CURIOFOLD_PRODUCTION_PUBLICATION_ENABLED }}
+          CURIOFOLD_PRODUCTION_DATABASE_HOST: ${{ vars.CURIOFOLD_PRODUCTION_DATABASE_HOST }}
+          CURIOFOLD_PRODUCTION_PUBLICATION_DATABASE_URL: ${{ secrets.CURIOFOLD_PRODUCTION_PUBLICATION_DATABASE_URL }}
+          GITHUB_TOKEN: ${{ github.token }}
