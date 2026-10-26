@@ -178,50 +178,55 @@ test.describe('responsive browser contract', () => {
     }
   })
 
-  test('Reader and expanded navigation preserve content and actions', async ({
-    browserName,
-    page,
-  }) => {
-    const widths =
-      browserName === 'chromium' ? chromiumWidths : crossEngineWidths
+  // Preserve all widths, without putting 28 navigations under one 30s deadline.
+  for (const batch of [0, 1, 2, 3]) {
+    test(`Reader and expanded navigation preserve content and actions — viewport set ${String(batch + 1)}`, async ({
+      browserName,
+      page,
+    }) => {
+      const widths =
+        browserName === 'chromium'
+          ? chromiumWidths.slice(batch * 4, (batch + 1) * 4)
+          : crossEngineWidths.slice(batch, batch + 1)
 
-    await page.route('**/api/v1/reading-progress/**', async (route) => {
-      await route.fulfill({
-        body: '{}',
-        contentType: 'application/json',
-        status: 200,
+      await page.route('**/api/v1/reading-progress/**', async (route) => {
+        await route.fulfill({
+          body: '{}',
+          contentType: 'application/json',
+          status: 200,
+        })
       })
+
+      for (const width of widths) {
+        await page.setViewportSize({ height: 900, width })
+        await page.goto('/test-fixtures/reader')
+        expect(
+          await page.evaluate(
+            () =>
+              document.documentElement.scrollWidth -
+              document.documentElement.clientWidth,
+          ),
+          `Reader horizontal overflow at ${String(width)}px`,
+        ).toBeLessThanOrEqual(1)
+        await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+        await expect(page.getByRole('link', { name: 'Back' })).toBeVisible()
+
+        await page.goto('/test-fixtures/shell-expansion')
+        expect(
+          await page.evaluate(
+            () =>
+              document.documentElement.scrollWidth -
+              document.documentElement.clientWidth,
+          ),
+          `expanded-label overflow at ${String(width)}px`,
+        ).toBeLessThanOrEqual(1)
+        await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+        await expect(
+          page.getByRole('link', { name: /conta pessoal/i }),
+        ).toBeVisible()
+      }
     })
-
-    for (const width of widths) {
-      await page.setViewportSize({ height: 900, width })
-      await page.goto('/test-fixtures/reader')
-      expect(
-        await page.evaluate(
-          () =>
-            document.documentElement.scrollWidth -
-            document.documentElement.clientWidth,
-        ),
-        `Reader horizontal overflow at ${String(width)}px`,
-      ).toBeLessThanOrEqual(1)
-      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-      await expect(page.getByRole('link', { name: 'Back' })).toBeVisible()
-
-      await page.goto('/test-fixtures/shell-expansion')
-      expect(
-        await page.evaluate(
-          () =>
-            document.documentElement.scrollWidth -
-            document.documentElement.clientWidth,
-        ),
-        `expanded-label overflow at ${String(width)}px`,
-      ).toBeLessThanOrEqual(1)
-      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-      await expect(
-        page.getByRole('link', { name: /conta pessoal/i }),
-      ).toBeVisible()
-    }
-  })
+  }
 
   test('keyboard order starts with the skip link and reaches primary content', async ({
     browserName,

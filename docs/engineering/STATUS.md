@@ -20,8 +20,12 @@
   30-second total limit under parallel contention. Isolated unchanged cases passed
   in all three engines (14.6/7.3/3.7s); no timeout was increased or assertion removed.
   Fresh High-threshold audit passed with the existing ESLint-only exception and
-  one Drizzle-only Moderate advisory. Hosted checks/merge are recorded in the PR
-  linked from CRFD-86/87; no production or payment activation occurred.
+  one Drizzle-only Moderate advisory. Hosted CI reproduced one total-deadline
+  timeout before passing on retry. The offending Reader/navigation case now uses
+  four bounded viewport batches, retaining every width/assertion and the same
+  deadline; final local suite passed 43 tests/two intentional skips, with no retry.
+  Patched-head checks/merge are recorded in PR #78 linked from CRFD-86/87;
+  no production or payment activation occurred.
 - **2026-10-26 / CRFD-86 live Reader acceptance:** normal canonical Google/Clerk
   sign-in, Account (4 credits and existing purchase history), Library (two owned/
   completed Stories) and both entitled Readers passed. At 390×844, larger text/

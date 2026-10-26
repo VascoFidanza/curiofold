@@ -26,6 +26,12 @@ The suite renders the real application shell, public Story Detail, and browser-n
 
 The test fixture intercepts progress persistence because this gate is provider-independent. Authenticated, database-backed progress remains covered by integration tests and must receive live environment evidence when Clerk and the preview database are connected.
 
+The Reader/expanded-navigation matrix runs in four bounded viewport batches per
+engine. The earlier single Chromium case performed 28 navigations under one
+30-second test limit and timed out under both local and hosted contention on
+2026-10-26. Batching retains every viewport/assertion and the same timeout; it
+does not hide slow scenarios with larger deadlines or extra retries.
+
 ### Reader release acceptance — 2026-10-20 (CRFD-82)
 
 The expanded browser test exposed two gaps that the earlier closed-settings scan
