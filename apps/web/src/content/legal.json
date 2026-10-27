@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "documents": {
+    "terms": {
+      "status": "draft",
+      "version": null,
+      "effectiveOn": null,
+      "approvalReference": null,
+      "sections": []
+    },
+    "privacy": {
+      "status": "draft",
+      "version": null,
+      "effectiveOn": null,
+      "approvalReference": null,
+      "sections": []
+    },
+    "refunds": {
+      "status": "draft",
+      "version": null,
+      "effectiveOn": null,
+      "approvalReference": null,
+      "sections": []
+    },
+    "cookies": {
+      "status": "draft",
+      "version": null,
+      "effectiveOn": null,
+      "approvalReference": null,
+      "sections": []
+    },
+    "business": {
+      "status": "draft",
+      "version": null,
+      "effectiveOn": null,
+      "approvalReference": null,
+      "sections": []
+    }
+  }
+}

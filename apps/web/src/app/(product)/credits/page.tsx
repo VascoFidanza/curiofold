@@ -74,6 +74,9 @@ export default async function CreditsPage({ searchParams }: CreditsPageProps) {
         orderId={orderId}
         returnPath={returnPath}
       />
+      <p>
+        <Link href="/legal">Terms, privacy and refund information</Link>
+      </p>
     </PageFrame>
   )
 }

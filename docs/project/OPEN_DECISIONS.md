@@ -163,6 +163,11 @@ Pending.
 ### Engineering responsibility
 Provide implementation hooks required by the validated policy.
 
+CRFD-88 prepares versioned, approval-aware legal-information pages and blocks new
+live Checkout while required disclosures/support configuration are missing. The
+catalogue remains draft-only. This does not resolve OD-007 or approve policy text,
+consent/refund behavior, tax treatment or fiscal operations.
+
 ### Resolution
 Pending.
 

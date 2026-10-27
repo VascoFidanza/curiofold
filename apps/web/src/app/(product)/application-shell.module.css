@@ -193,6 +193,9 @@
   }
 }
 .supportFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-3);
   padding: var(--cf-space-5);
   padding-bottom: 6rem;
 }
