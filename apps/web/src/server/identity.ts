@@ -1,4 +1,5 @@
 import { auth } from '@clerk/nextjs/server'
+import { identityKeysMatchEnvironment } from '@curiofold/config/identity'
 import type { AuthorizationContext } from '@curiofold/domain'
 import { ensureIdentityAccount } from '@curiofold/db'
 
@@ -32,9 +33,7 @@ export class IdentitySessionError extends Error {
 export function isClerkSessionConfigured(
   source: Record<string, string | undefined> = process.env,
 ): boolean {
-  return Boolean(
-    source.CLERK_SECRET_KEY && source.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-  )
+  return identityKeysMatchEnvironment(source)
 }
 
 function verificationTime(now: Date, ageMinutes: number): Date | null {

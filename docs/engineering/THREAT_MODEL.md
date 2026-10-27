@@ -2,7 +2,7 @@
 
 **Status:** V1 release assurance in progress — not production security sign-off
 
-**Last reviewed:** 2026-10-26 (live Reader boundary, protected publication and fresh dependency audit)
+**Last reviewed:** 2026-10-27 (identity key-mode/deployment isolation)
 
 **Next mandatory review:** Before the V1 release gate closes and whenever a trust
 boundary, payment provider or content-delivery model changes.
@@ -77,6 +77,13 @@ The primary objectives are:
 | TM-14 | Operational errors cannot be correlated, delaying containment                    | Request IDs, sanitized structured logs, durable payment-operation diagnostics and real nonproduction UptimeRobot DOWN/UP emails are verified (CRFD-74/75).                                                                                     | Configure production alert routing and named incident coverage. Sentry is optional; it is not required to replace working zero-cost diagnostics / Engineering + owner | Nonproduction alerts verified |
 
 ## Release-assurance evidence and limits
+
+- 2026-10-27: one shared identity policy rejects test credentials in production,
+  live credentials in nonproduction and contradictory Vercel/application modes.
+  Proxy retains strict nonce protection when Clerk is unavailable; protected
+  resource authorization remains server-side and fail-closed. Environment matrix,
+  configuration and Proxy tests cover this boundary. Key prefixes do not verify
+  same-instance pairing or replace production database/secret isolation.
 
 - 2026-10-26 fresh audit exposed new Next.js Critical/High, Zod High and
   development-only undici findings. Pin Next.js/ESLint to 16.4.1, Zod to 4.6.6
