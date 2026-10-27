@@ -6,6 +6,22 @@
 
 ## Recent delivery evidence
 
+- **2026-10-27 / CRFD-86 identity isolation:** reuse one key-mode/deployment policy
+  across Proxy, server sessions/provider mounting and configuration parsing.
+  Production cannot accept Development keys; Preview cannot mount live identity.
+  Invalid configuration preserves the strict nonce fallback and protected access
+  denial. Matrix/Proxy regression coverage preserves normal test-key Preview.
+  No keys, provider settings or production resources changed. Three-browser
+  regression checks passed (46 tests, two intentional skips), including nonce CSP
+  and blocked inline injection. Full local validation passed: 456 unit tests,
+  11 publication tests, lint/boundaries/strict types/build and 33-bundle secret
+  scan. Validation and delivery evidence are linked from CRFD-86; same-instance
+  pairing, actual human AT and production activation remain separate requirements.
+- **2026-10-27 / Linear accuracy:** CRFD-89 consolidates the already-approved
+  external launch prerequisites under Milestone 5.3. That milestone is not ready
+  merely because CRFD-88's disclosure software is Done. Owner approvals,
+  real content, support/fiscal configuration and durable backup activation remain
+  explicit; this adds no feature or infrastructure scope.
 - **2026-10-26 / CRFD-88:** add the missing versioned legal-information framework
   at `/legal`, linked from the footer, Help and purchase entry points. A fixed
   schema supports reviewed plain-text documents, version, effective date and
@@ -19,7 +35,11 @@
   oversubscribed local run hit dev-compiler deadlines; unchanged isolated cases
   and the full two-worker suite passed without higher deadlines/retries. The
   shared compiler now has that explicit worker bound. No consent, refund, tax
-  or public-launch approval is implied.
+  or public-launch approval is implied. PR #81 passed all hosted checks and merged
+  on 2026-10-27 as `53fbe9e`. Canonical deployment
+  `dpl_BnsWpKkZKve4cH3j6KguhWm39v1w` is READY: `/legal` and keyboard navigation to
+  Privacy show truthful pending-policy status, with no draft body exposed.
+  CRFD-88 is Done for software preparation only.
 - **2026-10-26 / CRFD-86 migration release control:** replace the unlocked
   Drizzle Kit execution path with a dedicated-client, advisory-locked Drizzle
   runner using the same SQL/journal. Concurrent runs fail fast; bounded lock/
@@ -451,7 +471,7 @@ Payment reconciliation and consistent read-only wallet auditing now run beside t
 
 ## Next
 
-1. CRFD-88: finish the legal-information delivery/CI and canonical verification. The migration runner is merged via PR #80 (`ea22bd8`); do not reimplement it. Continue independently actionable V1 requirements without treating pending human AT as a coding blocker. Bounded authenticated Reader timing/interaction acceptance passes; actual AT/device and approved 5–10-minute launch-content/p75 evidence remain scheduled final acceptance, not certified or waived. The tester checklist is in the manual release matrix. Do not repeat accepted short-fixture checks without cause. The owner session is left open on Account; no new purchases/deletion are authorized. Keep production publication credentials/activation unset.
+1. CRFD-86: finish identity environment-isolation delivery and canonical signed-in verification if not yet linked in Linear; resume at the current-head check/merge, not implementation. CRFD-88 legal information is merged and canonical-verified (`53fbe9e`); the migration runner is merged via PR #80 (`ea22bd8`). Do not reimplement these controls. Continue independently actionable V1 requirements without treating pending human AT as a coding blocker. Bounded authenticated Reader timing/interaction acceptance passes; actual AT/device and approved 5–10-minute launch-content/p75 evidence remain scheduled final acceptance, not certified or waived. The tester checklist is in the manual release matrix. Do not repeat accepted short-fixture checks without cause. Preserve the owner's open session; no new purchases/deletion are authorized. Keep production publication credentials/activation unset.
 2. Complete the remaining bounded security/release acceptance. Reuse the accepted nonce, checkout/finance, payment/replay, deletion and recovery evidence; do not reopen it without a defect. Human assistive-technology evidence cannot be substituted by axe. Independent encrypted restore and older-backup restriction remediation already passed; durable independent backup activation is a separate pre-customer gate. Protected publishing is prepared by CRFD-87, but owner-authorized production setup and real provider/approval execution remain separate launch actions.
 3. Prepare a small genuinely reviewed English launch catalogue through the merged publication workflow. Fictional fixtures must not be purchasable in production. AI editorial automation is post-V1.
 4. Obtain accountant/legal approval for invoicing/VAT/jurisdictions, digital-content consent/refunds, category-specific retention and unused-value/dispute handling. Preserve financial evidence and paid value meanwhile; finalize approved policy/support/business information without fabricated placeholders.

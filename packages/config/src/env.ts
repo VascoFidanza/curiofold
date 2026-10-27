@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { identityKeysMatchEnvironment } from './identity'
 
 const environmentNames = [
   'local',
@@ -48,11 +49,19 @@ export function parsePublicEnvironment(
 export function parseServerEnvironment(
   source: Record<string, string | undefined>,
 ): ServerEnvironment {
+  if (!identityKeysMatchEnvironment(source))
+    throw new Error(
+      'Identity configuration is unavailable for this environment.',
+    )
   return serverEnvironmentSchema.parse(source)
 }
 
 export function parseIdentityEnvironment(
   source: Record<string, string | undefined>,
 ): IdentityEnvironment {
+  if (!identityKeysMatchEnvironment(source))
+    throw new Error(
+      'Identity configuration is unavailable for this environment.',
+    )
   return identityEnvironmentSchema.parse(source)
 }

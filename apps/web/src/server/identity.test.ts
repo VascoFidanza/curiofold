@@ -15,6 +15,29 @@ vi.mock('@curiofold/db', () => ({
 const mockedEnsureIdentityAccount = vi.mocked(ensureIdentityAccount)
 
 describe('identity session boundary', () => {
+  it('rejects mismatched production identity before reading a session or database', async () => {
+    mockedEnsureIdentityAccount.mockClear()
+    vi.stubEnv('VERCEL_ENV', 'production')
+    vi.stubEnv('NEXT_PUBLIC_ENVIRONMENT', 'preview')
+    vi.stubEnv('CLERK_SECRET_KEY', 'sk_test_fixture')
+    vi.stubEnv('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY', 'pk_test_fixture')
+    try {
+      await expect(requireAuthorizationContext()).rejects.toMatchObject({
+        code: 'identity_unavailable',
+      })
+      expect(mockedEnsureIdentityAccount).not.toHaveBeenCalled()
+    } finally {
+      vi.unstubAllEnvs()
+    }
+    expect(
+      isClerkSessionConfigured({
+        VERCEL_ENV: 'production',
+        NEXT_PUBLIC_ENVIRONMENT: 'preview',
+        CLERK_SECRET_KEY: 'sk_test_fixture',
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_fixture',
+      }),
+    ).toBe(false)
+  })
   it('distinguishes an unavailable provider from an anonymous session', async () => {
     expect(isClerkSessionConfigured({})).toBe(false)
     expect(

@@ -1,4 +1,5 @@
 import { clerkMiddleware } from '@clerk/nextjs/server'
+import { identityKeysMatchEnvironment } from '@curiofold/config/identity'
 import { NextResponse, type NextRequest } from 'next/server'
 
 import { nonceResponse } from './server/nonce-csp'
@@ -9,7 +10,7 @@ const applicationUrl =
   process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
 const identityProxy =
-  publishableKey && secretKey
+  publishableKey && secretKey && identityKeysMatchEnvironment(process.env)
     ? clerkMiddleware(
         () => {
           const response = NextResponse.next()

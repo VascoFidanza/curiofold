@@ -8,7 +8,7 @@ This boundary is intentionally useful before provider credentials exist. Public 
 
 ## Request flow
 
-1. Next.js 16 `proxy.ts` attaches Clerk session state only when both development keys are configured. It does not authorize access.
+1. Next.js 16 `proxy.ts` attaches Clerk session state only when both keys match the declared environment and deployment mode. It does not authorize access.
 2. Code adjacent to a protected resource calls `requireAuthorizationContext()`.
 3. A valid Clerk user and session are required. Anonymous requests fail with `401`.
 4. The provider subject is idempotently linked to the internal `users` row.
@@ -41,12 +41,28 @@ Post-authentication return paths are parsed against a fixed Curiofold origin and
 
 ## Degraded operation
 
-- No Clerk keys: public pages and liveness remain available; sign-in/account surfaces explain that identity is unavailable; protected APIs return `503`.
+- Missing or environment-mismatched Clerk keys: public pages and liveness remain available under the strict nonce CSP; sign-in/account surfaces explain that identity is unavailable; protected APIs return `503`.
 - Valid Clerk session but unavailable database: protected work fails and the normal error/observability boundary captures it; public browsing continues.
 - Anonymous request: protected data returns `401`; the account page offers the local sign-in route.
 - Disabled internal account: protected data returns `403` even if Clerk still presents a valid session.
 
 No route treats Proxy, client components or a successful browser redirect as sufficient authorization.
+
+## Credential environment boundary
+
+The shared `identityKeysMatchEnvironment` policy is used by Proxy, server session
+availability, the root Clerk provider and server configuration parsing. Local,
+test, Preview and staging accept only `sk_test_` / `pk_test_`; explicitly declared
+production accepts only `sk_live_` / `pk_live_`. A Vercel production deployment
+must also declare `NEXT_PUBLIC_ENVIRONMENT=production`; Vercel Preview/development
+cannot declare production identity. Missing/empty, mixed-mode or whitespace-bearing
+keys and unknown application environments fail closed without exposing values.
+
+These checks establish key mode and declared deployment compatibility. Clerk still
+validates the keys and session; prefixes cannot establish that two keys belong to
+the same Clerk instance. Production database isolation, separate provider instances,
+domain configuration and scoped secret custody remain activation requirements.
+No provider credential or production setting is changed by this control.
 
 ## Remaining live gate
 
